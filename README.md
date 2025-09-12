@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 电影海报搜索 APP（DMM 商品情報API）
 
-## Getting Started
+基于 Next.js + Tailwind 构建的精美 UI。输入关键词，调用 DMM Web API（商品情報API），从结果中随机挑选一个条目，取其 `imageURL.large` 并在页面正中央显示海报。
 
-First, run the development server:
+## 环境变量
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1) 复制 `.env.example` 为 `.env.local`
+
+```
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2) 填入你的 DMM API 凭据：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DMM_API_ID`: 你的 API ID
+- `DMM_AFFILIATE_ID`: 你的 Affiliate ID
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+注意：为保护密钥安全，密钥只保存在服务端 API 路由中使用，前端不会暴露。
 
-## Learn More
+## 本地运行
 
-To learn more about Next.js, take a look at the following resources:
+```
+npm run dev
+# 或 pnpm dev / yarn dev / bun dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+打开 `http://localhost:3000`，输入关键词点击“搜索”。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 说明
 
-## Deploy on Vercel
+- 服务端路由：`src/app/api/search/route.ts` 调用 DMM 商品情報API
+- 前端页面：`src/app/page.tsx`，搜索后从 `items` 中随机取一条并展示 `imageURL.large`
+- 为适配不同来源图片，页面使用普通 `<img>` 标签来避免远程域名配置限制
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 可调整项
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- API 参数中的 `service`/`floor` 已设为 `digital` / `video`，可按需求调整；也可追加 `site` 改为其他可用值。
