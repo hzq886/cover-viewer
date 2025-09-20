@@ -32,6 +32,8 @@ const COMPACT_PADDING = 24;
 const RELAXED_PADDING = 40;
 // 额外安全间距，避免底部遮挡
 const SAFETY_GAP = 48;
+// 样图列相对于舞台的额外高度补偿
+const SAMPLE_COLUMN_EXTRA = 20;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -340,7 +342,7 @@ export default function Home() {
   const releaseDate = (pick as any)?.date || (pick as any)?.release_date || "";
 
   // 样图模块的总高度，留出额外空间
-  const stageHeightForSamples = stage.containerH + 24;
+  const stageHeightForSamples = stage.containerH + SAMPLE_COLUMN_EXTRA;
 
   return (
     <div
