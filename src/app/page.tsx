@@ -409,28 +409,47 @@ export default function Home() {
               <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center">
                 <div className="flex-1">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-violet-100 ring-1 ring-inset ring-white/20">
-                    Inspired Posters
+                    今日幸运AV
                   </span>
                   <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
-                    输入任意关键词，随机挑选一张来自 DMM API 的海报图
+                    输入任意关键词，随机获取一张今日幸运AV封面
+                  </h2>
+                  <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
+                    来试试手气吧！
                   </h2>
                   <p className="mt-3 text-sm md:text-base text-slate-200/80">
-                    实时检索数万影片资源，即刻捕捉灵感。通过云端代理快速缓存高清封面，结合样图预览与视频花絮，全方位呈现作品细节。
+                    支持分类、番号、演员、导演、制作商、标题任意关键词。
+                    <br />
+                    <em className="font-mono not-italic">要是不满意结果，试试按搜索键再抽一次！</em>
                   </p>
                 </div>
                 <div className="grid flex-1 grid-cols-1 gap-3 text-sm text-slate-100 md:grid-cols-2">
                   <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
                     <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.2)]" />
                     <div>
-                      <p className="font-medium text-white/90">封面与封底一键切换</p>
-                      <p className="mt-1 text-xs text-slate-300/80">点击海报即可翻面，细节级放大支持沉浸式浏览。</p>
+                      <p className="font-medium text-white/90">不只是封面！</p>
+                      <p className="mt-1 text-xs text-slate-300/80">右侧预览图包含更多视频截图</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
                     <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
                     <div>
-                      <p className="font-medium text-white/90">样图智能排序预览</p>
-                      <p className="mt-1 text-xs text-slate-300/80">自动识别竖版与横版样图，突出重点画面一目了然。</p>
+                      <p className="font-medium text-white/90">放大大图！</p>
+                      <p className="mt-1 text-xs text-slate-300/80">点击中央海报可放大截图</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
+                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
+                    <div>
+                      <p className="font-medium text-white/90">动起来！</p>
+                      <p className="mt-1 text-xs text-slate-300/80">左侧播放按钮可观赏样片</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
+                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
+                    <div>
+                      <p className="font-medium text-white/90">商品详情！</p>
+                      <p className="mt-1 text-xs text-slate-300/80">点击影片标题可以跳转购买页面</p>
                     </div>
                   </div>
                 </div>
@@ -527,10 +546,6 @@ export default function Home() {
             </div>
           )}
         </main>
-
-        <footer ref={footerRef} className={`${compact ? "mt-4" : "mt-10"} text-center text-xs text-slate-300/70`}>
-          数据来源：DMM 商品情報API
-        </footer>
       </div>
 
       <ZoomModal

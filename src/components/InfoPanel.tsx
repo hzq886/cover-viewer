@@ -121,16 +121,16 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
       )}
 
       {(stageSizeText || imageSizeText) && (
-        <div className="mt-3 space-y-1 text-xs md:text-sm text-slate-200/80">
+        <div className="mt-3 space-y-1 text-xs md:text-sm text-white/90">
           {imageSizeText && (
-            <div>图片实际分辨率: <span className="font-medium text-white/90">{imageSizeText}</span></div>
+            <div>图片实际分辨率: {imageSizeText}</div>
           )}
           {stageSizeText && (
-            <div>显示区域尺寸: <span className="font-medium text-white/90">{stageSizeText}</span></div>
+            <div>显示区域尺寸: {stageSizeText}</div>
           )}
           {typeof remainingCount === "number" && (
-            <div className="pt-1 text-[11px] md:text-xs text-fuchsia-200/85">
-              当前关键词剩余数量: <span className="font-semibold text-white/90">{remainingCount}</span>
+            <div>
+              当前关键词剩余数量: {remainingCount}
             </div>
           )}
         </div>

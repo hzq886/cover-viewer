@@ -39,7 +39,7 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
   const hasRecent = recentKeywords.length > 0;
 
   const placeholder = useMemo(
-    () => (compact ? "继续检索关键词" : "输入关键词（例：movie、actor、标题）"),
+    () => (compact ? "继续检索关键词" : "输入任意关键词(多个关键词用空格隔开)"),
     [compact],
   );
 
