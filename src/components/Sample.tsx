@@ -18,7 +18,7 @@ type Props = {
   activeSide?: 'front' | 'back' | null;
 };
 
-const SampleColumn = React.forwardRef<HTMLDivElement, Props>(function SampleColumn(
+const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
   { images, height, thumbSize, onSelect, frontBackSrc, activeUrl, activeSide },
   ref,
 ) {
@@ -149,4 +149,4 @@ const SampleColumn = React.forwardRef<HTMLDivElement, Props>(function SampleColu
   );
 });
 
-export default SampleColumn;
+export default Sample;

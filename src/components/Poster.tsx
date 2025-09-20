@@ -18,7 +18,7 @@ type Props = {
   forceSide?: 'front' | 'back';
 };
 
-const PosterComposite = React.forwardRef<HTMLDivElement, Props>(function PosterComposite(
+const Poster = React.forwardRef<HTMLDivElement, Props>(function Poster(
   { posterUrl, proxiedPosterUrl, basePosterUrl, containerH, frontW, backW, defaultShowBack, onOpenModal, onShowBackChange, single, hoverFlip = true, forceSide },
   ref,
 ) {
@@ -130,4 +130,4 @@ const PosterComposite = React.forwardRef<HTMLDivElement, Props>(function PosterC
   );
 });
 
-export default PosterComposite;
+export default Poster;

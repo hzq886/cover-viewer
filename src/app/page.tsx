@@ -9,8 +9,8 @@ import type { DmmNameObj } from "../types/dmm";
 import SearchBar from "../components/SearchBar";
 import Logo from "../components/Logo";
 import InfoPanel from "../components/InfoPanel";
-import PosterComposite from "../components/PosterComposite";
-import SampleColumn from "../components/SampleColumn";
+import Poster from "../components/Poster";
+import Sample from "../components/Sample";
 import ZoomModal from "../components/ZoomModal";
 import VideoModal from "../components/VideoModal";
 
@@ -33,7 +33,7 @@ const RELAXED_PADDING = 40;
 // 额外安全间距，避免底部遮挡
 const SAFETY_GAP = 48;
 // 样图列相对于舞台的额外高度补偿
-const SAMPLE_COLUMN_EXTRA = 20;
+const SAMPLE_COLUMN_EXTRA = 24;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -356,9 +356,6 @@ export default function Home() {
         if (detailsRef.current && detailsRef.current.contains(target)) return;
         if (sampleRef.current && sampleRef.current.contains(target)) return;
         if (modalOpen) return;
-        if (posterRef.current && posterUrl && !posterRef.current.contains(target) && isPosterMode) {
-          setSelectedSide((prev) => (prev === "back" ? "front" : "back"));
-        }
       }}
     >
       <div
@@ -505,7 +502,7 @@ export default function Home() {
                 />
 
                 <div className="flex-1 flex justify-center">
-                  <PosterComposite
+                  <Poster
                     ref={posterRef}
                     posterUrl={posterUrl}
                     proxiedPosterUrl={proxiedPosterUrl}
@@ -525,7 +522,7 @@ export default function Home() {
                 </div>
 
                 {orderedSamples.length > 0 && (
-                  <SampleColumn
+                  <Sample
                     ref={sampleRef}
                     images={orderedSamples}
                     height={stageHeightForSamples}
