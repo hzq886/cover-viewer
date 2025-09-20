@@ -14,165 +14,283 @@ import SampleColumn from "../components/SampleColumn";
 import ZoomModal from "../components/ZoomModal";
 import VideoModal from "../components/VideoModal";
 
+// 默认背景色回退值（深蓝色调，用于无主色时）
+const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
+// 海报书脊占整体宽度的比例
+const POSTER_SPINE_RATIO = 0.02;
+// 舞台目标宽高比（宽:高 = 2:3）
+const TARGET_ASPECT_RATIO = 2 / 3;
+// 舞台宽度上限占视口宽度的比例
+const STAGE_WIDTH_FRACTION = 0.72;
+// 舞台允许的最大高度
+const MAX_STAGE_HEIGHT = 800;
+// 舞台可用高度下限，避免过小
+const MIN_AVAILABLE_HEIGHT = 180;
+// 紧凑布局时的上下内边距
+const COMPACT_PADDING = 24;
+// 宽松布局时的上下内边距
+const RELAXED_PADDING = 40;
+// 额外安全间距，避免底部遮挡
+const SAFETY_GAP = 48;
+
+// 将远程 URL 转换为代理地址，确保统一走本地 API
+const toProxyUrl = (url?: string | null): string => {
+  if (!url) return "";
+  return url.startsWith("/api/") ? url : `/api/proxy?url=${encodeURIComponent(url)}`;
+};
+
+// 从 DMM 提供的多尺寸图片对象中提取首选海报 URL
+const extractPosterUrl = (imageUrl?: { large?: string | null; small?: string | null } | null): string => {
+  if (!imageUrl) return "";
+  return imageUrl.large || imageUrl.small || "";
+};
+
+// 将演员、导演等信息统一整理为“、”分隔的字符串
+const joinNames = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "object" && item && "name" in item ? (item as DmmNameObj).name ?? "" : ""))
+      .filter(Boolean)
+      .join("、");
+  }
+  if (typeof value === "object" && value && "name" in value) {
+    return ((value as DmmNameObj).name ?? "") || "";
+  }
+  return "";
+};
+
+// 样图缩略信息的数据结构
+type SampleThumb = { url: string; portrait: boolean };
+
+// 页面入口组件
 export default function Home() {
+  // 搜索 hook 提供的状态与动作
   const { keyword, setKeyword, currentItem, remainingItems, loading, error, hasSearched, submit, reset } = useDmmSearch();
-  const [showBack, setShowBack] = useState(false);
+  // 是否处于紧凑布局（显示结果后自动启用）
   const [compact, setCompact] = useState(false);
-  const [vp, setVp] = useState<{ vw: number; vh: number }>({ vw: 0, vh: 0 });
+  // 当前视口尺寸，驱动舞台自适应
+  const [viewport, setViewport] = useState<{ vw: number; vh: number }>({ vw: 0, vh: 0 });
+  // 海报展示区域的引用，用于判断点击区域
   const posterRef = useRef<HTMLDivElement>(null);
+  // 布局高度 Hook，提供 header/footer 引用与高度
   const { headerRef, footerRef, layoutH } = useLayoutHeights();
+  // 详情信息面板引用，阻止外层点击切换
   const detailsRef = useRef<HTMLDivElement>(null);
+  // Logo 容器引用，阻止外层点击切换
   const logoRef = useRef<HTMLDivElement>(null);
+  // 样图列表引用，阻止外层点击切换
   const sampleRef = useRef<HTMLDivElement>(null);
-  
+
+  // 放大查看模态框是否打开
   const [modalOpen, setModalOpen] = useState(false);
+  // 放大模态框当前使用的图片地址
   const [modalImgUrl, setModalImgUrl] = useState<string>("");
+  // 试看视频模态框是否打开
   const [videoOpen, setVideoOpen] = useState(false);
+  // 试看视频播放地址
   const [videoUrl, setVideoUrl] = useState<string>("");
 
+  // 当前选中的搜索结果
   const pick = currentItem;
 
-  // 検索実行関数
-  async function onSearch() { setShowBack(false); await submit(); }
-
-  // 当前条目的封面/封底源
-  const frontBackSrc = pick?.imageURL?.large || pick?.imageURL?.small || "";
-
-  // 選択された画像のURL
+  // 当前作品对应的基础海报 URL
+  const basePosterUrl = useMemo(() => extractPosterUrl((pick as any)?.imageURL ?? null), [pick]);
+  // 样图模式下选中的单张图片地址
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
+  // 当前海报朝向，front 为封面，back 为封底
   const [selectedSide, setSelectedSide] = useState<"front" | "back" | null>(null);
-  // 默认选中第1张（封面），进入“影片海报模式”
+
+  // 作品切换时重置选中图片与朝向
   useEffect(() => {
     setSelectedImageUrl("");
     setSelectedSide(pick ? "front" : null);
   }, [pick]);
-  const posterUrl = selectedImageUrl || pick?.imageURL?.large || pick?.imageURL?.small || "";
-  const proxiedPosterUrl = posterUrl
-    ? (posterUrl.startsWith('/api/') ? posterUrl : `/api/proxy?url=${encodeURIComponent(posterUrl)}`)
-    : "";
-  const posterTitle = pick?.title || "";
-  // Use original remote poster for color extraction to avoid passing local API URLs to /api/color
-  const colorUrl = pick?.imageURL?.large || pick?.imageURL?.small || "";
-  const proxiedColorUrl = colorUrl ? `/api/proxy?url=${encodeURIComponent(colorUrl)}` : "";
-  const { dominant, naturalSize } = useImageColor(colorUrl, proxiedColorUrl);
-  // 选中图片（样图或已裁剪半幅）的原始尺寸
-  const proxiedSelectedUrl = selectedImageUrl
-    ? (selectedImageUrl.startsWith('/api/') ? selectedImageUrl : `/api/proxy?url=${encodeURIComponent(selectedImageUrl)}`)
-    : "";
-  const { naturalSize: selectedNatural } = useImageColor(selectedImageUrl || null, proxiedSelectedUrl || undefined);
-  // Detect natural size of selected sample (if any) to decide layout placement of InfoPanel
-  // Note: previously used to decide layout for landscape samples, no longer needed
 
-  // 色ユーティリティは ../lib/color を使用
+  // 当前展示的主图地址：优先样图，其次海报
+  const posterUrl = selectedImageUrl || basePosterUrl;
+  // 当前展示图的代理地址
+  const proxiedPosterUrl = useMemo(() => toProxyUrl(posterUrl), [posterUrl]);
+  // 用于取色的海报代理地址
+  const proxiedColorUrl = useMemo(() => toProxyUrl(basePosterUrl), [basePosterUrl]);
+  // 主图的主色与原始尺寸信息
+  const { dominant, naturalSize } = useImageColor(basePosterUrl, proxiedColorUrl);
 
-  useEffect(() => { if (posterUrl) { setShowBack(false); setCompact(true); } }, [posterUrl]);
+  // 选中样图的代理地址
+  const proxiedSelectedUrl = useMemo(() => toProxyUrl(selectedImageUrl), [selectedImageUrl]);
+  // 选中样图的尺寸信息，用于展示面板
+  const { naturalSize: selectedNatural } = useImageColor(
+    selectedImageUrl || null,
+    selectedImageUrl ? proxiedSelectedUrl : undefined,
+  );
 
-  // 布局高度由 useLayoutHeights 管理
-
-  // ビューポートサイズ監視
+  // 一旦有海报可用则切换为紧凑模式
   useEffect(() => {
-    const handle = () => setVp({ vw: window.innerWidth, vh: window.innerHeight });
-    handle();
-    window.addEventListener("resize", handle);
-    return () => window.removeEventListener("resize", handle);
+    if (!posterUrl) return;
+    setCompact(true);
+  }, [posterUrl]);
+
+  // 监听窗口尺寸变化，更新视口参数
+  useEffect(() => {
+    // 窗口尺寸变更时的处理逻辑
+    const handleResize = () => setViewport({ vw: window.innerWidth, vh: window.innerHeight });
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Build dynamic background styles from dominant color
-  const baseRgb = dominant || { r: 2, g: 6, b: 23 }; // slate-950 fallback
+  // 背景基色，优先使用主色，否则使用回退值
+  const baseRgb = dominant || FALLBACK_COLOR;
+  // 背景渐变的高亮色
   const accent = adjustLightness(baseRgb, 0.12);
+  // 背景渐变的阴影色
   const subtle = adjustLightness(baseRgb, -0.08);
-  // グラデーションパターンの生成
+  // 色彩渐变背景样式字符串
   const radial = `radial-gradient(1200px 800px at 80% -10%, rgba(${accent.r},${accent.g},${accent.b},0.45), transparent), radial-gradient(900px 600px at 10% 110%, rgba(${subtle.r},${subtle.g},${subtle.b},0.55), transparent)`;
 
-  // 展示规则：
-  // - 影片海报：并排展示封面+封底（各半宽），按原像素比例缩放至可视区域内，完整显示不裁切
-  // - 样图：单张按原像素比例缩放，完整显示不裁切
-  const isPosterMode = !selectedImageUrl || selectedImageUrl.startsWith('/api/split');
+  // 是否处于海报模式（即展示整张封面/封底组合）
+  const isPosterMode = !selectedImageUrl || selectedImageUrl.startsWith("/api/split");
+  // 是否展示单张图片（样图模式）
   const showSingle = !isPosterMode;
-  const verticalPadding = compact ? 24 : 40; // 容器上下内边距的近似
-  const safetyGap = 48; // 额外间距避免滚动条遮挡
-  const avail = Math.max(180, vp.vh - layoutH.header - layoutH.footer - verticalPadding - safetyGap);
-  const maxHeightPx = Math.floor(avail);
-  const maxWidthPx = Math.floor(vp.vw * 0.92);
-  // 固定舞台：2/3 比例，宽占 72% 视口，最高 800px
-  const targetAr = 2 / 3;
-  const stageFrac = 0.72;
-  const maxStageH = 800;
-  let containerH = Math.floor(Math.min(maxHeightPx, maxStageH));
-  let stageW = Math.floor(containerH * targetAr);
-  const widthLimit = Math.floor(vp.vw * stageFrac);
-  if (stageW > widthLimit) { stageW = widthLimit; containerH = Math.floor(stageW / targetAr); }
-  // 书脊 2%（仅海报模式生效）；样图模式视为单图
-  const spineRatio = 0.02;
-  const showSingleNow = !isPosterMode;
-  const frontFrac = showSingleNow ? 1 : 0.5 + spineRatio / 2;
-  const backFrac = showSingleNow ? 0 : 0.5 - spineRatio / 2;
-  const frontW = Math.floor(stageW * frontFrac);
-  const backW = Math.floor(stageW * backFrac);
+  // Header/Footer 的高度信息
+  const { header: headerHeight, footer: footerHeight } = layoutH;
 
-  // Details from DMM item
-  const contentId = (pick as any)?.content_id || (pick as any)?.contentid || "";
-  const title = posterTitle;
-  const affiliate = pick?.affiliateURL || pick?.URL || "";
-  const fromNameArray = (v: any): string =>
-    Array.isArray(v) ? v.map((x) => x?.name).filter(Boolean).join("、") : v?.name || "";
-  const actressNames = fromNameArray(pick?.iteminfo?.actress);
-  const directorNames = fromNameArray(pick?.iteminfo?.director);
-  const makerName =
-    (Array.isArray(pick?.iteminfo?.maker)
-      ? fromNameArray(pick?.iteminfo?.maker)
-      : (pick?.iteminfo?.maker as DmmNameObj | undefined)?.name) || pick?.maker?.name || "";
-  const releaseDate = (pick as any)?.date || (pick as any)?.release_date || "";
-  type SampleThumb = { url: string; portrait: boolean };
+  // 舞台相关尺寸，随视口变化动态计算
+  const stage = useMemo(() => {
+    // 当前上下 padding，根据紧凑状态决定
+    const verticalPadding = compact ? COMPACT_PADDING : RELAXED_PADDING;
+    // 计算可用高度，扣除头尾与安全间距
+    const availableHeight = Math.max(
+      MIN_AVAILABLE_HEIGHT,
+      viewport.vh - headerHeight - footerHeight - verticalPadding - SAFETY_GAP,
+    );
+    // 限制高度不超过设定上限
+    const clampedHeight = Math.floor(Math.min(availableHeight, MAX_STAGE_HEIGHT));
+    // 初始舞台高度，保持在最小高度以上
+    let containerH = Math.max(clampedHeight, MIN_AVAILABLE_HEIGHT);
+    // 根据目标宽高比计算舞台宽度
+    let stageW = Math.floor(containerH * TARGET_ASPECT_RATIO);
+    // 视口允许的最大宽度
+    const widthLimit = Math.floor(viewport.vw * STAGE_WIDTH_FRACTION);
+    // 如果舞台宽度超限，按宽度反推高度
+    if (widthLimit > 0 && stageW > widthLimit) {
+      stageW = widthLimit;
+      containerH = Math.floor(stageW / TARGET_ASPECT_RATIO);
+    }
+    // 封面宽度占比（含书脊）
+    const frontFrac = showSingle ? 1 : 0.5 + POSTER_SPINE_RATIO / 2;
+    // 封底宽度占比（扣除书脊）
+    const backFrac = showSingle ? 0 : 0.5 - POSTER_SPINE_RATIO / 2;
+    // 实际封面宽度（像素）
+    const frontW = Math.floor(stageW * frontFrac);
+    // 实际封底宽度（像素）
+    const backW = Math.max(0, Math.floor(stageW * backFrac));
+    // 样图缩略图基础尺寸（单边）
+    const baseThumb = Math.max(96, Math.min(160, Math.floor((containerH || 480) / 3.2)));
+    // 缩略图最终尺寸（考虑 2x 像素）
+    const thumbSize = baseThumb * 2;
 
+    return {
+      containerH,
+      stageW,
+      frontW,
+      backW,
+      thumbSize,
+      stageSizeText: `${frontW + backW}px × ${containerH}px`,
+    };
+  }, [compact, footerHeight, headerHeight, showSingle, viewport.vh, viewport.vw]);
+
+  // 展示在 InfoPanel 中的图片尺寸文案
+  const imageSizeText = useMemo(() => {
+    if (isPosterMode) {
+      if (!naturalSize) return undefined;
+      // 不同朝向使用不同宽度比例
+      const widthRatio = selectedSide === "back" ? 0.5 - POSTER_SPINE_RATIO / 2 : 0.5 + POSTER_SPINE_RATIO / 2;
+      // 当前侧面的实际宽度
+      const widthPx = Math.floor((naturalSize.w || 0) * widthRatio);
+      return `${widthPx || 0}px × ${naturalSize.h || 0}px`;
+    }
+    if (selectedNatural) {
+      return `${selectedNatural.w}px × ${selectedNatural.h}px`;
+    }
+    return undefined;
+  }, [isPosterMode, naturalSize, selectedNatural, selectedSide]);
+
+  // 来源于 DMM 样图字段的原始地址列表
   const sampleImages: string[] = useMemo(() => {
-    const imgs: string[] = (pick as any)?.sampleImageURL?.sample_l?.image || (pick as any)?.sampleImageURL?.sample_s?.image || [];
-    return Array.isArray(imgs) ? imgs : [];
+    const images =
+      (pick as any)?.sampleImageURL?.sample_l?.image || (pick as any)?.sampleImageURL?.sample_s?.image || [];
+    return Array.isArray(images) ? images : [];
   }, [pick]);
-  // Reorder samples: show portrait first, then landscape
+
+  // 排序后的样图列表（先竖版后横版）
   const [orderedSamples, setOrderedSamples] = useState<SampleThumb[]>([]);
+  // 根据尺寸判定样图方向并排序
   useEffect(() => {
     let cancelled = false;
-    if (!sampleImages || sampleImages.length === 0) { setOrderedSamples((prev) => (prev.length === 0 ? prev : [])); return; }
+    if (sampleImages.length === 0) {
+      setOrderedSamples([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     (async () => {
+      // 并行加载样图并记录宽高信息
       const results = await Promise.all(
-        sampleImages.map(async (u, i) => {
+        sampleImages.map(async (url, index) => {
           try {
+            // 浏览器 Image 对象用于探测尺寸
             const img = new Image();
             await new Promise<void>((resolve) => {
               img.onload = () => resolve();
               img.onerror = () => resolve();
-              img.src = `/api/proxy?url=${encodeURIComponent(u)}`;
+              img.src = `/api/proxy?url=${encodeURIComponent(url)}`;
             });
+            // 竖版判断：高度是否不小于宽度
             const portrait = img.naturalHeight >= img.naturalWidth;
-            return { u, i, portrait };
+            return { url, index, portrait };
           } catch {
-            return { u, i, portrait: true };
+            return { url, index, portrait: true };
           }
         }),
       );
       if (cancelled) return;
+      // 竖版样图保持原有顺序
       const portraits: SampleThumb[] = results
-        .filter((r) => r.portrait)
-        .sort((a, b) => a.i - b.i)
-        .map((r) => ({ url: r.u, portrait: true }));
+        .filter((item) => item.portrait)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => ({ url: item.url, portrait: true }));
+      // 横版样图保持原有顺序
       const landscapes: SampleThumb[] = results
-        .filter((r) => !r.portrait)
-        .sort((a, b) => a.i - b.i)
-        .map((r) => ({ url: r.u, portrait: false }));
+        .filter((item) => !item.portrait)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => ({ url: item.url, portrait: false }));
       setOrderedSamples([...portraits, ...landscapes]);
     })();
-    return () => { cancelled = true; };
-  }, [sampleImages]);
-  const sampleMovie: string =
-    (pick as any)?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
-    (pick as any)?.sampleMovieURL?.size_720_480 ||
-    (pick as any)?.sample_movie_url?.size_720_480 ||
-    "";
 
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleImages]);
+
+  // DMM 返回的试看视频地址
+  const sampleMovie: string = useMemo(
+    () =>
+      (pick as any)?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
+      (pick as any)?.sampleMovieURL?.size_720_480 ||
+      (pick as any)?.sample_movie_url?.size_720_480 ||
+      "",
+    [pick],
+  );
+
+  // 搜索事件处理（触发 DMM 接口请求）
+  const handleSearch = useCallback(async () => {
+    await submit();
+  }, [submit]);
+
+  // 重置页面状态并返回初始界面
   const handleResetHome = useCallback(() => {
     reset();
-    setShowBack(false);
     setCompact(false);
     setSelectedImageUrl("");
     setSelectedSide(null);
@@ -183,36 +301,64 @@ export default function Home() {
     setVideoUrl("");
   }, [reset]);
 
-  // Thumbnail size for sample column
-  const baseThumb = Math.max(96, Math.min(160, Math.floor((containerH || 480) / 3.2)));
-  const thumbSize = baseThumb * 2;
+  // 播放试看视频，先尝试解析真实地址
+  const handlePlay = useCallback(async () => {
+    if (!sampleMovie) return;
+    try {
+      // 请求后端解析试看视频的真实地址
+      const response = await fetch(`/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`);
+      // 解析接口返回的 JSON 数据
+      const data = await response.json();
+      // 获取优先使用的实际播放地址
+      const resolved = data?.url || sampleMovie;
+      setVideoUrl(resolved);
+      setVideoOpen(true);
+    } catch {
+      setVideoUrl(sampleMovie);
+      setVideoOpen(true);
+    }
+  }, [sampleMovie]);
 
-  // Track whether sample column has more content to scroll
-  // sample 列滚动状态由 SampleColumn 内部管理
-
+  // Header 导航的布局样式
   const navBase = compact
     ? "flex w-full items-center justify-start gap-4 md:gap-6 transition"
     : "flex w-full flex-col items-center justify-center gap-6 transition";
 
+  // 作品 ID（多字段兼容）
+  const contentId = (pick as any)?.content_id || (pick as any)?.contentid || "";
+  // 作品标题
+  const title = pick?.title || "";
+  // 推广链接或原始详情页
+  const affiliate = pick?.affiliateURL || pick?.URL || "";
+  // 演员列表
+  const actressNames = joinNames(pick?.iteminfo?.actress);
+  // 导演列表
+  const directorNames = joinNames(pick?.iteminfo?.director);
+  // 制作方名称
+  const makerName = joinNames(pick?.iteminfo?.maker) || pick?.maker?.name || "";
+  // 发售日期
+  const releaseDate = (pick as any)?.date || (pick as any)?.release_date || "";
+
+  // 样图模块的总高度，留出额外空间
+  const stageHeightForSamples = stage.containerH + 24;
+
   return (
     <div
       className="relative min-h-svh w-full overflow-hidden text-slate-100"
-      onClickCapture={(e) => {
-        const target = e.target as Node;
-        // Ignore clicks inside header (search bar, input, button) or footer
+      onClickCapture={(event) => {
+        // 当前点击的目标节点
+        const target = event.target as Node;
         if (headerRef.current && headerRef.current.contains(target)) return;
         if (logoRef.current && logoRef.current.contains(target)) return;
         if (footerRef.current && footerRef.current.contains(target)) return;
         if (detailsRef.current && detailsRef.current.contains(target)) return;
         if (sampleRef.current && sampleRef.current.contains(target)) return;
-        
         if (modalOpen) return;
-        if (posterRef.current && posterUrl && !posterRef.current.contains(target)) {
-          setShowBack((prev) => !prev);
+        if (posterRef.current && posterUrl && !posterRef.current.contains(target) && isPosterMode) {
+          setSelectedSide((prev) => (prev === "back" ? "front" : "back"));
         }
       }}
     >
-      {/* Color-based gradient background */}
       <div
         className="absolute inset-0 -z-20"
         style={{
@@ -220,7 +366,6 @@ export default function Home() {
           backgroundColor: `rgb(${baseRgb.r}, ${baseRgb.g}, ${baseRgb.b})`,
         }}
       />
-      {/* Blurred poster backdrop as a soft fill, only when we have an image */}
       {proxiedPosterUrl && (
         <div
           className="absolute inset-0 -z-10 bg-center bg-cover blur-3xl scale-110 opacity-50"
@@ -248,7 +393,7 @@ export default function Home() {
                 keyword={keyword}
                 setKeyword={setKeyword}
                 loading={loading}
-                onSubmit={onSearch}
+                onSubmit={handleSearch}
                 compact={compact}
                 className={compact ? "" : "mx-auto"}
               />
@@ -295,8 +440,6 @@ export default function Home() {
         )}
 
         <main className={`${compact ? "mt-3 md:mt-4" : "mt-12 md:mt-16"}`}>
-          {/* 顶部控制区已移除，播放与换一张移动到左侧信息区 */}
-          {/* States: loading, error, empty, result */}
           {loading && (
             <div className="flex items-center justify-center h-[60svh]">
               <div className="relative">
@@ -324,7 +467,6 @@ export default function Home() {
           {!loading && !error && posterUrl && naturalSize && (
             <div className="relative flex flex-col items-stretch">
               <div className="flex w-full max-w-7xl flex-col md:flex-row items-stretch gap-6">
-                {/* InfoPanel always on the left */}
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -334,41 +476,27 @@ export default function Home() {
                   makerName={makerName}
                   directorNames={directorNames}
                   releaseDate={releaseDate}
-                  onPlay={!!sampleMovie ? async () => {
-                    try {
-                      const r = await fetch(`/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`);
-                      const data = await r.json();
-                      const resolved = data?.url || sampleMovie;
-                      setVideoUrl(resolved);
-                      setVideoOpen(true);
-                    } catch {
-                      setVideoUrl(sampleMovie);
-                      setVideoOpen(true);
-                    }
-                  } : undefined}
+                  onPlay={sampleMovie ? handlePlay : undefined}
                   keyword={keyword}
-                  stageSizeText={`${frontW + backW}px × ${containerH}px`}
-                  imageSizeText={
-                    isPosterMode
-                      ? (naturalSize
-                          ? `${Math.floor((naturalSize.w || 0) * (selectedSide === 'back' ? (0.5 - 0.01) : (0.5 + 0.01)))}px × ${naturalSize.h}px`
-                          : undefined)
-                      : (selectedNatural ? `${selectedNatural.w}px × ${selectedNatural.h}px` : undefined)
-                  }
+                  stageSizeText={stage.stageSizeText}
+                  imageSizeText={imageSizeText}
                   remainingCount={remainingItems.length}
                 />
 
-                <div className={`flex-1 flex justify-center`}>
+                <div className="flex-1 flex justify-center">
                   <PosterComposite
                     ref={posterRef}
                     posterUrl={posterUrl}
                     proxiedPosterUrl={proxiedPosterUrl}
-                    basePosterUrl={frontBackSrc}
-                    containerH={containerH}
-                    frontW={frontW}
-                    backW={backW}
+                    basePosterUrl={basePosterUrl}
+                    containerH={stage.containerH}
+                    frontW={stage.frontW}
+                    backW={stage.backW}
                     defaultShowBack={false}
-                    onOpenModal={() => { setModalImgUrl(posterUrl); setModalOpen(true); }}
+                    onOpenModal={() => {
+                      setModalImgUrl(posterUrl);
+                      setModalOpen(true);
+                    }}
                     single={showSingle}
                     hoverFlip={false}
                     forceSide={selectedSide || undefined}
@@ -379,24 +507,22 @@ export default function Home() {
                   <SampleColumn
                     ref={sampleRef}
                     images={orderedSamples}
-                    height={containerH + 24}
-                    thumbSize={thumbSize}
-                    onSelect={(u, meta) => {
+                    height={stageHeightForSamples}
+                    thumbSize={stage.thumbSize}
+                    onSelect={(url, meta) => {
                       if (meta?.side) {
-                        // 影片海报模式：点击第一张=封面，第二张=背面
                         setSelectedSide(meta.side);
                         setSelectedImageUrl("");
                       } else {
-                        // 样图模式：显示整张（单图）
                         setSelectedSide(null);
-                        setSelectedImageUrl(u);
+                        setSelectedImageUrl(url);
                       }
                     }}
-                    frontBackSrc={frontBackSrc}
+                    frontBackSrc={basePosterUrl}
                     activeUrl={selectedImageUrl}
                     activeSide={selectedSide}
-                />
-              )}
+                  />
+                )}
               </div>
             </div>
           )}
@@ -411,8 +537,8 @@ export default function Home() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         mainUrl={modalImgUrl || posterUrl}
-        samples={orderedSamples.map((s) => s.url)}
-        posterUrl={pick?.imageURL?.large || pick?.imageURL?.small || ""}
+        samples={orderedSamples.map((sample) => sample.url)}
+        posterUrl={basePosterUrl}
       />
       <VideoModal open={videoOpen} onClose={() => setVideoOpen(false)} videoUrl={videoUrl} />
     </div>
