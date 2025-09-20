@@ -112,11 +112,11 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
         <div className="mt-5">
           <button
             onClick={onPlay}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white/90 hover:bg-white/15 shadow cursor-pointer ring-1 ring-inset ring-violet-400/20 hover:ring-2 hover:ring-violet-400/45 focus-visible:ring-2 focus-visible:ring-violet-400/60 transition-colors transition-shadow"
+            className="inline-flex items-center gap-2 rounded-full border border-rose-500/40 bg-gradient-to-r from-rose-500/90 to-pink-500/90 px-3 py-1.5 text-sm font-semibold text-white shadow-md shadow-rose-500/30 hover:from-rose-500/80 hover:to-pink-500/80 hover:shadow-rose-500/40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 transition-colors transition-shadow"
             aria-label="播放样片"
             title="播放样片"
           >
-            <IcBaselinePlayCircleFilled className="text-violet-300/90" />
+            <IcBaselinePlayCircleFilled className="text-white drop-shadow-[0_1px_6px_rgba(244,114,182,0.35)]" />
             播放样片
           </button>
         </div>
