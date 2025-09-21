@@ -1,6 +1,7 @@
 "use client";
 
 import React, { type SVGProps } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = {
   contentId: string;
@@ -34,6 +35,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
   },
   ref,
 ) {
+  const { dictionary, t } = useI18n();
   const dateOnly = (releaseDate || "").slice(0, 10);
   const isDev = process.env.NODE_ENV === "development";
   const showDebugInfo = isDev && (stageSizeText || imageSizeText || typeof remainingCount === "number");
@@ -80,28 +82,28 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
         {contentId && (
           <div className="flex items-center gap-2">
             <span className="text-violet-300/90" aria-hidden><IcRoundConfirmationNumber /></span>
-            <span className="text-slate-100/90">番号:</span>
+            <span className="text-slate-100/90">{dictionary.infoPanel.contentId}</span>
             <span className="font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{contentId}</span>
           </div>
         )}
         {makerName && (
           <div className="flex items-center gap-2">
             <span className="text-violet-300/90" aria-hidden><IcOutlineHomeWork /></span>
-            <span className="text-slate-100/90">厂商:</span>
+            <span className="text-slate-100/90">{dictionary.infoPanel.maker}</span>
             <span className="font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{makerName}</span>
           </div>
         )}
         {directorNames && (
           <div className="flex items-center gap-2">
             <span className="text-violet-300/90" aria-hidden><IcTwotoneVideoCameraFront /></span>
-            <span className="text-slate-100/90">导演:</span>
+            <span className="text-slate-100/90">{dictionary.infoPanel.director}</span>
             <span className="font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{directorNames}</span>
           </div>
         )}
         {dateOnly && (
           <div className="flex items-center gap-2">
             <span className="text-violet-300/90" aria-hidden><IcTwotoneCalendarToday /></span>
-            <span className="text-slate-100/90">发布日期:</span>
+            <span className="text-slate-100/90">{dictionary.infoPanel.releaseDate}</span>
             <span className="font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">{dateOnly}</span>
           </div>
         )}
@@ -113,11 +115,11 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
           <button
             onClick={onPlay}
             className="inline-flex items-center gap-2 rounded-full border border-rose-500/40 bg-gradient-to-r from-rose-500/90 to-pink-500/90 px-3 py-1.5 text-sm font-semibold text-white shadow-md shadow-rose-500/30 hover:from-rose-500/80 hover:to-pink-500/80 hover:shadow-rose-500/40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60 transition-colors transition-shadow"
-            aria-label="播放样片"
-            title="播放样片"
+            aria-label={dictionary.infoPanel.playAria}
+            title={dictionary.infoPanel.play}
           >
             <IcBaselinePlayCircleFilled className="text-white drop-shadow-[0_1px_6px_rgba(244,114,182,0.35)]" />
-            播放样片
+            {dictionary.infoPanel.play}
           </button>
         </div>
       )}
@@ -125,15 +127,13 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
       {showDebugInfo && (
         <div className="mt-3 space-y-1 text-xs md:text-sm text-white/90">
           {imageSizeText && (
-            <div>图片实际分辨率: {imageSizeText}</div>
+            <div>{t("infoPanel.imageSize", { value: imageSizeText })}</div>
           )}
           {stageSizeText && (
-            <div>显示区域尺寸: {stageSizeText}</div>
+            <div>{t("infoPanel.stageSize", { value: stageSizeText })}</div>
           )}
           {typeof remainingCount === "number" && (
-            <div>
-              当前关键词剩余数量: {remainingCount}
-            </div>
+            <div>{t("infoPanel.remaining", { count: remainingCount })}</div>
           )}
         </div>
       )}

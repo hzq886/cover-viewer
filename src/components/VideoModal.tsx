@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { APITypes, PlyrOptions } from "plyr-react";
 import "plyr-react/plyr.css";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = {
   open: boolean;
@@ -19,6 +20,7 @@ function isPromise<T = unknown>(value: unknown): value is Promise<T> {
 }
 
 export default function VideoModal({ open, onClose, videoUrl }: Props) {
+  const { dictionary } = useI18n();
   const playerRef = useRef<APITypes | null>(null);
   const openRef = useRef(open);
   const initializedRef = useRef(false);
@@ -201,7 +203,8 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 z-[60] h-9 w-9 rounded-full bg-black/60 text-white/90 flex items-center justify-center border border-white/20 hover:bg-black/75"
-        title="关闭"
+        title={dictionary.video.close}
+        aria-label={dictionary.video.close}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>

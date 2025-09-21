@@ -13,6 +13,8 @@ import Poster from "../components/Poster";
 import Sample from "../components/Sample";
 import ZoomModal from "../components/ZoomModal";
 import VideoModal from "../components/VideoModal";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import { useI18n } from "../i18n/I18nProvider";
 
 // 默认背景色回退值（深蓝色调，用于无主色时）
 const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
@@ -66,6 +68,7 @@ type SampleThumb = { url: string; portrait: boolean };
 
 // 页面入口组件
 export default function Home() {
+  const { dictionary, t } = useI18n();
   // 搜索 hook 提供的状态与动作
   const { keyword, setKeyword, currentItem, remainingItems, loading, error, hasSearched, submit, reset } = useDmmSearch();
   // 是否处于紧凑布局（显示结果后自动启用）
@@ -91,6 +94,20 @@ export default function Home() {
   const [videoOpen, setVideoOpen] = useState(false);
   // 试看视频播放地址
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const hero = dictionary.hero;
+  const heroFeatures = hero.features;
+  const errorMessage = useMemo(() => {
+    if (!error) return null;
+    const params =
+      typeof error.status === "number"
+        ? { status: error.status }
+        : undefined;
+    const message = t(`errors.${error.code}`, params);
+    if (!message || message === `errors.${error.code}`) {
+      return t("errors.unknown");
+    }
+    return message;
+  }, [error, t]);
 
   // 当前选中的搜索结果
   const pick = currentItem;
@@ -397,6 +414,15 @@ export default function Home() {
                 className={compact ? "" : "mx-auto"}
               />
             </div>
+            <div
+              className={
+                compact
+                  ? "flex min-w-[120px] items-center justify-end"
+                  : "mt-4 flex w-full items-center justify-center md:mt-0 md:justify-end"
+              }
+            >
+              <LanguageSwitcher />
+            </div>
           </nav>
         </header>
 
@@ -408,49 +434,39 @@ export default function Home() {
               <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center">
                 <div className="flex-1">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-violet-100 ring-1 ring-inset ring-white/20">
-                    今日幸运AV
+                    {hero.badge}
                   </span>
                   <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
-                    输入任意关键词，随机获取一张今日幸运AV封面
+                    {hero.heading1}
                   </h2>
                   <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
-                    来试试手气吧！
+                    {hero.heading2}
                   </h2>
                   <p className="mt-3 text-sm md:text-base text-slate-200/80">
-                    支持分类、番号、演员、导演、制作商、标题任意关键词。
+                    {hero.description}
                     <br />
-                    <em className="font-mono not-italic">要是不满意结果，试试按搜索键再抽一次！</em>
+                    <em className="font-mono not-italic">{hero.emphasis}</em>
                   </p>
                 </div>
                 <div className="grid flex-1 grid-cols-1 gap-3 text-sm text-slate-100 md:grid-cols-2">
-                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
-                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.2)]" />
-                    <div>
-                      <p className="font-medium text-white/90">不只是封面！</p>
-                      <p className="mt-1 text-xs text-slate-300/80">右侧预览图包含更多视频截图</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
-                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
-                    <div>
-                      <p className="font-medium text-white/90">放大大图！</p>
-                      <p className="mt-1 text-xs text-slate-300/80">点击中央海报可放大截图</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
-                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
-                    <div>
-                      <p className="font-medium text-white/90">动起来！</p>
-                      <p className="mt-1 text-xs text-slate-300/80">左侧播放按钮可观赏样片</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10">
-                    <span className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]" />
-                    <div>
-                      <p className="font-medium text-white/90">商品详情！</p>
-                      <p className="mt-1 text-xs text-slate-300/80">点击影片标题可以跳转购买页面</p>
-                    </div>
-                  </div>
+                  {heroFeatures.map((feature, index) => {
+                    const dotClass =
+                      index === 0
+                        ? "mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.2)]"
+                        : "mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]";
+                    return (
+                      <div
+                        key={`${feature.title}-${index}`}
+                        className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10"
+                      >
+                        <span className={dotClass} />
+                        <div>
+                          <p className="font-medium text-white/90">{feature.title}</p>
+                          <p className="mt-1 text-xs text-slate-300/80">{feature.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -469,7 +485,7 @@ export default function Home() {
           {!loading && error && (
             <div className="flex items-center justify-center h-[50svh]">
               <div className="rounded-xl bg-red-600/10 text-red-200 border border-red-400/30 px-4 py-3">
-                {error}
+                {errorMessage}
               </div>
             </div>
           )}
@@ -477,7 +493,7 @@ export default function Home() {
           {!loading && !error && hasSearched && !posterUrl && (
             <div className="flex items-center justify-center h-[50svh]">
               <div className="rounded-xl bg-white/5 text-slate-200 border border-white/15 px-4 py-3">
-                未找到相关海报，请更换关键词再试。
+                {t("page.noResults")}
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, type SVGProps, useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = {
   keyword: string;
@@ -32,6 +33,7 @@ export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
 }
 
 export default function SearchBar({ keyword, setKeyword, loading, onSubmit, compact, className }: Props) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
   const [recentKeywords, setRecentKeywords] = useState<string[]>([]);
@@ -39,8 +41,11 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
   const hasRecent = recentKeywords.length > 0;
 
   const placeholder = useMemo(
-    () => (compact ? "继续检索关键词" : "输入任意关键词(多个关键词用空格隔开)"),
-    [compact],
+    () =>
+      compact
+        ? t("search.placeholder.compact")
+        : t("search.placeholder.default"),
+    [compact, t],
   );
 
   useEffect(() => {
@@ -138,7 +143,8 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
           {keyword.trim() !== "" && (
             <button
               type="button"
-              aria-label="清除搜索内容"
+              aria-label={t("search.clear")}
+              title={t("search.clear")}
               onClick={() => {
                 setKeyword("");
                 requestAnimationFrame(() => {
@@ -157,8 +163,8 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
             type="submit"
             disabled={loading || !keyword.trim()}
             className={submitButtonClass}
-            title="搜索"
-            aria-label={compact ? "执行搜索" : undefined}
+            title={t("search.submitTitle")}
+            aria-label={compact ? t("search.submitCompactAria") : undefined}
           >
             {loading ? (
               <span className="relative flex h-5 w-5 items-center justify-center text-white">
@@ -171,7 +177,7 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
             ) : compact ? (
               <MdiMagnify className="h-5 w-5" />
             ) : (
-              "搜索"
+              t("search.submit")
             )}
           </button>
         </div>
@@ -204,12 +210,13 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
                   </button>
                   <button
                     type="button"
-                    aria-label={`删除 '${item}'`}
-                    onMouseDown={(event) => {
+                    aria-label={t("search.deleteRecent", { value: item })}
+                  onMouseDown={(event) => {
                       event.preventDefault();
                       setRecentKeywords((prev) => prev.filter((keywordItem) => keywordItem !== item));
                     }}
                     className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
+                    title={t("search.deleteRecent", { value: item })}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <line x1="18" y1="6" x2="6" y2="18" />

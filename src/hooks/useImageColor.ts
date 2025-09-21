@@ -18,7 +18,7 @@ export function useImageColor(posterUrl: string | undefined | null, proxiedUrl?:
       try {
         const r = await fetch(`/api/color?url=${encodeURIComponent(posterUrl)}`);
         const data = await r.json();
-        if (!r.ok) throw new Error(data?.message || "色解析失败");
+        if (!r.ok) throw new Error(data?.message || "Failed to analyze dominant colors");
         if (!cancelled) {
           if (data?.dominant) setDominant(data.dominant);
           if (data?.original?.width && data?.original?.height) {
@@ -47,4 +47,3 @@ export function useImageColor(posterUrl: string | undefined | null, proxiedUrl?:
 
   return { dominant, naturalSize } as const;
 }
-

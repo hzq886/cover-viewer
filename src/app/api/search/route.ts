@@ -10,17 +10,17 @@ export async function GET(req: Request) {
     const offset = offsetParam ? Math.max(1, Number.parseInt(offsetParam, 10) || 1) : 1;
 
     if (!keyword) {
-      return NextResponse.json({ message: "缺少 keyword 参数" }, { status: 400 });
+      return NextResponse.json({ code: "missing_keyword", message: "Missing keyword parameter" }, { status: 400 });
     }
 
-    console.log(`[${new Date().toISOString()}] 搜索关键词: ${keyword} offset=${offset}`);
+    console.log(`[${new Date().toISOString()}] search keyword: ${keyword} offset=${offset}`);
 
     const apiId = process.env.DMM_API_ID;
     const affiliateId = process.env.DMM_AFFILIATE_ID;
 
     if (!apiId || !affiliateId) {
       return NextResponse.json(
-        { message: "服务器缺少 DMM_API_ID 或 DMM_AFFILIATE_ID" },
+        { code: "server_missing_config", message: "Missing DMM_API_ID or DMM_AFFILIATE_ID" },
         { status: 500 },
       );
     }
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       const text = await res.text();
       const status = res.status;
       return NextResponse.json(
-        { message: `DMM API 错误: ${status}`, details: text?.slice(0, 500) },
+        { code: "dmm_api_error", message: `DMM API error: ${status}`, details: text?.slice(0, 500), status },
         { status: status >= 500 ? 502 : status },
       );
     }
@@ -65,7 +65,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ items });
   } catch (err: any) {
-    const message = err?.name === "TimeoutError" ? "请求 DMM API 超时" : err?.message || "未知错误";
-    return NextResponse.json({ message }, { status: 500 });
+    const isTimeout = err?.name === "TimeoutError";
+    const code = isTimeout ? "timeout" : "unknown";
+    const message = isTimeout ? "DMM API request timed out" : err?.message || "Unknown error";
+    return NextResponse.json({ code, message }, { status: 500 });
   }
 }
