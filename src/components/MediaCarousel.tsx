@@ -45,6 +45,8 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(function MediaCaro
   const total = slides.length;
   const current = useMemo(() => slides[index] ?? null, [slides, index]);
   const [isActive, setIsActive] = useState(false);
+  const syncingRef = useRef(false);
+  const lastInitialRef = useRef(initialIndex);
   const handleMouseEnter = useCallback(() => setIsActive(true), []);
   const handleMouseLeave = useCallback(() => setIsActive(false), []);
   const handleFocusCapture = useCallback(() => setIsActive(true), []);
@@ -57,12 +59,27 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(function MediaCaro
 
   useEffect(() => {
     if (!total) return;
+    if (lastInitialRef.current === initialIndex) return;
+    lastInitialRef.current = initialIndex;
     const safeIndex = Math.min(initialIndex, total - 1);
+    if (safeIndex === index) return;
+    syncingRef.current = true;
     setIndex(safeIndex);
-  }, [initialIndex, total]);
+  }, [initialIndex, total, index]);
+
+  useEffect(() => {
+    if (!total) return;
+    if (index < total) return;
+    syncingRef.current = true;
+    setIndex(Math.max(0, total - 1));
+  }, [total, index]);
 
   useEffect(() => {
     if (!current || !onSlideChange) return;
+    if (syncingRef.current) {
+      syncingRef.current = false;
+      return;
+    }
     onSlideChange(current, index);
   }, [current, index, onSlideChange]);
 
