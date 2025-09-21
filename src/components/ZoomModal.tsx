@@ -113,6 +113,8 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
     transition: "opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1)",
   } as const;
 
+  const mediaClass = "h-full w-auto max-w-full object-contain select-none";
+
   const renderMedia = () => {
     if (current.type === "video") {
       return (
@@ -122,7 +124,7 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
             videoRef.current = el;
           }}
           src={current.displayUrl}
-          className="h-full w-full object-contain"
+          className={`${mediaClass}`}
           controls
           muted
           playsInline
@@ -136,7 +138,7 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
         key={`modal-image-${current.url}`}
         src={current.displayUrl}
         alt="zoomed"
-        className="h-full w-full object-contain select-none"
+        className={mediaClass}
         draggable={false}
       />
     );
@@ -144,93 +146,91 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl cursor-zoom-out"
       style={overlayStyle}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          handleClose();
-        }
-      }}
+      onClick={handleClose}
     >
-      <div className="group relative w-[92vw] max-w-5xl" style={cardStyle}>
+      <div className="relative flex h-full w-full items-center justify-center" style={cardStyle}>
+        {total > 1 && (
+          <button
+            type="button"
+            className="absolute left-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIndex((prev) => (prev - 1 + total) % total);
+            }}
+            aria-label="Previous"
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        )}
+
+        {total > 1 && (
+          <button
+            type="button"
+            className="absolute right-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIndex((prev) => (prev + 1) % total);
+            }}
+            aria-label="Next"
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        )}
+
         <button
           type="button"
-          onClick={handleClose}
-          className="absolute left-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white/90 backdrop-blur-md transition hover:bg-black/70"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleClose();
+          }}
+          className="absolute left-6 top-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white/90 backdrop-blur-md transition hover:bg-black/70 cursor-pointer"
           aria-label="Close"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
 
-        <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[32px]" style={{ height: "min(80vh, 760px)" }}>
-          <div className="flex h-full w-full items-center justify-center">
-            {renderMedia()}
-          </div>
+        <div className="pointer-events-none absolute right-6 top-6 z-40 rounded-full bg-black/60 px-4 py-1 text-sm font-medium text-white/90 backdrop-blur-md">
+          {index + 1}/{total}
+        </div>
 
-          {total > 1 && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-30 flex items-center justify-between px-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-              <button
-                type="button"
-                className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIndex((prev) => (prev - 1 + total) % total);
-                }}
-                aria-label="Previous"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIndex((prev) => (prev + 1) % total);
-                }}
-                aria-label="Next"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
+        {total > 1 && (
+          <div className="pointer-events-none absolute bottom-6 left-1/2 z-40 flex -translate-x-1/2">
+            <div className="group/dots relative flex gap-2 rounded-full px-3 py-1.5 pointer-events-auto">
+              <span className="pointer-events-none absolute inset-0 rounded-full border border-white/15 bg-black/45 backdrop-blur-md shadow-[0_14px_40px_-24px_rgba(15,23,42,0.85)] opacity-0 transition-opacity duration-200 group-hover/dots:opacity-100 group-focus-within/dots:opacity-100" />
+              {slides.map((slide, slideIndex) => {
+                const isActive = slideIndex === index;
+                return (
+                  <button
+                    key={`${slide.type}-${slide.url}-modal-${slideIndex}`}
+                    type="button"
+                    className={`relative z-10 h-2.5 w-2.5 rounded-full transition cursor-pointer focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none ${
+                      isActive
+                        ? "bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.35)]"
+                        : "bg-white/35 hover:bg-white/55"
+                    }`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setIndex(slideIndex);
+                    }}
+                    aria-label={`Go to ${slideIndex + 1}`}
+                  />
+                );
+              })}
             </div>
-          )}
-
-          <div className="pointer-events-none absolute right-6 top-6 z-30 rounded-full bg-black/60 px-4 py-1 text-sm font-medium text-white/90 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-            {index + 1}/{total}
           </div>
+        )}
 
-          {total > 1 && (
-            <div className="pointer-events-none absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2">
-              <div className="group/dots relative flex gap-2 rounded-full px-3 py-1.5 pointer-events-auto">
-                <span className="pointer-events-none absolute inset-0 rounded-full border border-white/15 bg-black/45 backdrop-blur-md shadow-[0_14px_40px_-24px_rgba(15,23,42,0.85)] opacity-0 transition-opacity duration-200 group-hover/dots:opacity-100 group-focus-within/dots:opacity-100" />
-                {slides.map((slide, slideIndex) => {
-                  const isActive = slideIndex === index;
-                  return (
-                    <button
-                      key={`${slide.type}-${slide.url}-modal-${slideIndex}`}
-                      type="button"
-                      className={`relative z-10 h-2.5 w-2.5 rounded-full transition cursor-pointer focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none ${
-                        isActive
-                          ? "bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.35)]"
-                          : "bg-white/35 hover:bg-white/55"
-                      }`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setIndex(slideIndex);
-                      }}
-                      aria-label={`Go to ${slideIndex + 1}`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        <div className="flex h-full w-full items-center justify-center">
+          {renderMedia()}
         </div>
       </div>
     </div>
