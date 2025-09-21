@@ -10,17 +10,20 @@ export type MediaSlide =
       displayUrl: string;
       portrait: boolean;
       label: string;
+      zoomUrl?: string;
     }
   | {
       type: "image";
       url: string;
       displayUrl: string;
       portrait: boolean;
+      zoomUrl?: string;
     }
   | {
       type: "video";
       url: string;
       displayUrl: string;
+      zoomUrl?: string;
     };
 
 type Props = {

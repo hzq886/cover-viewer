@@ -303,6 +303,7 @@ export default function Home() {
         displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=front&spine=${spine}`,
         portrait: true,
         label: "front",
+        zoomUrl: toProxyUrl(basePosterUrl),
       });
       list.push({
         type: "poster",
@@ -311,6 +312,7 @@ export default function Home() {
         displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=back&spine=${spine}`,
         portrait: true,
         label: "back",
+        zoomUrl: toProxyUrl(basePosterUrl),
       });
     }
     if (orderedSamples.length > 0) {
@@ -320,6 +322,7 @@ export default function Home() {
           url: item.url,
           displayUrl: toProxyUrl(item.url),
           portrait: Boolean(item.portrait),
+          zoomUrl: toProxyUrl(item.url),
         });
       }
     }
@@ -329,10 +332,34 @@ export default function Home() {
         type: "video",
         url: videoSource,
         displayUrl: toProxyUrl(videoSource),
+        zoomUrl: toProxyUrl(videoSource),
       });
     }
     return list;
   }, [basePosterUrl, orderedSamples, resolvedVideoUrl, sampleMovie]);
+
+  const { zoomSlides, originalToZoom, zoomToOriginal } = useMemo(() => {
+    const zoomSlides: MediaSlide[] = [];
+    const originalToZoom: number[] = [];
+    const zoomToOriginal: number[] = [];
+    const seen = new Map<string, number>();
+
+    slides.forEach((slide, originalIndex) => {
+      const key = slide.zoomUrl || slide.displayUrl || slide.url || `__${originalIndex}`;
+      const existing = seen.get(key);
+      if (existing !== undefined) {
+        originalToZoom[originalIndex] = existing;
+        return;
+      }
+      const nextIndex = zoomSlides.length;
+      seen.set(key, nextIndex);
+      zoomSlides.push(slide);
+      zoomToOriginal.push(originalIndex);
+      originalToZoom[originalIndex] = nextIndex;
+    });
+
+    return { zoomSlides, originalToZoom, zoomToOriginal };
+  }, [slides]);
 
   const slidesCount = slides.length;
 
@@ -342,26 +369,36 @@ export default function Home() {
   }, [slidesCount]);
 
   useEffect(() => {
+    setZoomIndex((prev) => {
+      if (zoomSlides.length === 0) return 0;
+      const clamped = Math.min(prev, zoomSlides.length - 1);
+      if (clamped < 0) return 0;
+      return clamped === prev ? prev : clamped;
+    });
+  }, [zoomSlides.length]);
+
+  useEffect(() => {
     if (!zoomOpen) return;
-    const targetSlide = slides[zoomIndex];
+    const targetSlide = zoomSlides[zoomIndex];
     if (targetSlide?.type === "video") {
       void ensureVideoSource();
     }
-  }, [ensureVideoSource, slides, zoomIndex, zoomOpen]);
+  }, [ensureVideoSource, zoomSlides, zoomIndex, zoomOpen]);
 
   const handleZoomClose = useCallback(
     (finalIndex?: number) => {
       setZoomOpen(false);
       if (typeof finalIndex !== "number") return;
       setZoomIndex(finalIndex);
-      setActiveIndex(finalIndex);
-      const nextSlide = slides[finalIndex] ?? null;
+      const nextOriginalIndex = zoomToOriginal[finalIndex] ?? 0;
+      setActiveIndex(nextOriginalIndex);
+      const nextSlide = slides[nextOriginalIndex] ?? null;
       setActiveSlide(nextSlide);
       if (nextSlide?.type === "video") {
         void ensureVideoSource();
       }
     },
-    [ensureVideoSource, slides],
+    [ensureVideoSource, slides, zoomToOriginal],
   );
 
   // 搜索事件处理（触发 DMM 接口请求）
@@ -572,7 +609,8 @@ export default function Home() {
                       }
                     }}
                     onRequestZoom={(index) => {
-                      setZoomIndex(index);
+                      const target = originalToZoom[index] ?? 0;
+                      setZoomIndex(target);
                       setZoomOpen(true);
                     }}
                   />
@@ -586,7 +624,7 @@ export default function Home() {
       <ZoomModal
         open={zoomOpen}
         onClose={handleZoomClose}
-        slides={slides}
+        slides={zoomSlides}
         initialIndex={zoomIndex}
         onIndexChange={setZoomIndex}
       />

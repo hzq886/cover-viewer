@@ -116,6 +116,7 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
   const mediaClass = "h-full w-auto max-w-full object-contain select-none";
 
   const renderMedia = () => {
+    const displaySrc = current.zoomUrl || current.displayUrl;
     if (current.type === "video") {
       return (
         <video
@@ -123,7 +124,7 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
           ref={(el) => {
             videoRef.current = el;
           }}
-          src={current.displayUrl}
+          src={displaySrc}
           className={`${mediaClass}`}
           controls
           muted
@@ -136,7 +137,7 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
       // eslint-disable-next-line @next/next/no-img-element
       <img
         key={`modal-image-${current.url}`}
-        src={current.displayUrl}
+        src={displaySrc}
         alt="zoomed"
         className={mediaClass}
         draggable={false}
