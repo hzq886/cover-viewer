@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { MediaSlide } from "./MediaCarousel";
 
 type Props = {
@@ -25,11 +32,19 @@ export default function ZoomModal({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const total = slides.length;
+  // Crossfade state for image transitions
+  const lastSlideRef = useRef<MediaSlide | null>(null);
+  const [prevImage, setPrevImage] = useState<MediaSlide | null>(null);
+  const [animating, setAnimating] = useState(false);
+  const [showNew, setShowNew] = useState(true);
 
   useEffect(() => {
     if (open && total) {
       const safeIndex = Math.min(initialIndex, total - 1);
       setIndex(safeIndex);
+      // Avoid crossfade on initial open
+      lastSlideRef.current = slides[safeIndex] ?? null;
+      setShowNew(true);
       setRendered(true);
       requestAnimationFrame(() => setVisible(true));
       return;
@@ -64,6 +79,42 @@ export default function ZoomModal({
   );
 
   const current = useMemo(() => slides[index] ?? null, [slides, index]);
+
+  // Mirror MediaCarousel's stronger transition for images
+  useLayoutEffect(() => {
+    const prev = lastSlideRef.current;
+    if (!prev || !current) {
+      lastSlideRef.current = current;
+      return;
+    }
+    if (prev === current) {
+      lastSlideRef.current = current;
+      return;
+    }
+    if (prev.type !== "video" && current.type !== "video") {
+      setPrevImage(prev);
+      setAnimating(true);
+      setShowNew(false);
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setShowNew(true));
+      });
+      const timer = window.setTimeout(() => {
+        setAnimating(false);
+        setPrevImage(null);
+      }, 750);
+      lastSlideRef.current = current;
+      return () => {
+        cancelAnimationFrame(raf1);
+        if (raf2) cancelAnimationFrame(raf2);
+        clearTimeout(timer);
+      };
+    }
+    setPrevImage(null);
+    setAnimating(false);
+    setShowNew(false);
+    lastSlideRef.current = current;
+  }, [current]);
 
   useEffect(() => {
     onIndexChange?.(index);
@@ -148,16 +199,38 @@ export default function ZoomModal({
       );
     }
     return (
-      <Image
-        key={`modal-image-${current.url}`}
-        src={displaySrc}
-        alt="zoomed"
-        fill
-        unoptimized
-        sizes="100vw"
-        className={imageClass}
-        draggable={false}
-      />
+      <div className="relative h-full w-full">
+        {prevImage && animating && prevImage.type !== "video" ? (
+          <Image
+            key={`modal-prev-${prevImage.url}`}
+            src={prevImage.zoomUrl || prevImage.displayUrl}
+            alt="previous"
+            fill
+            unoptimized
+            sizes="100vw"
+            draggable={false}
+            className={`object-contain select-none filter transition-all duration-500 ease-out ${
+              showNew
+                ? "opacity-0 scale-92 blur-sm brightness-90"
+                : "opacity-100 scale-100 blur-0 brightness-100"
+            }`}
+          />)
+        : null}
+        <Image
+          key={`modal-image-${current.url}`}
+          src={displaySrc}
+          alt="zoomed"
+          fill
+          unoptimized
+          sizes="100vw"
+          draggable={false}
+          className={`object-contain select-none filter transition-all duration-500 ease-out ${
+            showNew
+              ? "opacity-100 scale-100 blur-0 brightness-100"
+              : "opacity-0 scale-110 blur-sm brightness-110"
+          }`}
+        />
+      </div>
     );
   };
 

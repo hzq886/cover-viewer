@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -65,6 +66,11 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
 
     const total = slides.length;
     const current = useMemo(() => slides[index] ?? null, [slides, index]);
+    const lastSlideRef = useRef<MediaSlide | null>(null);
+    const [prevImage, setPrevImage] = useState<MediaSlide | null>(null);
+    const [animating, setAnimating] = useState(false);
+    // Start true to avoid initial mount flicker
+    const [showNew, setShowNew] = useState(true);
     const [isActive, setIsActive] = useState(false);
     const syncingRef = useRef(false);
     const lastInitialRef = useRef(initialIndex);
@@ -112,6 +118,44 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
       }
       onSlideChange(current, index);
     }, [current, index, onSlideChange]);
+
+    // Smooth transition between images (poster/image types)
+    useLayoutEffect(() => {
+      const prev = lastSlideRef.current;
+      if (!prev || !current) {
+        lastSlideRef.current = current;
+        return;
+      }
+      if (prev === current) {
+        lastSlideRef.current = current;
+        return;
+      }
+      if (prev.type !== "video" && current.type !== "video") {
+        setPrevImage(prev);
+        setAnimating(true);
+        setShowNew(false);
+        // Double rAF to ensure styles apply before transitioning
+        let raf2 = 0;
+        const raf1 = requestAnimationFrame(() => {
+          raf2 = requestAnimationFrame(() => setShowNew(true));
+        });
+        const timer = window.setTimeout(() => {
+          setAnimating(false);
+          setPrevImage(null);
+        }, 750);
+        lastSlideRef.current = current;
+        return () => {
+          cancelAnimationFrame(raf1);
+          if (raf2) cancelAnimationFrame(raf2);
+          clearTimeout(timer);
+        };
+      }
+      // Fallback for video or mixed transitions: no crossfade
+      setPrevImage(null);
+      setAnimating(false);
+      setShowNew(false);
+      lastSlideRef.current = current;
+    }, [current]);
 
     useEffect(() => {
       const el = videoRef.current;
@@ -222,7 +266,9 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
       <div ref={rootRef} className="relative w-full">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: hover handlers manage control visibility */}
         <div
-          className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-4 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors hover:border-violet-200/60 ${
+          className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 ${
+            current?.type !== "video" ? "p-0" : "p-4"
+          } shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors hover:border-violet-200/60 ${
             canZoom ? "cursor-zoom-in" : "cursor-default"
           }`}
           style={{
@@ -249,7 +295,42 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />
           </div>
           <div className="relative z-10 flex h-full w-full items-center justify-center">
-            {renderMedia()}
+            {current.type === "video" ? (
+              renderMedia()
+            ) : (
+              <div className="relative h-full w-full">
+                {prevImage && animating && prevImage.type !== "video" ? (
+                  <Image
+                    key={`prev-${prevImage.url}`}
+                    src={prevImage.displayUrl}
+                    alt="previous"
+                    fill
+                    unoptimized
+                    draggable={false}
+                    sizes="(max-width: 1024px) 90vw, 70vw"
+                    className={`object-contain select-none filter transition-all duration-500 ease-out ${
+                      showNew
+                        ? "opacity-0 scale-92 blur-sm brightness-90"
+                        : "opacity-100 scale-100 blur-0 brightness-100"
+                    }`}
+                  />
+                ) : null}
+                <Image
+                  key={`img-${current.url}`}
+                  src={current.displayUrl}
+                  alt="preview"
+                  fill
+                  unoptimized
+                  draggable={false}
+                  sizes="(max-width: 1024px) 90vw, 70vw"
+                  className={`object-contain select-none filter transition-all duration-500 ease-out ${
+                    showNew
+                      ? "opacity-100 scale-100 blur-0 brightness-100"
+                      : "opacity-0 scale-110 blur-sm brightness-110"
+                  }`}
+                />
+              </div>
+            )}
           </div>
 
           {total > 1 && (
