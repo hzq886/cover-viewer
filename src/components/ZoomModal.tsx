@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { MediaSlide } from "./MediaCarousel";
 
 type Props = {
@@ -25,11 +32,19 @@ export default function ZoomModal({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const total = slides.length;
+  // Crossfade state for image transitions
+  const lastSlideRef = useRef<MediaSlide | null>(null);
+  const [prevImage, setPrevImage] = useState<MediaSlide | null>(null);
+  const [animating, setAnimating] = useState(false);
+  const [showNew, setShowNew] = useState(true);
 
   useEffect(() => {
     if (open && total) {
       const safeIndex = Math.min(initialIndex, total - 1);
       setIndex(safeIndex);
+      // Avoid crossfade on initial open
+      lastSlideRef.current = slides[safeIndex] ?? null;
+      setShowNew(true);
       setRendered(true);
       requestAnimationFrame(() => setVisible(true));
       return;
@@ -65,6 +80,42 @@ export default function ZoomModal({
 
   const current = useMemo(() => slides[index] ?? null, [slides, index]);
 
+  // Mirror MediaCarousel's stronger transition for images
+  useLayoutEffect(() => {
+    const prev = lastSlideRef.current;
+    if (!prev || !current) {
+      lastSlideRef.current = current;
+      return;
+    }
+    if (prev === current) {
+      lastSlideRef.current = current;
+      return;
+    }
+    if (prev.type !== "video" && current.type !== "video") {
+      setPrevImage(prev);
+      setAnimating(true);
+      setShowNew(false);
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setShowNew(true));
+      });
+      const timer = window.setTimeout(() => {
+        setAnimating(false);
+        setPrevImage(null);
+      }, 750);
+      lastSlideRef.current = current;
+      return () => {
+        cancelAnimationFrame(raf1);
+        if (raf2) cancelAnimationFrame(raf2);
+        clearTimeout(timer);
+      };
+    }
+    setPrevImage(null);
+    setAnimating(false);
+    setShowNew(false);
+    lastSlideRef.current = current;
+  }, [current]);
+
   useEffect(() => {
     onIndexChange?.(index);
   }, [index, onIndexChange]);
@@ -78,17 +129,17 @@ export default function ZoomModal({
         return;
       }
       if (total < 2) return;
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" && index > 0) {
         event.preventDefault();
-        setIndex((prev) => (prev - 1 + total) % total);
-      } else if (event.key === "ArrowRight") {
+        setIndex((prev) => Math.max(prev - 1, 0));
+      } else if (event.key === "ArrowRight" && index < total - 1) {
         event.preventDefault();
-        setIndex((prev) => (prev + 1) % total);
+        setIndex((prev) => Math.min(prev + 1, total - 1));
       }
     };
     window.addEventListener("keydown", keyHandler);
     return () => window.removeEventListener("keydown", keyHandler);
-  }, [rendered, total, handleClose]);
+  }, [rendered, total, handleClose, index]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -148,16 +199,38 @@ export default function ZoomModal({
       );
     }
     return (
-      <Image
-        key={`modal-image-${current.url}`}
-        src={displaySrc}
-        alt="zoomed"
-        fill
-        unoptimized
-        sizes="100vw"
-        className={imageClass}
-        draggable={false}
-      />
+      <div className="relative h-full w-full">
+        {prevImage && animating && prevImage.type !== "video" ? (
+          <Image
+            key={`modal-prev-${prevImage.url}`}
+            src={prevImage.zoomUrl || prevImage.displayUrl}
+            alt="previous"
+            fill
+            unoptimized
+            sizes="100vw"
+            draggable={false}
+            className={`object-contain select-none filter transition-all duration-500 ease-out ${
+              showNew
+                ? "opacity-0 scale-92 blur-sm brightness-90"
+                : "opacity-100 scale-100 blur-0 brightness-100"
+            }`}
+          />
+        ) : null}
+        <Image
+          key={`modal-image-${current.url}`}
+          src={displaySrc}
+          alt="zoomed"
+          fill
+          unoptimized
+          sizes="100vw"
+          draggable={false}
+          className={`object-contain select-none filter transition-all duration-500 ease-out ${
+            showNew
+              ? "opacity-100 scale-100 blur-0 brightness-100"
+              : "opacity-0 scale-110 blur-sm brightness-110"
+          }`}
+        />
+      </div>
     );
   };
 
@@ -179,10 +252,16 @@ export default function ZoomModal({
         {total > 1 && (
           <button
             type="button"
-            className="absolute left-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer"
+            className={`absolute left-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
+              index === 0
+                ? "cursor-not-allowed bg-black/25 opacity-50"
+                : "cursor-pointer bg-black/45 hover:bg-black/60"
+            }`}
+            disabled={index === 0}
             onClick={(event) => {
               event.stopPropagation();
-              setIndex((prev) => (prev - 1 + total) % total);
+              if (index === 0) return;
+              setIndex((prev) => Math.max(prev - 1, 0));
             }}
             aria-label="Previous"
           >
@@ -205,10 +284,16 @@ export default function ZoomModal({
         {total > 1 && (
           <button
             type="button"
-            className="absolute right-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer"
+            className={`absolute right-6 top-1/2 z-40 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
+              index >= total - 1
+                ? "cursor-not-allowed bg-black/25 opacity-50"
+                : "cursor-pointer bg-black/45 hover:bg-black/60"
+            }`}
+            disabled={index >= total - 1}
             onClick={(event) => {
               event.stopPropagation();
-              setIndex((prev) => (prev + 1) % total);
+              if (index >= total - 1) return;
+              setIndex((prev) => Math.min(prev + 1, total - 1));
             }}
             aria-label="Next"
           >
@@ -284,9 +369,17 @@ export default function ZoomModal({
           </div>
         )}
 
-        <div className="flex h-full w-full items-center justify-center">
+        <button
+          type="button"
+          className="flex h-full w-full cursor-zoom-out items-center justify-center bg-transparent"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleClose();
+          }}
+          aria-label="Close zoom viewer"
+        >
           {renderMedia()}
-        </div>
+        </button>
       </div>
     </div>
   );

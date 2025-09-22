@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import InfoPanel from "@/components/InfoPanel";
+import InlineVideoCard from "@/components/InlineVideoCard";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
@@ -106,6 +107,7 @@ export default function Home() {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [activeSlide, setActiveSlide] = useState<MediaSlide | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [videoFront, setVideoFront] = useState(false);
   const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>("");
   const resolvingVideoRef = useRef(false);
   const hero = dictionary.hero;
@@ -131,27 +133,172 @@ export default function Home() {
   );
   // 作品切换时重置媒体状态
   useEffect(() => {
-    if (!currentItem) {
-      setActiveIndex(0);
-      setActiveSlide(null);
-      setResolvedVideoUrl("");
-      resolvingVideoRef.current = false;
-      return;
-    }
     setActiveIndex(0);
     setActiveSlide(null);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
+    setVideoFront(false);
+    if (!currentItem) {
+      return;
+    }
   }, [currentItem]);
+
+  const sampleImages: string[] = useMemo(() => {
+    const images =
+      pick?.sampleImageURL?.sample_l?.image ||
+      pick?.sampleImageURL?.sample_s?.image ||
+      [];
+    return Array.isArray(images) ? images : [];
+  }, [pick]);
+
+  const [orderedSamples, setOrderedSamples] = useState<SampleThumb[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    if (sampleImages.length === 0) {
+      setOrderedSamples([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    (async () => {
+      const results = await Promise.all(
+        sampleImages.map(async (url, index) => {
+          try {
+            const img = new Image();
+            await new Promise<void>((resolve) => {
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+              img.src = `/api/proxy?url=${encodeURIComponent(url)}`;
+            });
+            const portrait = img.naturalHeight >= img.naturalWidth;
+            return { url, index, portrait };
+          } catch {
+            return { url, index, portrait: true };
+          }
+        }),
+      );
+      if (cancelled) return;
+      const portraits: SampleThumb[] = results
+        .filter((item) => item.portrait)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => ({ url: item.url, portrait: true }));
+      const landscapes: SampleThumb[] = results
+        .filter((item) => !item.portrait)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => ({ url: item.url, portrait: false }));
+      setOrderedSamples([...portraits, ...landscapes]);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleImages]);
+
+  const sampleMovie: string = useMemo(
+    () =>
+      pick?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
+      pick?.sampleMovieURL?.size_720_480 ||
+      pick?.sample_movie_url?.size_720_480 ||
+      "",
+    [pick],
+  );
+
+  const ensureVideoSource = useCallback(async () => {
+    if (!sampleMovie) return undefined;
+    if (resolvedVideoUrl) return resolvedVideoUrl;
+    if (resolvingVideoRef.current) return resolvedVideoUrl || sampleMovie;
+    resolvingVideoRef.current = true;
+    try {
+      const response = await fetch(
+        `/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`,
+      );
+      const data = await response.json();
+      const resolved = data?.url || sampleMovie;
+      setResolvedVideoUrl(resolved);
+      return resolved;
+    } catch {
+      setResolvedVideoUrl(sampleMovie);
+      return sampleMovie;
+    } finally {
+      resolvingVideoRef.current = false;
+    }
+  }, [resolvedVideoUrl, sampleMovie]);
+
+  const { imageSlides, videoSlide } = useMemo(() => {
+    const images: MediaSlide[] = [];
+    let video: MediaSlide | null = null;
+
+    if (basePosterUrl) {
+      const spine = POSTER_SPINE_RATIO.toFixed(2);
+      images.push({
+        type: "poster",
+        side: "front",
+        url: `${basePosterUrl}?side=front`,
+        displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=front&spine=${spine}`,
+        portrait: true,
+        label: "front",
+        zoomUrl: toProxyUrl(basePosterUrl),
+      });
+      images.push({
+        type: "poster",
+        side: "back",
+        url: `${basePosterUrl}?side=back`,
+        displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=back&spine=${spine}`,
+        portrait: true,
+        label: "back",
+        zoomUrl: toProxyUrl(basePosterUrl),
+      });
+    }
+
+    if (orderedSamples.length > 0) {
+      for (const item of orderedSamples) {
+        images.push({
+          type: "image",
+          url: item.url,
+          displayUrl: toProxyUrl(item.url),
+          portrait: Boolean(item.portrait),
+          zoomUrl: toProxyUrl(item.url),
+        });
+      }
+    }
+
+    if (sampleMovie) {
+      const videoSource = resolvedVideoUrl || sampleMovie;
+      video = {
+        type: "video",
+        url: videoSource,
+        displayUrl: toProxyUrl(videoSource),
+        zoomUrl: toProxyUrl(videoSource),
+      };
+    }
+
+    return { imageSlides: images, videoSlide: video };
+  }, [basePosterUrl, orderedSamples, resolvedVideoUrl, sampleMovie]);
+
+  useEffect(() => {
+    if (!videoSlide) {
+      setVideoFront(false);
+    }
+  }, [videoSlide]);
+
+  useEffect(() => {
+    if (videoFront) {
+      void ensureVideoSource();
+    }
+  }, [videoFront, ensureVideoSource]);
 
   // 当前展示的媒体地址，用于舞台背景
   const activeDisplayUrl = useMemo(() => {
+    if (videoFront && videoSlide) {
+      return videoSlide.displayUrl;
+    }
     if (!activeSlide) return basePosterUrl;
     if (activeSlide.type === "poster" || activeSlide.type === "image") {
       return activeSlide.displayUrl;
     }
     return basePosterUrl;
-  }, [activeSlide, basePosterUrl]);
+  }, [activeSlide, basePosterUrl, videoFront, videoSlide]);
 
   // 当前展示图的代理地址
   const proxiedPosterUrl = useMemo(
@@ -253,167 +400,31 @@ export default function Home() {
   }, [activeSlide, naturalSize, selectedNatural]);
 
   // 来源于 DMM 样图字段的原始地址列表
-  const sampleImages: string[] = useMemo(() => {
-    const images =
-      pick?.sampleImageURL?.sample_l?.image ||
-      pick?.sampleImageURL?.sample_s?.image ||
-      [];
-    return Array.isArray(images) ? images : [];
-  }, [pick]);
-
-  // 排序后的样图列表（先竖版后横版）
-  const [orderedSamples, setOrderedSamples] = useState<SampleThumb[]>([]);
-  // 根据尺寸判定样图方向并排序
-  useEffect(() => {
-    let cancelled = false;
-    if (sampleImages.length === 0) {
-      setOrderedSamples([]);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    (async () => {
-      // 并行加载样图并记录宽高信息
-      const results = await Promise.all(
-        sampleImages.map(async (url, index) => {
-          try {
-            // 浏览器 Image 对象用于探测尺寸
-            const img = new Image();
-            await new Promise<void>((resolve) => {
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-              img.src = `/api/proxy?url=${encodeURIComponent(url)}`;
-            });
-            // 竖版判断：高度是否不小于宽度
-            const portrait = img.naturalHeight >= img.naturalWidth;
-            return { url, index, portrait };
-          } catch {
-            return { url, index, portrait: true };
-          }
-        }),
-      );
-      if (cancelled) return;
-      // 竖版样图保持原有顺序
-      const portraits: SampleThumb[] = results
-        .filter((item) => item.portrait)
-        .sort((a, b) => a.index - b.index)
-        .map((item) => ({ url: item.url, portrait: true }));
-      // 横版样图保持原有顺序
-      const landscapes: SampleThumb[] = results
-        .filter((item) => !item.portrait)
-        .sort((a, b) => a.index - b.index)
-        .map((item) => ({ url: item.url, portrait: false }));
-      setOrderedSamples([...portraits, ...landscapes]);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sampleImages]);
-
-  // DMM 返回的试看视频地址
-  const sampleMovie: string = useMemo(
-    () =>
-      pick?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
-      pick?.sampleMovieURL?.size_720_480 ||
-      pick?.sample_movie_url?.size_720_480 ||
-      "",
-    [pick],
-  );
-
-  const ensureVideoSource = useCallback(async () => {
-    if (!sampleMovie) return undefined;
-    if (resolvedVideoUrl) return resolvedVideoUrl;
-    if (resolvingVideoRef.current) return resolvedVideoUrl || sampleMovie;
-    resolvingVideoRef.current = true;
-    try {
-      const response = await fetch(
-        `/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`,
-      );
-      const data = await response.json();
-      const resolved = data?.url || sampleMovie;
-      setResolvedVideoUrl(resolved);
-      return resolved;
-    } catch {
-      setResolvedVideoUrl(sampleMovie);
-      return sampleMovie;
-    } finally {
-      resolvingVideoRef.current = false;
-    }
-  }, [resolvedVideoUrl, sampleMovie]);
-
-  const slides = useMemo<MediaSlide[]>(() => {
-    const list: MediaSlide[] = [];
-    if (basePosterUrl) {
-      const spine = POSTER_SPINE_RATIO.toFixed(2);
-      list.push({
-        type: "poster",
-        side: "front",
-        url: `${basePosterUrl}?side=front`,
-        displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=front&spine=${spine}`,
-        portrait: true,
-        label: "front",
-        zoomUrl: toProxyUrl(basePosterUrl),
-      });
-      list.push({
-        type: "poster",
-        side: "back",
-        url: `${basePosterUrl}?side=back`,
-        displayUrl: `/api/split?url=${encodeURIComponent(basePosterUrl)}&side=back&spine=${spine}`,
-        portrait: true,
-        label: "back",
-        zoomUrl: toProxyUrl(basePosterUrl),
-      });
-    }
-    if (orderedSamples.length > 0) {
-      for (const item of orderedSamples) {
-        list.push({
-          type: "image",
-          url: item.url,
-          displayUrl: toProxyUrl(item.url),
-          portrait: Boolean(item.portrait),
-          zoomUrl: toProxyUrl(item.url),
-        });
-      }
-    }
-    if (sampleMovie) {
-      const videoSource = resolvedVideoUrl || sampleMovie;
-      list.push({
-        type: "video",
-        url: videoSource,
-        displayUrl: toProxyUrl(videoSource),
-        zoomUrl: toProxyUrl(videoSource),
-      });
-    }
-    return list;
-  }, [basePosterUrl, orderedSamples, resolvedVideoUrl, sampleMovie]);
-
-  const { zoomSlides, originalToZoom, zoomToOriginal } = useMemo(() => {
+  const { zoomSlides, imageIndexToZoom, zoomToImage } = useMemo(() => {
     const zoomSlides: MediaSlide[] = [];
-    const originalToZoom: number[] = [];
-    const zoomToOriginal: number[] = [];
+    const imageIndexToZoom: number[] = [];
+    const zoomToImage: number[] = [];
     const seen = new Map<string, number>();
 
-    slides.forEach((slide, originalIndex) => {
+    imageSlides.forEach((slide, originalIndex) => {
       const key =
         slide.zoomUrl || slide.displayUrl || slide.url || `__${originalIndex}`;
       const existing = seen.get(key);
       if (existing !== undefined) {
-        originalToZoom[originalIndex] = existing;
+        imageIndexToZoom[originalIndex] = existing;
         return;
       }
       const nextIndex = zoomSlides.length;
       seen.set(key, nextIndex);
       zoomSlides.push(slide);
-      zoomToOriginal.push(originalIndex);
-      originalToZoom[originalIndex] = nextIndex;
+      zoomToImage.push(originalIndex);
+      imageIndexToZoom[originalIndex] = nextIndex;
     });
 
-    return { zoomSlides, originalToZoom, zoomToOriginal };
-  }, [slides]);
+    return { zoomSlides, imageIndexToZoom, zoomToImage };
+  }, [imageSlides]);
 
-  const slidesCount = slides.length;
+  const slidesCount = imageSlides.length;
 
   useEffect(() => {
     if (!slidesCount) return;
@@ -424,33 +435,24 @@ export default function Home() {
     setZoomIndex((prev) => {
       if (zoomSlides.length === 0) return 0;
       const clamped = Math.min(prev, zoomSlides.length - 1);
-      if (clamped < 0) return 0;
-      return clamped === prev ? prev : clamped;
+      return clamped < 0 ? 0 : clamped;
     });
   }, [zoomSlides.length]);
-
-  useEffect(() => {
-    if (!zoomOpen) return;
-    const targetSlide = zoomSlides[zoomIndex];
-    if (targetSlide?.type === "video") {
-      void ensureVideoSource();
-    }
-  }, [ensureVideoSource, zoomSlides, zoomIndex, zoomOpen]);
 
   const handleZoomClose = useCallback(
     (finalIndex?: number) => {
       setZoomOpen(false);
       if (typeof finalIndex !== "number") return;
       setZoomIndex(finalIndex);
-      const nextOriginalIndex = zoomToOriginal[finalIndex] ?? 0;
-      setActiveIndex(nextOriginalIndex);
-      const nextSlide = slides[nextOriginalIndex] ?? null;
+      const nextImageIndex = zoomToImage[finalIndex] ?? 0;
+      setActiveIndex(nextImageIndex);
+      const nextSlide = imageSlides[nextImageIndex] ?? null;
       setActiveSlide(nextSlide);
       if (nextSlide?.type === "video") {
         void ensureVideoSource();
       }
     },
-    [ensureVideoSource, slides, zoomToOriginal],
+    [ensureVideoSource, imageSlides, zoomToImage],
   );
 
   // 搜索事件处理（触发 DMM 接口请求）
@@ -640,7 +642,7 @@ export default function Home() {
 
           {!loading && !error && slidesCount > 0 && (
             <div className="relative flex flex-col items-stretch">
-              <div className="flex w-full max-w-7xl flex-col md:flex-row items-stretch gap-6">
+              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -656,26 +658,94 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="flex-1 flex justify-center">
-                  <MediaCarousel
-                    ref={carouselRef}
-                    slides={slides}
-                    width={stage.stageW}
-                    height={stage.containerH}
-                    initialIndex={activeIndex}
-                    onSlideChange={(slide, index) => {
-                      setActiveIndex(index);
-                      setActiveSlide(slide);
-                      if (slide.type === "video") {
-                        void ensureVideoSource();
-                      }
+                <div className="order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
+                  <div
+                    className="relative flex items-center justify-center overflow-visible"
+                    style={{
+                      width: `${
+                        videoFront && videoSlide
+                          ? Math.floor(stage.stageW * 1.3)
+                          : stage.stageW
+                      }px`,
+                      height: `${stage.containerH}px`,
                     }}
-                    onRequestZoom={(index) => {
-                      const target = originalToZoom[index] ?? 0;
-                      setZoomIndex(target);
-                      setZoomOpen(true);
-                    }}
-                  />
+                  >
+                    {videoSlide && (
+                      <div
+                        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
+                          videoFront
+                            ? "z-40 translate-x-2 -translate-y-2 scale-[0.97]"
+                            : "z-20 translate-x-16 translate-y-12 scale-[0.92]"
+                        } ${videoFront ? "" : "cursor-pointer"}`}
+                      >
+                        <InlineVideoCard
+                          videoUrl={resolvedVideoUrl || sampleMovie}
+                          posterUrl={
+                            basePosterUrl
+                              ? toProxyUrl(basePosterUrl)
+                              : undefined
+                          }
+                          width={Math.floor(stage.stageW * 1.3)}
+                          height={stage.containerH}
+                          active={videoFront}
+                          onActivate={() => {
+                            setVideoFront(true);
+                            void ensureVideoSource();
+                          }}
+                          onDeactivate={() => setVideoFront(false)}
+                        />
+                      </div>
+                    )}
+                    <div
+                      className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
+                        videoSlide
+                          ? videoFront
+                            ? "z-30 translate-x-50 translate-y-12 scale-[0.92]"
+                            : "z-50 translate-x-2 -translate-y-2 scale-[0.97]"
+                          : "z-50"
+                      }`}
+                    >
+                      <MediaCarousel
+                        ref={carouselRef}
+                        slides={imageSlides}
+                        width={stage.stageW}
+                        height={stage.containerH}
+                        disableKeyboardNavigation={Boolean(
+                          videoSlide && videoFront,
+                        )}
+                        initialIndex={activeIndex}
+                        onSlideChange={(slide, index) => {
+                          if (
+                            index === activeIndex &&
+                            activeSlide?.url === slide.url
+                          ) {
+                            return;
+                          }
+                          setActiveIndex(index);
+                          setActiveSlide(slide);
+                          setVideoFront(false);
+                        }}
+                        onRequestZoom={(index) => {
+                          setVideoFront(false);
+                          const target = imageIndexToZoom[index] ?? 0;
+                          setZoomIndex(target);
+                          setZoomOpen(true);
+                        }}
+                      />
+                      {videoSlide && videoFront ? (
+                        <button
+                          type="button"
+                          className="absolute inset-0 z-40 cursor-pointer rounded-[28px] bg-black/20 transition hover:bg-black/30 focus-visible:outline-none border border-transparent hover:border-violet-200/60"
+                          style={{
+                            maxWidth: `${stage.stageW}px`,
+                            width: "100%",
+                          }}
+                          aria-label="返回图片预览"
+                          onClick={() => setVideoFront(false)}
+                        />
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
