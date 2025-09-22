@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
 import { useI18n } from "../i18n/I18nProvider";
 
 type Props = {

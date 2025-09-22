@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 
 function toAbsoluteUrl(src: string): string {
   if (!src) return src;
-  if (src.startsWith("//")) return "https:" + src;
+  if (src.startsWith("//")) return `https:${src}`;
   return src;
 }
 
@@ -47,7 +47,7 @@ function extractMp4(html: string, baseUrl?: string): string | null {
 
   // Try to parse const args = {...}; blocks used by DMM player
   const argsMatch = html.match(/(?:const|let|var)\s+args\s*=\s*({[\s\S]+?});/i);
-  if (argsMatch && argsMatch[1]) {
+  if (argsMatch?.[1]) {
     try {
       const jsonText = normalizeSlashes(argsMatch[1]);
       const args = JSON.parse(jsonText);
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
 
     // If there is an iframe, fetch it and parse again
     const iframeMatch = html.match(/<iframe[^>]+src=["']([^"']+)["']/i);
-    if (iframeMatch && iframeMatch[1]) {
+    if (iframeMatch?.[1]) {
       const iframeUrl = toAbsoluteFrom(url, iframeMatch[1]);
       const r2 = await fetch(iframeUrl, {
         headers: {
@@ -120,10 +120,8 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ message: "未能解析视频地址" }, { status: 404 });
-  } catch (err: any) {
-    return NextResponse.json(
-      { message: err?.message || "未知错误" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

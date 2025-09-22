@@ -1,12 +1,7 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MediaSlide } from "./MediaCarousel";
 
 type Props = {
@@ -131,7 +126,8 @@ export default function ZoomModal({
       "opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1)",
   } as const;
 
-  const mediaClass = "h-full w-auto max-w-full object-contain select-none";
+  const videoClass = "h-full w-auto max-w-full object-contain select-none";
+  const imageClass = "object-contain select-none";
 
   const renderMedia = () => {
     const displaySrc = current.zoomUrl || current.displayUrl;
@@ -143,7 +139,7 @@ export default function ZoomModal({
             videoRef.current = el;
           }}
           src={displaySrc}
-          className={`${mediaClass}`}
+          className={videoClass}
           controls
           muted
           playsInline
@@ -152,12 +148,14 @@ export default function ZoomModal({
       );
     }
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         key={`modal-image-${current.url}`}
         src={displaySrc}
         alt="zoomed"
-        className={mediaClass}
+        fill
+        unoptimized
+        sizes="100vw"
+        className={imageClass}
         draggable={false}
       />
     );
@@ -165,12 +163,17 @@ export default function ZoomModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl cursor-zoom-out"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl"
       style={overlayStyle}
-      onClick={handleClose}
     >
+      <button
+        type="button"
+        aria-label="Close zoom viewer"
+        className="absolute inset-0 z-10 cursor-zoom-out bg-transparent"
+        onClick={handleClose}
+      />
       <div
-        className="relative flex h-full w-full items-center justify-center"
+        className="relative z-20 flex h-full w-full items-center justify-center"
         style={cardStyle}
       >
         {total > 1 && (
@@ -193,6 +196,7 @@ export default function ZoomModal({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
+              <title>Previous</title>
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -218,6 +222,7 @@ export default function ZoomModal({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
+              <title>Next</title>
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -242,6 +247,7 @@ export default function ZoomModal({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
+            <title>Close</title>
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>

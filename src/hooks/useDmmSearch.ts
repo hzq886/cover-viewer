@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { DmmItem } from "../types/dmm";
 import type { TranslationDictionary } from "../i18n/translations";
+import type { DmmItem } from "../types/dmm";
 
 type ErrorKey = keyof TranslationDictionary["errors"];
 
@@ -32,12 +32,13 @@ export function useDmmSearch() {
   const [offset, setOffset] = useState<number>(1);
 
   const mapError = useCallback(
-    (payload: any, httpStatus?: number): SearchError => {
+    (payload: unknown, httpStatus?: number): SearchError => {
+      const data = payload as { code?: unknown; status?: unknown };
       const rawCode =
-        typeof payload?.code === "string" ? payload.code : undefined;
+        typeof data?.code === "string" ? (data.code as string) : undefined;
       const status =
-        typeof payload?.status === "number"
-          ? payload.status
+        typeof data?.status === "number"
+          ? (data.status as number)
           : typeof httpStatus === "number"
             ? httpStatus
             : undefined;
@@ -85,8 +86,8 @@ export function useDmmSearch() {
         );
         setError(null);
         return !!picked;
-      } catch (e: any) {
-        setError(mapError(e));
+      } catch (error: unknown) {
+        setError(mapError(error));
         setCurrentItem(null);
         setRemainingItems([]);
         return false;

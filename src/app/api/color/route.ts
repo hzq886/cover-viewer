@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 
+import { timeoutSignal } from "@/lib/abort";
+
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
@@ -16,9 +18,7 @@ export async function GET(req: Request) {
         "User-Agent":
           "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
       },
-      signal: (AbortSignal as any).timeout
-        ? (AbortSignal as any).timeout(10000)
-        : undefined,
+      signal: timeoutSignal(10000),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -67,10 +67,8 @@ export async function GET(req: Request) {
         : { r: 2, g: 6, b: 23 };
 
     return NextResponse.json({ dominant, original });
-  } catch (err: any) {
-    return NextResponse.json(
-      { message: err?.message || "未知错误" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

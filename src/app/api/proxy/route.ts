@@ -13,8 +13,13 @@ const ALLOW_HOSTS = new Set([
 
 const IDLE_TIMEOUT_MS = 15000;
 
+type AbortControllerWithReason = AbortController & {
+  abort(reason?: unknown): void;
+};
+
 export async function GET(req: Request) {
-  const abortController = new AbortController();
+  const abortController: AbortControllerWithReason =
+    new AbortController() as AbortControllerWithReason;
   try {
     const { searchParams } = new URL(req.url);
     const url = searchParams.get("url");
@@ -133,18 +138,24 @@ export async function GET(req: Request) {
     });
 
     return new Response(stream, { headers, status: upstream.status });
-  } catch (err: any) {
-    if (err?.name === "AbortError") {
-      const reason = (abortController.signal as any).reason;
-      const message =
-        (reason instanceof Error && reason.message) ||
-        err?.message ||
-        "代理请求空闲超时";
-      return NextResponse.json({ message }, { status: 504 });
+  } catch (error: unknown) {
+    const signalWithReason = abortController.signal as AbortSignal & {
+      reason?: unknown;
+    };
+    if (error instanceof Error && error.name === "AbortError") {
+      const reason = signalWithReason.reason;
+      const reasonMessage =
+        reason instanceof Error
+          ? reason.message
+          : typeof reason === "string"
+            ? reason
+            : error.message;
+      return NextResponse.json(
+        { message: reasonMessage || "代理请求空闲超时" },
+        { status: 504 },
+      );
     }
-    return NextResponse.json(
-      { message: err?.message || "未知错误" },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : "未知错误";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

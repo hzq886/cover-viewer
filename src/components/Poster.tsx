@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
+import React from "react";
 
 type Props = {
   posterUrl: string;
@@ -65,13 +65,13 @@ const Poster = React.forwardRef<HTMLDivElement, Props>(function Poster(
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveUrl]);
+  }, [effectiveUrl, currSrc]);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover handlers control poster flipping
     <div
       ref={ref}
       className="group relative cursor-zoom-in"
-      onClick={onOpenModal}
       onMouseEnter={() => {
         if (!single && hoverFlip && !forceSide) setShowBack(true);
       }}
@@ -79,6 +79,21 @@ const Poster = React.forwardRef<HTMLDivElement, Props>(function Poster(
         if (!single && hoverFlip && !forceSide) setShowBack(false);
       }}
     >
+      <button
+        type="button"
+        className="absolute inset-0 z-10 cursor-zoom-in bg-transparent"
+        aria-label="Open poster viewer"
+        onClick={onOpenModal}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onOpenModal();
+          }
+        }}
+      >
+        <span className="sr-only">Open poster viewer</span>
+      </button>
+
       {/* External play button removed; handled in page.tsx */}
 
       <div
@@ -98,55 +113,52 @@ const Poster = React.forwardRef<HTMLDivElement, Props>(function Poster(
               ? "none"
               : "opacity 400ms ease, transform 400ms ease, width 400ms ease",
           }}
-          aria-label="poster"
         >
           {/* Unified crossfade for both modes */}
-          <>
-            {prevSrc && (
-              <Image
-                key={`prev-${prevSrc}`}
-                src={prevSrc}
-                alt={posterUrl}
-                fill
-                sizes="(max-width: 1024px) 92vw, 72vw"
-                style={{
-                  objectFit: "contain",
-                  objectPosition: "center",
-                  opacity: newLoaded ? 0 : 1,
-                  transform: newLoaded ? "scale(1.02)" : "scale(1)",
-                  filter: newLoaded
-                    ? "blur(1px) brightness(1.02) contrast(0.98)"
-                    : "none",
-                  transition: noAnim
-                    ? "none"
-                    : "opacity 600ms cubic-bezier(0.22,1,0.36,1), transform 600ms cubic-bezier(0.22,1,0.36,1), filter 600ms cubic-bezier(0.22,1,0.36,1)",
-                }}
-                priority
-              />
-            )}
-            {currSrc && (
-              <Image
-                key={`curr-${currSrc}`}
-                src={currSrc}
-                alt={posterUrl}
-                fill
-                sizes="(max-width: 1024px) 92vw, 72vw"
-                style={{
-                  objectFit: "contain",
-                  objectPosition: "center",
-                  opacity: newLoaded ? 1 : 0,
-                  transform: newLoaded ? "scale(1)" : "scale(0.96)",
-                  filter: newLoaded
-                    ? "none"
-                    : "blur(3px) brightness(0.95) contrast(1.05)",
-                  transition: noAnim
-                    ? "none"
-                    : "opacity 600ms cubic-bezier(0.22,1,0.36,1), transform 600ms cubic-bezier(0.22,1,0.36,1), filter 600ms cubic-bezier(0.22,1,0.36,1)",
-                }}
-                priority
-              />
-            )}
-          </>
+          {prevSrc && (
+            <Image
+              key={`prev-${prevSrc}`}
+              src={prevSrc}
+              alt={posterUrl}
+              fill
+              sizes="(max-width: 1024px) 92vw, 72vw"
+              style={{
+                objectFit: "contain",
+                objectPosition: "center",
+                opacity: newLoaded ? 0 : 1,
+                transform: newLoaded ? "scale(1.02)" : "scale(1)",
+                filter: newLoaded
+                  ? "blur(1px) brightness(1.02) contrast(0.98)"
+                  : "none",
+                transition: noAnim
+                  ? "none"
+                  : "opacity 600ms cubic-bezier(0.22,1,0.36,1), transform 600ms cubic-bezier(0.22,1,0.36,1), filter 600ms cubic-bezier(0.22,1,0.36,1)",
+              }}
+              priority
+            />
+          )}
+          {currSrc && (
+            <Image
+              key={`curr-${currSrc}`}
+              src={currSrc}
+              alt={posterUrl}
+              fill
+              sizes="(max-width: 1024px) 92vw, 72vw"
+              style={{
+                objectFit: "contain",
+                objectPosition: "center",
+                opacity: newLoaded ? 1 : 0,
+                transform: newLoaded ? "scale(1)" : "scale(0.96)",
+                filter: newLoaded
+                  ? "none"
+                  : "blur(3px) brightness(0.95) contrast(1.05)",
+                transition: noAnim
+                  ? "none"
+                  : "opacity 600ms cubic-bezier(0.22,1,0.36,1), transform 600ms cubic-bezier(0.22,1,0.36,1), filter 600ms cubic-bezier(0.22,1,0.36,1)",
+              }}
+              priority
+            />
+          )}
         </div>
         {/* Subtle glow overlay */}
         {!single && (

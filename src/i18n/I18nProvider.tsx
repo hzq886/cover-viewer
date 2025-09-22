@@ -2,18 +2,18 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
 import {
-  SUPPORTED_LANGUAGES,
-  translations,
   type LanguageCode,
+  SUPPORTED_LANGUAGES,
   type TranslationDictionary,
+  translations,
 } from "./translations";
 
 type TranslationParams = Record<string, string | number>;
@@ -106,10 +106,10 @@ function detectInitialLanguage(): LanguageCode {
 // 支持通过路径形式（如 "search.placeholder.default"）获取嵌套的翻译文案
 function getTranslationValue(lang: LanguageCode, key: string): unknown {
   const segments = key.split(".");
-  let current: any = translations[lang];
+  let current: unknown = translations[lang];
   for (const segment of segments) {
     if (current && typeof current === "object" && segment in current) {
-      current = current[segment];
+      current = (current as Record<string, unknown>)[segment];
     } else {
       return undefined;
     }

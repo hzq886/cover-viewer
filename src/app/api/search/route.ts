@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { timeoutSignal } from "@/lib/abort";
+
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
@@ -49,12 +51,14 @@ export async function GET(req: Request) {
       offset: String(offset),
       output: "json",
     };
-    Object.entries(params).forEach(([k, v]) => endpoint.searchParams.set(k, v));
+    Object.entries(params).forEach(([key, value]) => {
+      endpoint.searchParams.set(key, value);
+    });
 
     const res = await fetch(endpoint.toString(), {
       // DMM API is public over HTTPS; no headers are strictly required.
       // 10s timeout
-      signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined,
+      signal: timeoutSignal(10000),
       cache: "force-cache",
       next: {
         revalidate: 300,
@@ -79,12 +83,17 @@ export async function GET(req: Request) {
     const items = data?.result?.items ?? [];
 
     return NextResponse.json({ items });
-  } catch (err: any) {
-    const isTimeout = err?.name === "TimeoutError";
+  } catch (error: unknown) {
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === "TimeoutError" || error.name === "AbortError");
     const code = isTimeout ? "timeout" : "unknown";
-    const message = isTimeout
-      ? "DMM API request timed out"
-      : err?.message || "Unknown error";
+    const message =
+      error instanceof Error
+        ? error.message
+        : isTimeout
+          ? "Request timed out"
+          : "Unknown error";
     return NextResponse.json({ code, message }, { status: 500 });
   }
 }

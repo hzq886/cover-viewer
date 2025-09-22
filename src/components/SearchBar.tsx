@@ -30,6 +30,7 @@ export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       {...props}
     >
+      <title>Search</title>
       {/* Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE */}
       <path
         fill="currentColor"
@@ -130,7 +131,6 @@ export default function SearchBar({
   return (
     <form
       ref={wrapperRef}
-      role="search"
       onSubmit={handleSubmit}
       className={`relative w-full ${widthClass} ${className || ""}`.trim()}
     >
@@ -150,6 +150,7 @@ export default function SearchBar({
               strokeLinejoin="round"
               aria-hidden
             >
+              <title>Search</title>
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -193,6 +194,7 @@ export default function SearchBar({
                 strokeLinejoin="round"
                 aria-hidden
               >
+                <title>{t("search.clear")}</title>
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -244,6 +246,7 @@ export default function SearchBar({
                       strokeLinejoin="round"
                       aria-hidden
                     >
+                      <title>Open recent search</title>
                       <path d="M12 6v6l3 3" />
                       <circle cx="12" cy="12" r="9" />
                     </svg>
@@ -286,6 +289,7 @@ export default function SearchBar({
                       strokeLinejoin="round"
                       aria-hidden
                     >
+                      <title>Remove recent search</title>
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { APITypes, PlyrOptions } from "plyr-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import "plyr-react/plyr.css";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -17,12 +17,31 @@ const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
 });
 const DEFAULT_VOLUME = 0.7;
 
+type PromiseLikeValue<_T = unknown> = { then?: unknown } & object;
+
+type PlyrLike = {
+  togglePlay?: () => void;
+  playing?: boolean;
+};
+
+const getTogglePlay = (value: unknown): (() => void) | undefined => {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as PlyrLike;
+  return typeof candidate.togglePlay === "function"
+    ? candidate.togglePlay
+    : undefined;
+};
+
+const isPlyrPlaying = (value: unknown): boolean => {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as PlyrLike;
+  return Boolean(candidate.playing);
+};
+
 function isPromise<T = unknown>(value: unknown): value is Promise<T> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as any).then === "function"
-  );
+  if (typeof value !== "object" || value === null) return false;
+  const maybePromise = value as PromiseLikeValue<T>;
+  return typeof maybePromise.then === "function";
 }
 
 export default function VideoModal({ open, onClose, videoUrl }: Props) {
@@ -69,13 +88,14 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
         }
       } else if (event.key === " " || event.key === "Spacebar") {
         event.preventDefault();
-        if (typeof (instance as any).togglePlay === "function") {
-          (instance as any).togglePlay();
+        const togglePlay = getTogglePlay(instance);
+        if (togglePlay) {
+          togglePlay();
         } else if (
           typeof instance.play === "function" &&
           typeof instance.pause === "function"
         ) {
-          if ((instance as any).playing) {
+          if (isPlyrPlaying(instance)) {
             instance.pause();
           } else {
             const result = instance.play();
@@ -219,12 +239,13 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label={dictionary.video.close}
+        className="absolute inset-0 z-10 cursor-zoom-out bg-transparent"
+        onClick={onClose}
+      />
       {/* Close */}
       <button
         type="button"
@@ -241,6 +262,7 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
           stroke="currentColor"
           strokeWidth="2"
         >
+          <title>{dictionary.video.close}</title>
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
@@ -248,7 +270,7 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
 
       <div
         ref={containerRef}
-        className="relative w-full max-w-[760px] rounded-2xl border border-white/15 bg-black/65 shadow-[0_50px_140px_-40px_rgba(88,28,135,0.85)] overflow-hidden"
+        className="relative z-20 w-full max-w-[760px] rounded-2xl border border-white/15 bg-black/65 shadow-[0_50px_140px_-40px_rgba(88,28,135,0.85)] overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-600/20 via-transparent to-indigo-500/20" />
         <div className="relative">

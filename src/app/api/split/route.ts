@@ -1,10 +1,14 @@
+import { createHash } from "node:crypto";
+import { promises as fs } from "node:fs";
+import path from "node:path";
+
 import { NextResponse } from "next/server";
 import sharp from "sharp";
-import { createHash } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
+import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
+
+const bufferToBody = (buf: Buffer) => Uint8Array.from(buf);
 
 // GET /api/split?url=<remote>&side=front|back&spine=0.02&format=webp
 export async function GET(req: Request) {
@@ -23,7 +27,7 @@ export async function GET(req: Request) {
         { status: 400 },
       );
     const spineRatio =
-      isFinite(spine) && spine >= 0 && spine < 0.2 ? spine : 0.02;
+      Number.isFinite(spine) && spine >= 0 && spine < 0.2 ? spine : 0.02;
 
     // Simple disk cache under .next/cache/split
     const key = createHash("sha1")
@@ -36,8 +40,8 @@ export async function GET(req: Request) {
     );
     try {
       await fs.mkdir(cacheDir, { recursive: true });
-      const stat = await fs.stat(file).catch(() => null as any);
-      if (stat && stat.isFile()) {
+      const stat = await fs.stat(file).catch(() => null);
+      if (stat?.isFile()) {
         const cached = await fs.readFile(file);
         const type =
           format === "png"
@@ -45,7 +49,7 @@ export async function GET(req: Request) {
             : format === "jpg" || format === "jpeg"
               ? "image/jpeg"
               : "image/webp";
-        return new NextResponse(cached, {
+        return new NextResponse(bufferToBody(cached), {
           status: 200,
           headers: {
             "Content-Type": type,
@@ -58,9 +62,7 @@ export async function GET(req: Request) {
 
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)" },
-      signal: (AbortSignal as any).timeout
-        ? (AbortSignal as any).timeout(12000)
-        : undefined,
+      signal: timeoutSignal(12000),
     });
     if (!res.ok) {
       return NextResponse.json(
@@ -82,9 +84,9 @@ export async function GET(req: Request) {
 
     // Compute split widths using the same rule as the client: 0.5 +/- spine/2
     const frontFrac = 0.5 + spineRatio / 2;
-    const backFrac = 0.5 - spineRatio / 2;
-    const backW = Math.max(1, Math.round(w * backFrac));
-    const frontW = w - backW; // keep total width consistent
+    let frontW = Math.round(w * frontFrac);
+    frontW = Math.min(w - 1, Math.max(1, frontW));
+    const backW = Math.max(1, w - frontW);
 
     const extract =
       side === "front"
@@ -108,17 +110,15 @@ export async function GET(req: Request) {
         : format === "jpg" || format === "jpeg"
           ? "image/jpeg"
           : "image/webp";
-    return new NextResponse(outBuf, {
+    return new NextResponse(bufferToBody(outBuf), {
       status: 200,
       headers: {
         "Content-Type": type,
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
       },
     });
-  } catch (err: any) {
-    return NextResponse.json(
-      { message: err?.message || "服务器内部错误" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "服务器内部错误";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

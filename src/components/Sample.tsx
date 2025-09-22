@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -29,6 +30,9 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
   const [hasAbove, setHasAbove] = useState(false);
   useImperativeHandle(ref, () => scrollRef.current as HTMLDivElement);
 
+  const imagesCount = images.length;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll indicators should update when sample set or container height changes
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -39,7 +43,7 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
     update();
     el.addEventListener("scroll", update);
     return () => el.removeEventListener("scroll", update);
-  }, [images.length, height]);
+  }, [height, imagesCount]);
 
   const toDisplaySrc = (url: string) =>
     url.startsWith("/api/") ? url : `/api/proxy?url=${encodeURIComponent(url)}`;
@@ -68,12 +72,13 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
                 }`}
                 title={dictionary.sample.front}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={`/api/split?url=${encodeURIComponent(frontBackSrc)}&side=front&spine=0.02`}
                   alt={dictionary.sample.front}
-                  className="h-full w-full object-cover object-top"
-                  loading="lazy"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 42vw, 200px"
+                  className="object-cover object-top"
                 />
                 <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10 group-hover:ring-white/25" />
               </button>
@@ -87,12 +92,13 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
                 }`}
                 title={dictionary.sample.back}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={`/api/split?url=${encodeURIComponent(frontBackSrc)}&side=back&spine=0.02`}
                   alt={dictionary.sample.back}
-                  className="h-full w-full object-cover object-top"
-                  loading="lazy"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 42vw, 200px"
+                  className="object-cover object-top"
                 />
                 <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10 group-hover:ring-white/25" />
               </button>
@@ -114,12 +120,13 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
                 }`}
                 title={dictionary.sample.view}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={src}
                   alt={dictionary.sample.view}
-                  className={`h-full w-full object-cover ${objectPos}`}
-                  loading="lazy"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 42vw, 200px"
+                  className={`object-cover ${objectPos}`}
                 />
                 <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10 group-hover:ring-white/25" />
               </button>
@@ -158,6 +165,7 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
             strokeLinecap="round"
             strokeLinejoin="round"
           >
+            <title>{dictionary.sample.more}</title>
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
@@ -187,6 +195,7 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
             strokeLinecap="round"
             strokeLinejoin="round"
           >
+            <title>{dictionary.sample.backToTop}</title>
             <polyline points="6 15 12 9 18 15" />
           </svg>
         </button>

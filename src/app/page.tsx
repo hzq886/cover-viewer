@@ -1,18 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { adjustLightness } from "../lib/color";
+
+import ZoomModal from "@/components/ZoomModal";
+import InfoPanel from "../components/InfoPanel";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import Logo from "../components/Logo";
+import MediaCarousel, { type MediaSlide } from "../components/MediaCarousel";
+import SearchBar from "../components/SearchBar";
 import { useDmmSearch } from "../hooks/useDmmSearch";
 import { useImageColor } from "../hooks/useImageColor";
 import { useLayoutHeights } from "../hooks/useLayoutHeights";
-import type { DmmNameObj } from "../types/dmm";
-import SearchBar from "../components/SearchBar";
-import Logo from "../components/Logo";
-import InfoPanel from "../components/InfoPanel";
-import MediaCarousel, { type MediaSlide } from "../components/MediaCarousel";
-import ZoomModal from "../components/ZoomModal";
-import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useI18n } from "../i18n/I18nProvider";
+import { adjustLightness } from "../lib/color";
+import type { DmmNameObj } from "../types/dmm";
 
 // 默认背景色回退值（深蓝色调，用于无主色时）
 const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
@@ -125,10 +126,11 @@ export default function Home() {
 
   // 当前作品对应的基础海报 URL
   const basePosterUrl = useMemo(
-    () => extractPosterUrl((pick as any)?.imageURL ?? null),
+    () => extractPosterUrl(pick?.imageURL ?? null),
     [pick],
   );
   // 作品切换时重置媒体状态
+  // biome-ignore lint/correctness/useExhaustiveDependencies: effect intentionally runs whenever the current item changes
   useEffect(() => {
     setActiveIndex(0);
     setActiveSlide(null);
@@ -247,8 +249,8 @@ export default function Home() {
   // 来源于 DMM 样图字段的原始地址列表
   const sampleImages: string[] = useMemo(() => {
     const images =
-      (pick as any)?.sampleImageURL?.sample_l?.image ||
-      (pick as any)?.sampleImageURL?.sample_s?.image ||
+      pick?.sampleImageURL?.sample_l?.image ||
+      pick?.sampleImageURL?.sample_s?.image ||
       [];
     return Array.isArray(images) ? images : [];
   }, [pick]);
@@ -307,9 +309,9 @@ export default function Home() {
   // DMM 返回的试看视频地址
   const sampleMovie: string = useMemo(
     () =>
-      (pick as any)?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
-      (pick as any)?.sampleMovieURL?.size_720_480 ||
-      (pick as any)?.sample_movie_url?.size_720_480 ||
+      pick?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
+      pick?.sampleMovieURL?.size_720_480 ||
+      pick?.sample_movie_url?.size_720_480 ||
       "",
     [pick],
   );
@@ -469,7 +471,7 @@ export default function Home() {
     : "flex w-full flex-col items-center justify-center gap-6 transition";
 
   // 作品 ID（多字段兼容）
-  const contentId = (pick as any)?.content_id || (pick as any)?.contentid || "";
+  const contentId = pick?.content_id || pick?.contentid || "";
   // 作品标题
   const title = pick?.title || "";
   // 推广链接或原始详情页
@@ -481,7 +483,7 @@ export default function Home() {
   // 制作方名称
   const makerName = joinNames(pick?.iteminfo?.maker) || pick?.maker?.name || "";
   // 发售日期
-  const releaseDate = (pick as any)?.date || (pick as any)?.release_date || "";
+  const releaseDate = pick?.date || pick?.release_date || "";
 
   return (
     <div
@@ -489,11 +491,11 @@ export default function Home() {
       onClickCapture={(event) => {
         // 当前点击的目标节点
         const target = event.target as Node;
-        if (headerRef.current && headerRef.current.contains(target)) return;
-        if (logoRef.current && logoRef.current.contains(target)) return;
-        if (footerRef.current && footerRef.current.contains(target)) return;
-        if (detailsRef.current && detailsRef.current.contains(target)) return;
-        if (carouselRef.current && carouselRef.current.contains(target)) return;
+        if (headerRef.current?.contains(target)) return;
+        if (logoRef.current?.contains(target)) return;
+        if (footerRef.current?.contains(target)) return;
+        if (detailsRef.current?.contains(target)) return;
+        if (carouselRef.current?.contains(target)) return;
         if (zoomOpen) return;
       }}
     >

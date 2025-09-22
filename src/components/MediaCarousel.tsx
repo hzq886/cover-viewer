@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, {
   useCallback,
   useEffect,
@@ -58,6 +59,22 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
     const [isActive, setIsActive] = useState(false);
     const syncingRef = useRef(false);
     const lastInitialRef = useRef(initialIndex);
+    const canZoom = current?.type !== "video";
+    const openCurrent = useCallback(() => {
+      if (!canZoom || !onRequestZoom) return;
+      onRequestZoom(index, current);
+    }, [canZoom, current, index, onRequestZoom]);
+
+    const handleKeyOpen = useCallback(
+      (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (!canZoom || !onRequestZoom) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onRequestZoom(index, current);
+        }
+      },
+      [canZoom, current, index, onRequestZoom],
+    );
     const handleMouseEnter = useCallback(() => setIsActive(true), []);
     const handleMouseLeave = useCallback(() => setIsActive(false), []);
     const handleFocusCapture = useCallback(() => setIsActive(true), []);
@@ -168,8 +185,6 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
       return null;
     }
 
-    const canZoom = current.type !== "video";
-
     const renderMedia = () => {
       if (current.type === "video") {
         return (
@@ -188,19 +203,22 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
         );
       }
       return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           key={`img-${current.url}`}
           src={current.displayUrl}
           alt="preview"
-          className="h-full w-full object-contain select-none"
+          fill
+          unoptimized
           draggable={false}
+          sizes="(max-width: 1024px) 90vw, 70vw"
+          className="object-contain select-none"
         />
       );
     };
 
     return (
       <div ref={rootRef} className="relative w-full">
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: hover handlers manage control visibility */}
         <div
           className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-4 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors ${
             canZoom ? "cursor-zoom-in" : "cursor-default"
@@ -214,11 +232,17 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
           onMouseLeave={handleMouseLeave}
           onFocusCapture={handleFocusCapture}
           onBlurCapture={handleBlurCapture}
-          onClick={() => {
-            if (!canZoom || !onRequestZoom) return;
-            onRequestZoom(index, current);
-          }}
         >
+          {canZoom ? (
+            <button
+              type="button"
+              aria-label="Open media in fullscreen"
+              className="absolute inset-0 z-20 cursor-zoom-in bg-transparent"
+              onClick={openCurrent}
+            >
+              <span className="sr-only">Open media in fullscreen</span>
+            </button>
+          ) : null}
           <div className="absolute inset-0 z-0">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />
           </div>
@@ -251,6 +275,7 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
+                  <title>Previous</title>
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
@@ -273,6 +298,7 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
+                  <title>Next</title>
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
