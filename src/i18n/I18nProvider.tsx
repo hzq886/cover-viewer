@@ -127,7 +127,11 @@ function format(template: string, params?: TranslationParams): string {
 }
 
 // 翻译函数：先查当前语言，找不到时回退到英文，再退回 key 本身
-function translate(lang: LanguageCode, key: string, params?: TranslationParams): string {
+function translate(
+  lang: LanguageCode,
+  key: string,
+  params?: TranslationParams,
+): string {
   const primary = getTranslationValue(lang, key);
   if (typeof primary === "string") {
     return format(primary, params);
@@ -140,7 +144,8 @@ function translate(lang: LanguageCode, key: string, params?: TranslationParams):
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<LanguageCode>(FALLBACK_LANGUAGE);
+  const [language, setLanguageState] =
+    useState<LanguageCode>(FALLBACK_LANGUAGE);
   const [initialized, setInitialized] = useState(false);
 
   // 页面挂载后检测首选语言，并立即同步到文档
@@ -169,13 +174,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // useMemo 缓存上下文对象，避免不必要的重新渲染
-  const value = useMemo<I18nContextValue>(() => ({
-    language,
-    languages: SUPPORTED_LANGUAGES,
-    setLanguage,
-    t: (key: string, params?: TranslationParams) => translate(language, key, params),
-    dictionary: translations[language],
-  }), [language, setLanguage]);
+  const value = useMemo<I18nContextValue>(
+    () => ({
+      language,
+      languages: SUPPORTED_LANGUAGES,
+      setLanguage,
+      t: (key: string, params?: TranslationParams) =>
+        translate(language, key, params),
+      dictionary: translations[language],
+    }),
+    [language, setLanguage],
+  );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

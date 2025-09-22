@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import type { RGB } from "../lib/color";
 
-export function useImageColor(posterUrl: string | undefined | null, proxiedUrl?: string) {
+export function useImageColor(
+  posterUrl: string | undefined | null,
+  proxiedUrl?: string,
+) {
   const [dominant, setDominant] = useState<RGB | null>(null);
-  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const [naturalSize, setNaturalSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!posterUrl) {
@@ -16,9 +22,12 @@ export function useImageColor(posterUrl: string | undefined | null, proxiedUrl?:
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(`/api/color?url=${encodeURIComponent(posterUrl)}`);
+        const r = await fetch(
+          `/api/color?url=${encodeURIComponent(posterUrl)}`,
+        );
         const data = await r.json();
-        if (!r.ok) throw new Error(data?.message || "Failed to analyze dominant colors");
+        if (!r.ok)
+          throw new Error(data?.message || "Failed to analyze dominant colors");
         if (!cancelled) {
           if (data?.dominant) setDominant(data.dominant);
           if (data?.original?.width && data?.original?.height) {
@@ -34,7 +43,8 @@ export function useImageColor(posterUrl: string | undefined | null, proxiedUrl?:
             img.onerror = () => reject(new Error("fallback img load failed"));
             img.src = proxiedUrl;
           });
-          if (!cancelled) setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+          if (!cancelled)
+            setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
         } catch {
           if (!cancelled) setNaturalSize(null);
         }

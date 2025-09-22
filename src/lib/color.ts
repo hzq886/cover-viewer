@@ -1,11 +1,17 @@
 export type RGB = { r: number; g: number; b: number };
 
-export function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number,
+): { h: number; s: number; l: number } {
   r /= 255;
   g /= 255;
   b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
   const l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
@@ -45,7 +51,11 @@ export function hslToRgb(h: number, s: number, l: number): RGB {
     g = hue2rgb(p, q, h);
     b = hue2rgb(p, q, h - 1 / 3);
   }
-  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+  };
 }
 
 export function adjustLightness(rgb: RGB, delta: number): RGB {
@@ -53,4 +63,3 @@ export function adjustLightness(rgb: RGB, delta: number): RGB {
   const l = Math.min(1, Math.max(0, hsl.l + delta));
   return hslToRgb(hsl.h, hsl.s, l);
 }
-

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { MediaSlide } from "./MediaCarousel";
 
 type Props = {
@@ -11,7 +17,13 @@ type Props = {
   onIndexChange?: (index: number) => void;
 };
 
-export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onIndexChange }: Props) {
+export default function ZoomModal({
+  open,
+  onClose,
+  slides,
+  initialIndex = 0,
+  onIndexChange,
+}: Props) {
   const [rendered, setRendered] = useState(false);
   const [visible, setVisible] = useState(false);
   const [index, setIndex] = useState(initialIndex);
@@ -46,12 +58,15 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
     }, 200);
   }, [index, onClose]);
 
-  useEffect(() => () => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    },
+    [],
+  );
 
   const current = useMemo(() => slides[index] ?? null, [slides, index]);
 
@@ -109,8 +124,11 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
 
   const cardStyle = {
     opacity: visible ? 1 : 0,
-    transform: visible ? "translateY(0px) scale(1)" : "translateY(18px) scale(0.94)",
-    transition: "opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1)",
+    transform: visible
+      ? "translateY(0px) scale(1)"
+      : "translateY(18px) scale(0.94)",
+    transition:
+      "opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1)",
   } as const;
 
   const mediaClass = "h-full w-auto max-w-full object-contain select-none";
@@ -151,7 +169,10 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
       style={overlayStyle}
       onClick={handleClose}
     >
-      <div className="relative flex h-full w-full items-center justify-center" style={cardStyle}>
+      <div
+        className="relative flex h-full w-full items-center justify-center"
+        style={cardStyle}
+      >
         {total > 1 && (
           <button
             type="button"
@@ -162,7 +183,16 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
             }}
             aria-label="Previous"
           >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -178,7 +208,16 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
             }}
             aria-label="Next"
           >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -193,7 +232,16 @@ export default function ZoomModal({ open, onClose, slides, initialIndex = 0, onI
           className="absolute left-6 top-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white/90 backdrop-blur-md transition hover:bg-black/70 cursor-pointer"
           aria-label="Close"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>

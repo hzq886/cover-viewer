@@ -267,7 +267,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       badge: "本日のラッキーAV",
       heading1: "お好みのキーワードで本日のラッキーAVジャケットをランダム表示",
       heading2: "運試ししてみましょう！",
-      description: "ジャンル、品番、出演者、監督、メーカー、タイトルなど自由に検索できます。",
+      description:
+        "ジャンル、品番、出演者、監督、メーカー、タイトルなど自由に検索できます。",
       emphasis: "気に入らなければ検索ボタンでもう一度引き直せます！",
       features: [
         {
@@ -289,7 +290,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       ],
     },
     page: {
-      noResults: "該当するジャケットが見つかりませんでした。キーワードを変更して再度お試しください。",
+      noResults:
+        "該当するジャケットが見つかりませんでした。キーワードを変更して再度お試しください。",
     },
     infoPanel: {
       contentId: "品番:",
@@ -351,7 +353,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       badge: "Lucky AV of the Day",
       heading1: "Enter a keyword to draw a random AV cover for today",
       heading2: "Give it a spin!",
-      description: "Search by category, SKU, actress, director, studio, or any title keyword.",
+      description:
+        "Search by category, SKU, actress, director, studio, or any title keyword.",
       emphasis: "Not happy with the result? Hit search again for a new draw!",
       features: [
         {
@@ -407,7 +410,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
   },
 };
 
-export type TranslationDictionary = typeof translations["zh-CN"];
+export type TranslationDictionary = (typeof translations)["zh-CN"];
 
-export const SUPPORTED_LANGUAGES: LanguageCode[] = ["zh-CN", "zh-TW", "ja", "en"];
-
+export const SUPPORTED_LANGUAGES: LanguageCode[] = [
+  "zh-CN",
+  "zh-TW",
+  "ja",
+  "en",
+];

@@ -34,13 +34,27 @@ export default function LanguageSwitcher({ className }: Props) {
           aria-label={dictionary.languageSwitcher.ariaLabel}
         >
           {options.map((item) => (
-            <option key={item.code} value={item.code} className="text-slate-900">
+            <option
+              key={item.code}
+              value={item.code}
+              className="text-slate-900"
+            >
               {item.label}
             </option>
           ))}
         </select>
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-200/70">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </span>
@@ -48,4 +62,3 @@ export default function LanguageSwitcher({ className }: Props) {
     </div>
   );
 }
-

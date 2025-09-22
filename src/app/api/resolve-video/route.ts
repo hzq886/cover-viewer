@@ -34,7 +34,9 @@ function extractMp4(html: string, baseUrl?: string): string | null {
     for (const re of patterns) {
       const m = source.match(re);
       if (!m) continue;
-      const candidates = m.slice(1).filter((x) => typeof x === "string" && /\.mp4/i.test(x));
+      const candidates = m
+        .slice(1)
+        .filter((x) => typeof x === "string" && /\.mp4/i.test(x));
       const raw = candidates.length > 0 ? candidates[0] : m[0];
       if (!raw || typeof raw !== "string") continue;
       const cleaned = normalizeSlashes(raw);
@@ -76,7 +78,8 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const url = searchParams.get("url") || "";
-    if (!url) return NextResponse.json({ message: "缺少 url 参数" }, { status: 400 });
+    if (!url)
+      return NextResponse.json({ message: "缺少 url 参数" }, { status: 400 });
 
     // If already an mp4, return as-is
     if (/\.mp4($|\?)/i.test(url)) {
@@ -86,9 +89,11 @@ export async function GET(req: Request) {
     // Fetch the wrapper page and extract video src
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
+        "User-Agent":
+          "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
         Referer: "https://www.dmm.co.jp/",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
     const html = await res.text();
@@ -102,9 +107,11 @@ export async function GET(req: Request) {
       const iframeUrl = toAbsoluteFrom(url, iframeMatch[1]);
       const r2 = await fetch(iframeUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
+          "User-Agent":
+            "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
           Referer: "https://www.dmm.co.jp/",
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         },
       });
       const html2 = await r2.text();
@@ -114,6 +121,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ message: "未能解析视频地址" }, { status: 404 });
   } catch (err: any) {
-    return NextResponse.json({ message: err?.message || "未知错误" }, { status: 500 });
+    return NextResponse.json(
+      { message: err?.message || "未知错误" },
+      { status: 500 },
+    );
   }
 }

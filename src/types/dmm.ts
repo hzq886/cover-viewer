@@ -21,4 +21,3 @@ export type DmmItem = {
   iteminfo?: DmmItemInfo;
   maker?: DmmNameObj; // sometimes appears at root
 };
-

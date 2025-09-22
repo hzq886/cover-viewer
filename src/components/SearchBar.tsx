@@ -1,6 +1,13 @@
 "use client";
 
-import { type FormEvent, type SVGProps, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type SVGProps,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useI18n } from "../i18n/I18nProvider";
 
 type Props = {
@@ -32,7 +39,14 @@ export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function SearchBar({ keyword, setKeyword, loading, onSubmit, compact, className }: Props) {
+export default function SearchBar({
+  keyword,
+  setKeyword,
+  loading,
+  onSubmit,
+  compact,
+  className,
+}: Props) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
@@ -55,7 +69,9 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
       if (!stored) return;
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        setRecentKeywords(parsed.filter((item): item is string => typeof item === "string"));
+        setRecentKeywords(
+          parsed.filter((item): item is string => typeof item === "string"),
+        );
       }
     } catch {
       // ignore malformed storage content
@@ -98,7 +114,10 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
     if (hasRecent) setShowRecent(true);
   };
 
-  const containerRounded = showRecent && hasRecent ? "rounded-[32px] rounded-b-none border-b-0" : "rounded-[32px]";
+  const containerRounded =
+    showRecent && hasRecent
+      ? "rounded-[32px] rounded-b-none border-b-0"
+      : "rounded-[32px]";
   const widthClass = compact ? "max-w-2xl" : "max-w-3xl";
   const submitButtonClass = compact
     ? `flex h-10 w-10 items-center justify-center rounded-full text-violet-200/90 transition hover:bg-violet-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent ${
@@ -120,7 +139,17 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
           className={`flex w-full items-center gap-3 border border-white/12 bg-black/45 px-5 py-2 text-slate-100 backdrop-blur-xl shadow-[0_25px_80px_-40px_rgba(76,29,149,0.7)] transition focus-within:border-violet-300/60 focus-within:bg-black/35 focus-within:shadow-[0_35px_120px_-45px_rgba(129,104,238,0.8)] ${containerRounded}`}
         >
           <span className="flex h-9 w-9 items-center justify-center text-violet-200/80">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -153,7 +182,17 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
               }}
               className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -171,7 +210,10 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
                 <span className="absolute h-full w-full rounded-full border-2 border-white/30 border-t-transparent animate-spin" />
                 <span
                   className="absolute h-full w-full rounded-full border-2 border-transparent border-t-white/80 animate-spin"
-                  style={{ animationDuration: "900ms", animationDirection: "reverse" }}
+                  style={{
+                    animationDuration: "900ms",
+                    animationDirection: "reverse",
+                  }}
                 />
               </span>
             ) : compact ? (
@@ -186,9 +228,22 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
           <div className="absolute left-0 right-0 top-full z-40 rounded-b-[32px] border border-t border-white/12 bg-black/65 pb-3 pt-2 text-slate-100 backdrop-blur-xl shadow-[0_35px_120px_-45px_rgba(76,29,149,0.75)]">
             <ul className="max-h-64 overflow-y-auto hide-scrollbar">
               {recentKeywords.map((item) => (
-                <li key={item} className="group flex items-center gap-3 px-5 py-2 text-sm text-slate-100 transition hover:bg-white/10">
+                <li
+                  key={item}
+                  className="group flex items-center gap-3 px-5 py-2 text-sm text-slate-100 transition hover:bg-white/10"
+                >
                   <span className="flex h-6 w-6 items-center justify-center text-violet-200/80">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
                       <path d="M12 6v6l3 3" />
                       <circle cx="12" cy="12" r="9" />
                     </svg>
@@ -211,14 +266,26 @@ export default function SearchBar({ keyword, setKeyword, loading, onSubmit, comp
                   <button
                     type="button"
                     aria-label={t("search.deleteRecent", { value: item })}
-                  onMouseDown={(event) => {
+                    onMouseDown={(event) => {
                       event.preventDefault();
-                      setRecentKeywords((prev) => prev.filter((keywordItem) => keywordItem !== item));
+                      setRecentKeywords((prev) =>
+                        prev.filter((keywordItem) => keywordItem !== item),
+                      );
                     }}
                     className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
                     title={t("search.deleteRecent", { value: item })}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>

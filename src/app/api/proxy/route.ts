@@ -23,17 +23,24 @@ export async function GET(req: Request) {
     }
     const parsed = new URL(url);
     if (!/^https?:$/.test(parsed.protocol)) {
-      return NextResponse.json({ message: "仅支持 http/https" }, { status: 400 });
+      return NextResponse.json(
+        { message: "仅支持 http/https" },
+        { status: 400 },
+      );
     }
     if (!ALLOW_HOSTS.has(parsed.hostname)) {
-      return NextResponse.json({ message: "目标域名不在允许列表" }, { status: 403 });
+      return NextResponse.json(
+        { message: "目标域名不在允许列表" },
+        { status: 403 },
+      );
     }
 
     const range = req.headers.get("range") || undefined;
     const upstream = await fetch(parsed.toString(), {
       headers: {
         // Spoof a UA to be safe
-        "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
+        "User-Agent":
+          "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
         // Some hosts require a referer
         Referer: "https://www.dmm.co.jp/",
         ...(range ? { Range: range } : {}),
@@ -44,18 +51,31 @@ export async function GET(req: Request) {
     if (!upstream.ok || !upstream.body) {
       const text = await upstream.text().catch(() => "");
       return NextResponse.json(
-        { message: `上游请求失败: ${upstream.status}`, details: text.slice(0, 500) },
+        {
+          message: `上游请求失败: ${upstream.status}`,
+          details: text.slice(0, 500),
+        },
         { status: 502 },
       );
     }
 
     const headers = new Headers();
-    const contentType = upstream.headers.get("content-type") || "application/octet-stream";
+    const contentType =
+      upstream.headers.get("content-type") || "application/octet-stream";
     headers.set("content-type", contentType);
-    headers.set("cache-control", "public, s-maxage=86400, stale-while-revalidate=604800, immutable");
+    headers.set(
+      "cache-control",
+      "public, s-maxage=86400, stale-while-revalidate=604800, immutable",
+    );
     headers.set("access-control-allow-origin", "*");
     // Preserve range/length headers for media playback
-    const pass = ["content-length", "content-range", "accept-ranges", "etag", "last-modified"];
+    const pass = [
+      "content-length",
+      "content-range",
+      "accept-ranges",
+      "etag",
+      "last-modified",
+    ];
     for (const key of pass) {
       const v = upstream.headers.get(key);
       if (v) headers.set(key, v);
@@ -117,9 +137,14 @@ export async function GET(req: Request) {
     if (err?.name === "AbortError") {
       const reason = (abortController.signal as any).reason;
       const message =
-        (reason instanceof Error && reason.message) || err?.message || "代理请求空闲超时";
+        (reason instanceof Error && reason.message) ||
+        err?.message ||
+        "代理请求空闲超时";
       return NextResponse.json({ message }, { status: 504 });
     }
-    return NextResponse.json({ message: err?.message || "未知错误" }, { status: 500 });
+    return NextResponse.json(
+      { message: err?.message || "未知错误" },
+      { status: 500 },
+    );
   }
 }

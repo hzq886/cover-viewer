@@ -36,11 +36,15 @@ const SAFETY_GAP = 48;
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
   if (!url) return "";
-  return url.startsWith("/api/") ? url : `/api/proxy?url=${encodeURIComponent(url)}`;
+  return url.startsWith("/api/")
+    ? url
+    : `/api/proxy?url=${encodeURIComponent(url)}`;
 };
 
 // 从 DMM 提供的多尺寸图片对象中提取首选海报 URL
-const extractPosterUrl = (imageUrl?: { large?: string | null; small?: string | null } | null): string => {
+const extractPosterUrl = (
+  imageUrl?: { large?: string | null; small?: string | null } | null,
+): string => {
   if (!imageUrl) return "";
   return imageUrl.large || imageUrl.small || "";
 };
@@ -49,7 +53,11 @@ const extractPosterUrl = (imageUrl?: { large?: string | null; small?: string | n
 const joinNames = (value: unknown): string => {
   if (Array.isArray(value)) {
     return value
-      .map((item) => (typeof item === "object" && item && "name" in item ? (item as DmmNameObj).name ?? "" : ""))
+      .map((item) =>
+        typeof item === "object" && item && "name" in item
+          ? ((item as DmmNameObj).name ?? "")
+          : "",
+      )
       .filter(Boolean)
       .join("、");
   }
@@ -66,11 +74,24 @@ type SampleThumb = { url: string; portrait: boolean };
 export default function Home() {
   const { dictionary, t } = useI18n();
   // 搜索 hook 提供的状态与动作
-  const { keyword, setKeyword, currentItem, remainingItems, loading, error, hasSearched, submit, reset } = useDmmSearch();
+  const {
+    keyword,
+    setKeyword,
+    currentItem,
+    remainingItems,
+    loading,
+    error,
+    hasSearched,
+    submit,
+    reset,
+  } = useDmmSearch();
   // 是否处于紧凑布局（显示结果后自动启用）
   const [compact, setCompact] = useState(false);
   // 当前视口尺寸，驱动舞台自适应
-  const [viewport, setViewport] = useState<{ vw: number; vh: number }>({ vw: 0, vh: 0 });
+  const [viewport, setViewport] = useState<{ vw: number; vh: number }>({
+    vw: 0,
+    vh: 0,
+  });
   // 媒体展示区域引用，用于阻止冒泡
   const carouselRef = useRef<HTMLDivElement>(null);
   // 布局高度 Hook，提供 header/footer 引用与高度
@@ -91,9 +112,7 @@ export default function Home() {
   const errorMessage = useMemo(() => {
     if (!error) return null;
     const params =
-      typeof error.status === "number"
-        ? { status: error.status }
-        : undefined;
+      typeof error.status === "number" ? { status: error.status } : undefined;
     const message = t(`errors.${error.code}`, params);
     if (!message || message === `errors.${error.code}`) {
       return t("errors.unknown");
@@ -105,7 +124,10 @@ export default function Home() {
   const pick = currentItem;
 
   // 当前作品对应的基础海报 URL
-  const basePosterUrl = useMemo(() => extractPosterUrl((pick as any)?.imageURL ?? null), [pick]);
+  const basePosterUrl = useMemo(
+    () => extractPosterUrl((pick as any)?.imageURL ?? null),
+    [pick],
+  );
   // 作品切换时重置媒体状态
   useEffect(() => {
     setActiveIndex(0);
@@ -124,15 +146,26 @@ export default function Home() {
   }, [activeSlide, basePosterUrl]);
 
   // 当前展示图的代理地址
-  const proxiedPosterUrl = useMemo(() => toProxyUrl(activeDisplayUrl), [activeDisplayUrl]);
+  const proxiedPosterUrl = useMemo(
+    () => toProxyUrl(activeDisplayUrl),
+    [activeDisplayUrl],
+  );
   // 用于取色的海报代理地址
-  const proxiedColorUrl = useMemo(() => toProxyUrl(basePosterUrl), [basePosterUrl]);
+  const proxiedColorUrl = useMemo(
+    () => toProxyUrl(basePosterUrl),
+    [basePosterUrl],
+  );
   // 主图的主色与原始尺寸信息
-  const { dominant, naturalSize } = useImageColor(basePosterUrl, proxiedColorUrl);
+  const { dominant, naturalSize } = useImageColor(
+    basePosterUrl,
+    proxiedColorUrl,
+  );
 
   // 选中样图的尺寸信息，用于展示面板
-  const activeImageOriginal = activeSlide?.type === "image" ? activeSlide.url : "";
-  const activeImageProxy = activeSlide?.type === "image" ? activeSlide.displayUrl : "";
+  const activeImageOriginal =
+    activeSlide?.type === "image" ? activeSlide.url : "";
+  const activeImageProxy =
+    activeSlide?.type === "image" ? activeSlide.displayUrl : "";
   const { naturalSize: selectedNatural } = useImageColor(
     activeImageOriginal || null,
     activeImageOriginal ? activeImageProxy : undefined,
@@ -143,7 +176,8 @@ export default function Home() {
   // 监听窗口尺寸变化，更新视口参数
   useEffect(() => {
     // 窗口尺寸变更时的处理逻辑
-    const handleResize = () => setViewport({ vw: window.innerWidth, vh: window.innerHeight });
+    const handleResize = () =>
+      setViewport({ vw: window.innerWidth, vh: window.innerHeight });
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -171,7 +205,9 @@ export default function Home() {
       viewport.vh - headerHeight - footerHeight - verticalPadding - SAFETY_GAP,
     );
     // 限制高度不超过设定上限
-    const clampedHeight = Math.floor(Math.min(availableHeight, MAX_STAGE_HEIGHT));
+    const clampedHeight = Math.floor(
+      Math.min(availableHeight, MAX_STAGE_HEIGHT),
+    );
     // 初始舞台高度，保持在最小高度以上
     let containerH = Math.max(clampedHeight, MIN_AVAILABLE_HEIGHT);
     // 根据目标宽高比计算舞台宽度
@@ -195,7 +231,10 @@ export default function Home() {
     if (!activeSlide) return undefined;
     if (activeSlide.type === "poster") {
       if (!naturalSize) return undefined;
-      const widthRatio = activeSlide.side === "back" ? 0.5 - POSTER_SPINE_RATIO / 2 : 0.5 + POSTER_SPINE_RATIO / 2;
+      const widthRatio =
+        activeSlide.side === "back"
+          ? 0.5 - POSTER_SPINE_RATIO / 2
+          : 0.5 + POSTER_SPINE_RATIO / 2;
       const widthPx = Math.floor((naturalSize.w || 0) * widthRatio);
       return `${widthPx || 0}px × ${naturalSize.h || 0}px`;
     }
@@ -208,7 +247,9 @@ export default function Home() {
   // 来源于 DMM 样图字段的原始地址列表
   const sampleImages: string[] = useMemo(() => {
     const images =
-      (pick as any)?.sampleImageURL?.sample_l?.image || (pick as any)?.sampleImageURL?.sample_s?.image || [];
+      (pick as any)?.sampleImageURL?.sample_l?.image ||
+      (pick as any)?.sampleImageURL?.sample_s?.image ||
+      [];
     return Array.isArray(images) ? images : [];
   }, [pick]);
 
@@ -279,7 +320,9 @@ export default function Home() {
     if (resolvingVideoRef.current) return resolvedVideoUrl || sampleMovie;
     resolvingVideoRef.current = true;
     try {
-      const response = await fetch(`/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`);
+      const response = await fetch(
+        `/api/resolve-video?url=${encodeURIComponent(sampleMovie)}`,
+      );
       const data = await response.json();
       const resolved = data?.url || sampleMovie;
       setResolvedVideoUrl(resolved);
@@ -345,7 +388,8 @@ export default function Home() {
     const seen = new Map<string, number>();
 
     slides.forEach((slide, originalIndex) => {
-      const key = slide.zoomUrl || slide.displayUrl || slide.url || `__${originalIndex}`;
+      const key =
+        slide.zoomUrl || slide.displayUrl || slide.url || `__${originalIndex}`;
       const existing = seen.get(key);
       if (existing !== undefined) {
         originalToZoom[originalIndex] = existing;
@@ -467,7 +511,9 @@ export default function Home() {
         />
       )}
 
-      <div className={`relative mx-auto max-w-7xl px-6 ${compact ? "py-5" : "py-10"}`}>
+      <div
+        className={`relative mx-auto max-w-7xl px-6 ${compact ? "py-5" : "py-10"}`}
+      >
         <header
           ref={headerRef}
           className={`relative z-20 flex w-full ${compact ? "justify-start" : "justify-center"}`}
@@ -475,7 +521,11 @@ export default function Home() {
           <nav className={navBase}>
             <div
               ref={logoRef}
-              className={compact ? "flex items-center justify-start" : "flex w-full items-center justify-center"}
+              className={
+                compact
+                  ? "flex items-center justify-start"
+                  : "flex w-full items-center justify-center"
+              }
             >
               <Logo
                 onHome={handleResetHome}
@@ -539,8 +589,12 @@ export default function Home() {
                       >
                         <span className={dotClass} />
                         <div>
-                          <p className="font-medium text-white/90">{feature.title}</p>
-                          <p className="mt-1 text-xs text-slate-300/80">{feature.description}</p>
+                          <p className="font-medium text-white/90">
+                            {feature.title}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-300/80">
+                            {feature.description}
+                          </p>
                         </div>
                       </div>
                     );

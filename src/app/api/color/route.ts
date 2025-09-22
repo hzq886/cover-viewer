@@ -13,9 +13,12 @@ export async function GET(req: Request) {
 
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
+        "User-Agent":
+          "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
       },
-      signal: (AbortSignal as any).timeout ? (AbortSignal as any).timeout(10000) : undefined,
+      signal: (AbortSignal as any).timeout
+        ? (AbortSignal as any).timeout(10000)
+        : undefined,
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -38,7 +41,10 @@ export async function GET(req: Request) {
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    let r = 0, g = 0, b = 0, count = 0;
+    let r = 0,
+      g = 0,
+      b = 0,
+      count = 0;
     const ch = info.channels; // expect 4
     for (let i = 0; i < data.length; i += ch) {
       const R = data[i];
@@ -46,15 +52,25 @@ export async function GET(req: Request) {
       const B = data[i + 2];
       const A = ch > 3 ? data[i + 3] : 255;
       if (A < 128) continue;
-      r += R; g += G; b += B; count++;
+      r += R;
+      g += G;
+      b += B;
+      count++;
     }
-    const dominant = count > 0
-      ? { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) }
-      : { r: 2, g: 6, b: 23 };
+    const dominant =
+      count > 0
+        ? {
+            r: Math.round(r / count),
+            g: Math.round(g / count),
+            b: Math.round(b / count),
+          }
+        : { r: 2, g: 6, b: 23 };
 
     return NextResponse.json({ dominant, original });
   } catch (err: any) {
-    return NextResponse.json({ message: err?.message || "未知错误" }, { status: 500 });
+    return NextResponse.json(
+      { message: err?.message || "未知错误" },
+      { status: 500 },
+    );
   }
 }
-

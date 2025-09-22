@@ -7,20 +7,30 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const keyword = (searchParams.get("keyword") || "").trim();
     const offsetParam = searchParams.get("offset");
-    const offset = offsetParam ? Math.max(1, Number.parseInt(offsetParam, 10) || 1) : 1;
+    const offset = offsetParam
+      ? Math.max(1, Number.parseInt(offsetParam, 10) || 1)
+      : 1;
 
     if (!keyword) {
-      return NextResponse.json({ code: "missing_keyword", message: "Missing keyword parameter" }, { status: 400 });
+      return NextResponse.json(
+        { code: "missing_keyword", message: "Missing keyword parameter" },
+        { status: 400 },
+      );
     }
 
-    console.log(`[${new Date().toISOString()}] search keyword: ${keyword} offset=${offset}`);
+    console.log(
+      `[${new Date().toISOString()}] search keyword: ${keyword} offset=${offset}`,
+    );
 
     const apiId = process.env.DMM_API_ID;
     const affiliateId = process.env.DMM_AFFILIATE_ID;
 
     if (!apiId || !affiliateId) {
       return NextResponse.json(
-        { code: "server_missing_config", message: "Missing DMM_API_ID or DMM_AFFILIATE_ID" },
+        {
+          code: "server_missing_config",
+          message: "Missing DMM_API_ID or DMM_AFFILIATE_ID",
+        },
         { status: 500 },
       );
     }
@@ -45,18 +55,23 @@ export async function GET(req: Request) {
       // DMM API is public over HTTPS; no headers are strictly required.
       // 10s timeout
       signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined,
-      cache: 'force-cache',
-      next: { 
+      cache: "force-cache",
+      next: {
         revalidate: 300,
-        tags: [`${keyword}`]
-      }, 
+        tags: [`${keyword}`],
+      },
     });
 
     if (!res.ok) {
       const text = await res.text();
       const status = res.status;
       return NextResponse.json(
-        { code: "dmm_api_error", message: `DMM API error: ${status}`, details: text?.slice(0, 500), status },
+        {
+          code: "dmm_api_error",
+          message: `DMM API error: ${status}`,
+          details: text?.slice(0, 500),
+          status,
+        },
         { status: status >= 500 ? 502 : status },
       );
     }
@@ -67,7 +82,9 @@ export async function GET(req: Request) {
   } catch (err: any) {
     const isTimeout = err?.name === "TimeoutError";
     const code = isTimeout ? "timeout" : "unknown";
-    const message = isTimeout ? "DMM API request timed out" : err?.message || "Unknown error";
+    const message = isTimeout
+      ? "DMM API request timed out"
+      : err?.message || "Unknown error";
     return NextResponse.json({ code, message }, { status: 500 });
   }
 }

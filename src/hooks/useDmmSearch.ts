@@ -31,29 +31,33 @@ export function useDmmSearch() {
   const [lastKeyword, setLastKeyword] = useState<string>("");
   const [offset, setOffset] = useState<number>(1);
 
-  const mapError = useCallback((payload: any, httpStatus?: number): SearchError => {
-    const rawCode = typeof payload?.code === "string" ? payload.code : undefined;
-    const status =
-      typeof payload?.status === "number"
-        ? payload.status
-        : typeof httpStatus === "number"
-          ? httpStatus
-          : undefined;
-    switch (rawCode) {
-      case "missing_keyword":
-        return { code: "missingKeyword" };
-      case "server_missing_config":
-        return { code: "serverMissingConfig" };
-      case "dmm_api_error":
-        return { code: "dmmApi", status };
-      case "timeout":
-        return { code: "timeout" };
-      case "unknown":
-        return { code: "unknown", status };
-      default:
-        return { code: "searchFailed", status };
-    }
-  }, []);
+  const mapError = useCallback(
+    (payload: any, httpStatus?: number): SearchError => {
+      const rawCode =
+        typeof payload?.code === "string" ? payload.code : undefined;
+      const status =
+        typeof payload?.status === "number"
+          ? payload.status
+          : typeof httpStatus === "number"
+            ? httpStatus
+            : undefined;
+      switch (rawCode) {
+        case "missing_keyword":
+          return { code: "missingKeyword" };
+        case "server_missing_config":
+          return { code: "serverMissingConfig" };
+        case "dmm_api_error":
+          return { code: "dmmApi", status };
+        case "timeout":
+          return { code: "timeout" };
+        case "unknown":
+          return { code: "unknown", status };
+        default:
+          return { code: "searchFailed", status };
+      }
+    },
+    [],
+  );
 
   const requestBatch = useCallback(
     async (targetKeyword: string, targetOffset: number) => {
@@ -76,7 +80,9 @@ export function useDmmSearch() {
         setCurrentItem(picked);
         setRemainingItems(remaining);
         setLastKeyword(targetKeyword);
-        setOffset(incoming.length > 0 ? targetOffset : Math.max(1, targetOffset - 100));
+        setOffset(
+          incoming.length > 0 ? targetOffset : Math.max(1, targetOffset - 100),
+        );
         setError(null);
         return !!picked;
       } catch (e: any) {

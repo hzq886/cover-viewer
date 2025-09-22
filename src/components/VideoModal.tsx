@@ -12,11 +12,17 @@ type Props = {
   videoUrl?: string;
 };
 
-const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), { ssr: false });
+const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
+  ssr: false,
+});
 const DEFAULT_VOLUME = 0.7;
 
 function isPromise<T = unknown>(value: unknown): value is Promise<T> {
-  return typeof value === "object" && value !== null && typeof (value as any).then === "function";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as any).then === "function"
+  );
 }
 
 export default function VideoModal({ open, onClose, videoUrl }: Props) {
@@ -31,43 +37,55 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
     openRef.current = open;
   }, [open]);
 
-  const handleKey = useCallback((event: KeyboardEvent) => {
-    if (!openRef.current) return;
-    const instance = playerRef.current?.plyr;
-    if (!instance) return;
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      if (typeof instance.rewind === "function") {
-        instance.rewind(5);
-      } else if (typeof instance.currentTime === "number") {
-        instance.currentTime = Math.max(0, instance.currentTime - 5);
+  const handleKey = useCallback(
+    (event: KeyboardEvent) => {
+      if (!openRef.current) return;
+      const instance = playerRef.current?.plyr;
+      if (!instance) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
       }
-    } else if (event.key === "ArrowRight") {
-      event.preventDefault();
-      if (typeof instance.forward === "function") {
-        instance.forward(5);
-      } else if (typeof instance.currentTime === "number" && typeof instance.duration === "number") {
-        instance.currentTime = Math.min(instance.duration || 0, instance.currentTime + 5);
-      }
-    } else if (event.key === " " || event.key === "Spacebar") {
-      event.preventDefault();
-      if (typeof (instance as any).togglePlay === "function") {
-        (instance as any).togglePlay();
-      } else if (typeof instance.play === "function" && typeof instance.pause === "function") {
-        if ((instance as any).playing) {
-          instance.pause();
-        } else {
-          const result = instance.play();
-          if (isPromise(result)) result.catch(() => {});
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        if (typeof instance.rewind === "function") {
+          instance.rewind(5);
+        } else if (typeof instance.currentTime === "number") {
+          instance.currentTime = Math.max(0, instance.currentTime - 5);
+        }
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        if (typeof instance.forward === "function") {
+          instance.forward(5);
+        } else if (
+          typeof instance.currentTime === "number" &&
+          typeof instance.duration === "number"
+        ) {
+          instance.currentTime = Math.min(
+            instance.duration || 0,
+            instance.currentTime + 5,
+          );
+        }
+      } else if (event.key === " " || event.key === "Spacebar") {
+        event.preventDefault();
+        if (typeof (instance as any).togglePlay === "function") {
+          (instance as any).togglePlay();
+        } else if (
+          typeof instance.play === "function" &&
+          typeof instance.pause === "function"
+        ) {
+          if ((instance as any).playing) {
+            instance.pause();
+          } else {
+            const result = instance.play();
+            if (isPromise(result)) result.catch(() => {});
+          }
         }
       }
-    }
-  }, [onClose]);
+    },
+    [onClose],
+  );
 
   const handleWheel = useCallback((event: WheelEvent) => {
     if (!openRef.current) return;
@@ -76,7 +94,8 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
     event.preventDefault();
     const deltaY = event.deltaY;
     if (!deltaY) return;
-    const currentVolume = typeof instance.volume === "number" ? instance.volume : DEFAULT_VOLUME;
+    const currentVolume =
+      typeof instance.volume === "number" ? instance.volume : DEFAULT_VOLUME;
     const baseScalar = event.deltaMode === 1 ? 0.08 : 0.0015;
     let deltaVolume = -deltaY * baseScalar;
     if (deltaVolume === 0) {
@@ -107,7 +126,8 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
 
     const applyDefaults = (plyrInstance: typeof instance) => {
       if (!plyrInstance) return;
-      const shouldInit = !initializedRef.current || lastVideoUrlRef.current !== videoUrl;
+      const shouldInit =
+        !initializedRef.current || lastVideoUrlRef.current !== videoUrl;
       if (!shouldInit) return;
       initializedRef.current = true;
       lastVideoUrlRef.current = videoUrl;
@@ -150,7 +170,9 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
     };
   }, [handleWheel, open]);
 
-  const proxiedUrl = videoUrl ? `/api/proxy?url=${encodeURIComponent(videoUrl)}` : "";
+  const proxiedUrl = videoUrl
+    ? `/api/proxy?url=${encodeURIComponent(videoUrl)}`
+    : "";
 
   const source = useMemo(() => {
     if (!proxiedUrl) return null;
@@ -197,7 +219,12 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       {/* Close */}
       <button
         type="button"
@@ -206,7 +233,17 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
         title={dictionary.video.close}
         aria-label={dictionary.video.close}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
 
       <div
@@ -216,11 +253,7 @@ export default function VideoModal({ open, onClose, videoUrl }: Props) {
         <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-600/20 via-transparent to-indigo-500/20" />
         <div className="relative">
           {source ? (
-            <Plyr
-              ref={playerRef}
-              source={source}
-              options={options}
-            />
+            <Plyr ref={playerRef} source={source} options={options} />
           ) : null}
         </div>
       </div>
