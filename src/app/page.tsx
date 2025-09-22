@@ -700,7 +700,7 @@ export default function Home() {
                       className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                         videoSlide
                           ? videoFront
-                            ? "z-30 translate-x-48 translate-y-12 scale-[0.92]"
+                            ? "z-30 translate-x-50 translate-y-12 scale-[0.92]"
                             : "z-50 translate-x-2 -translate-y-2 scale-[0.97]"
                           : "z-50"
                       }`}
@@ -735,7 +735,7 @@ export default function Home() {
                       {videoSlide && videoFront ? (
                         <button
                           type="button"
-                          className="absolute inset-0 z-40 cursor-pointer rounded-[28px] bg-black/20 transition hover:bg-black/30 focus-visible:outline-none"
+                          className="absolute inset-0 z-40 cursor-pointer rounded-[28px] bg-black/20 transition hover:bg-black/30 focus-visible:outline-none border border-transparent hover:border-violet-200/60"
                           style={{
                             maxWidth: `${stage.stageW}px`,
                             width: "100%",
