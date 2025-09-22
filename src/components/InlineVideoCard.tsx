@@ -207,7 +207,6 @@ export default function InlineVideoCard({
         "mute",
         "volume",
         "settings",
-        "pip",
         "airplay",
         "fullscreen",
       ],
@@ -277,17 +276,6 @@ export default function InlineVideoCard({
             <div className="inline-video-player h-full w-full">
               <Plyr ref={playerRef} source={source} options={options} />
             </div>
-          ) : null}
-        </div>
-        <div className="absolute top-3 right-3 flex gap-2">
-          {onDeactivate ? (
-            <button
-              type="button"
-              className="rounded-full border border-white/20 bg-black/50 px-3 py-1 text-xs text-white/80 hover:bg-black/65"
-              onClick={onDeactivate}
-            >
-              返回图片
-            </button>
           ) : null}
         </div>
       </div>

@@ -725,6 +725,14 @@ export default function Home() {
                           setZoomOpen(true);
                         }}
                       />
+                      {videoSlide && videoFront ? (
+                        <button
+                          type="button"
+                          className="absolute inset-0 z-40 cursor-pointer rounded-[28px] bg-black/20 transition hover:bg-black/30 focus-visible:outline-none"
+                          aria-label="返回图片预览"
+                          onClick={() => setVideoFront(false)}
+                        />
+                      ) : null}
                     </div>
                   </div>
                 </div>
