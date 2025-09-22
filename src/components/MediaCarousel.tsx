@@ -41,11 +41,20 @@ type Props = {
   initialIndex?: number;
   onSlideChange?: (slide: MediaSlide, index: number) => void;
   onRequestZoom?: (index: number, slide: MediaSlide) => void;
+  disableKeyboardNavigation?: boolean;
 };
 
 const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
   function MediaCarousel(
-    { slides, width, height, initialIndex = 0, onSlideChange, onRequestZoom },
+    {
+      slides,
+      width,
+      height,
+      initialIndex = 0,
+      onSlideChange,
+      onRequestZoom,
+      disableKeyboardNavigation = false,
+    },
     ref,
   ) {
     const [index, setIndex] = useState(initialIndex);
@@ -150,7 +159,7 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
 
     const handleKey = useCallback(
       (event: KeyboardEvent) => {
-        if (!total || total < 2) return;
+        if (!total || total < 2 || disableKeyboardNavigation) return;
         const target = event.target as HTMLElement | null;
         if (target) {
           const tag = target.tagName;
@@ -165,14 +174,14 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
           step(1);
         }
       },
-      [index, step, total],
+      [disableKeyboardNavigation, index, step, total],
     );
 
     useEffect(() => {
-      if (!total) return;
+      if (!total || disableKeyboardNavigation) return;
       window.addEventListener("keydown", handleKey);
       return () => window.removeEventListener("keydown", handleKey);
-    }, [handleKey, total]);
+    }, [disableKeyboardNavigation, handleKey, total]);
 
     if (!total || !current) {
       return null;

@@ -710,6 +710,9 @@ export default function Home() {
                         slides={imageSlides}
                         width={stage.stageW}
                         height={stage.containerH}
+                        disableKeyboardNavigation={Boolean(
+                          videoSlide && videoFront,
+                        )}
                         initialIndex={activeIndex}
                         onSlideChange={(slide, index) => {
                           if (
