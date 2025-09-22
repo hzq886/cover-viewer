@@ -642,7 +642,7 @@ export default function Home() {
 
           {!loading && !error && slidesCount > 0 && (
             <div className="relative flex flex-col items-stretch">
-              <div className="flex w-full max-w-7xl flex-col md:flex-row items-stretch gap-6">
+              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -658,7 +658,7 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="flex-1 flex justify-center">
+                <div className="order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
@@ -670,8 +670,8 @@ export default function Home() {
                       <div
                         className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                           videoFront
-                            ? "z-40 translate-x-0 translate-y-0 scale-100"
-                            : "z-20 translate-x-16 translate-y-6 scale-[0.95]"
+                            ? "z-40 translate-x-2 -translate-y-2 scale-[0.97]"
+                            : "z-20 translate-x-16 translate-y-12 scale-[0.92]"
                         } ${videoFront ? "" : "cursor-pointer"}`}
                       >
                         <InlineVideoCard
@@ -696,8 +696,8 @@ export default function Home() {
                       className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                         videoSlide
                           ? videoFront
-                            ? "z-30 -translate-x-16 translate-y-4 scale-[0.95]"
-                            : "z-50 translate-x-0 translate-y-0 scale-100"
+                            ? "z-30 translate-x-16 translate-y-12 scale-[0.92]"
+                            : "z-50 translate-x-2 -translate-y-2 scale-[0.97]"
                           : "z-50"
                       }`}
                     >
