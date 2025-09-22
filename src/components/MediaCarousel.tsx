@@ -65,16 +65,6 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
       onRequestZoom(index, current);
     }, [canZoom, current, index, onRequestZoom]);
 
-    const handleKeyOpen = useCallback(
-      (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (!canZoom || !onRequestZoom) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onRequestZoom(index, current);
-        }
-      },
-      [canZoom, current, index, onRequestZoom],
-    );
     const handleMouseEnter = useCallback(() => setIsActive(true), []);
     const handleMouseLeave = useCallback(() => setIsActive(false), []);
     const handleFocusCapture = useCallback(() => setIsActive(true), []);

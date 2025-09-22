@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
-import { useI18n } from "../i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type SampleImage = {
   url: string;
@@ -32,8 +32,9 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
 
   const imagesCount = images.length;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll indicators should update when sample set or container height changes
   useEffect(() => {
+    void imagesCount;
+    void height;
     const el = scrollRef.current;
     if (!el) return;
     const update = () => {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { TranslationDictionary } from "../i18n/translations";
-import type { DmmItem } from "../types/dmm";
+import type { TranslationDictionary } from "@/i18n/translations";
+import type { DmmItem } from "@/types/dmm";
 
 type ErrorKey = keyof TranslationDictionary["errors"];
 

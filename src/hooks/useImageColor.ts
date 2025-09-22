@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { RGB } from "../lib/color";
+import type { RGB } from "@/lib/color";
 
 export function useImageColor(
   posterUrl: string | undefined | null,

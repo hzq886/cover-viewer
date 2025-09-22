@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import type { APITypes, PlyrOptions } from "plyr-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import "plyr-react/plyr.css";
-import { useI18n } from "../i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Props = {
   open: boolean;

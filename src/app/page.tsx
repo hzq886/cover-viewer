@@ -2,18 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import InfoPanel from "@/components/InfoPanel";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Logo from "@/components/Logo";
+import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
+import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
-import InfoPanel from "../components/InfoPanel";
-import LanguageSwitcher from "../components/LanguageSwitcher";
-import Logo from "../components/Logo";
-import MediaCarousel, { type MediaSlide } from "../components/MediaCarousel";
-import SearchBar from "../components/SearchBar";
-import { useDmmSearch } from "../hooks/useDmmSearch";
-import { useImageColor } from "../hooks/useImageColor";
-import { useLayoutHeights } from "../hooks/useLayoutHeights";
-import { useI18n } from "../i18n/I18nProvider";
-import { adjustLightness } from "../lib/color";
-import type { DmmNameObj } from "../types/dmm";
+import { useDmmSearch } from "@/hooks/useDmmSearch";
+import { useImageColor } from "@/hooks/useImageColor";
+import { useLayoutHeights } from "@/hooks/useLayoutHeights";
+import { useI18n } from "@/i18n/I18nProvider";
+import { adjustLightness } from "@/lib/color";
+import type { DmmNameObj } from "@/types/dmm";
 
 // 默认背景色回退值（深蓝色调，用于无主色时）
 const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
@@ -130,13 +130,19 @@ export default function Home() {
     [pick],
   );
   // 作品切换时重置媒体状态
-  // biome-ignore lint/correctness/useExhaustiveDependencies: effect intentionally runs whenever the current item changes
   useEffect(() => {
+    if (!currentItem) {
+      setActiveIndex(0);
+      setActiveSlide(null);
+      setResolvedVideoUrl("");
+      resolvingVideoRef.current = false;
+      return;
+    }
     setActiveIndex(0);
     setActiveSlide(null);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
-  }, [pick]);
+  }, [currentItem]);
 
   // 当前展示的媒体地址，用于舞台背景
   const activeDisplayUrl = useMemo(() => {

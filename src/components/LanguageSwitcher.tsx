@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useI18n } from "../i18n/I18nProvider";
-import type { LanguageCode } from "../i18n/translations";
+import { useI18n } from "@/i18n/I18nProvider";
+import type { LanguageCode } from "@/i18n/translations";
 
 type Props = {
   className?: string;
