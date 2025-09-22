@@ -131,8 +131,8 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
     const goTo = useCallback(
       (next: number) => {
         if (!total) return;
-        const wrapped = (next + total) % total;
-        setIndex(wrapped);
+        const clamped = Math.min(Math.max(next, 0), total - 1);
+        setIndex(clamped);
       },
       [total],
     );
@@ -140,9 +140,12 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
     const step = useCallback(
       (delta: number) => {
         if (!total) return;
-        goTo(index + delta);
+        setIndex((prev) => {
+          const next = Math.min(Math.max(prev + delta, 0), total - 1);
+          return next;
+        });
       },
-      [goTo, index, total],
+      [total],
     );
 
     const handleKey = useCallback(
@@ -154,15 +157,15 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
           if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable)
             return;
         }
-        if (event.key === "ArrowLeft") {
+        if (event.key === "ArrowLeft" && index > 0) {
           event.preventDefault();
           step(-1);
-        } else if (event.key === "ArrowRight") {
+        } else if (event.key === "ArrowRight" && index < total - 1) {
           event.preventDefault();
           step(1);
         }
       },
-      [step, total],
+      [index, step, total],
     );
 
     useEffect(() => {
@@ -248,9 +251,15 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
             >
               <button
                 type="button"
-                className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                  index === 0
+                    ? "cursor-not-allowed bg-black/25 opacity-50"
+                    : "cursor-pointer bg-black/45 hover:bg-black/60"
+                }`}
+                disabled={index === 0}
                 onClick={(event) => {
                   event.stopPropagation();
+                  if (index === 0) return;
                   step(-1);
                 }}
                 aria-label="Previous"
@@ -271,9 +280,15 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
               </button>
               <button
                 type="button"
-                className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-black/60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                  index >= total - 1
+                    ? "cursor-not-allowed bg-black/25 opacity-50"
+                    : "cursor-pointer bg-black/45 hover:bg-black/60"
+                }`}
+                disabled={index >= total - 1}
                 onClick={(event) => {
                   event.stopPropagation();
+                  if (index >= total - 1) return;
                   step(1);
                 }}
                 aria-label="Next"

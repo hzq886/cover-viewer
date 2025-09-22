@@ -30,11 +30,7 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
   const [hasAbove, setHasAbove] = useState(false);
   useImperativeHandle(ref, () => scrollRef.current as HTMLDivElement);
 
-  const imagesCount = images.length;
-
   useEffect(() => {
-    void imagesCount;
-    void height;
     const el = scrollRef.current;
     if (!el) return;
     const update = () => {
@@ -44,7 +40,24 @@ const Sample = React.forwardRef<HTMLDivElement, Props>(function Sample(
     update();
     el.addEventListener("scroll", update);
     return () => el.removeEventListener("scroll", update);
-  }, [height, imagesCount]);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (height <= 0) {
+      setHasMore(false);
+      setHasAbove(false);
+      return;
+    }
+    if (images.length === 0) {
+      setHasMore(false);
+      setHasAbove(false);
+      return;
+    }
+    setHasMore(el.scrollTop + el.clientHeight < el.scrollHeight - 2);
+    setHasAbove(el.scrollTop > 2);
+  }, [height, images.length]);
 
   const toDisplaySrc = (url: string) =>
     url.startsWith("/api/") ? url : `/api/proxy?url=${encodeURIComponent(url)}`;
