@@ -662,7 +662,11 @@ export default function Home() {
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
-                      width: `${stage.stageW}px`,
+                      width: `${
+                        videoFront && videoSlide
+                          ? Math.floor(stage.stageW * 1.3)
+                          : stage.stageW
+                      }px`,
                       height: `${stage.containerH}px`,
                     }}
                   >
@@ -681,7 +685,7 @@ export default function Home() {
                               ? toProxyUrl(basePosterUrl)
                               : undefined
                           }
-                          width={stage.stageW}
+                          width={Math.floor(stage.stageW * 1.3)}
                           height={stage.containerH}
                           active={videoFront}
                           onActivate={() => {
@@ -696,7 +700,7 @@ export default function Home() {
                       className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                         videoSlide
                           ? videoFront
-                            ? "z-30 translate-x-16 translate-y-12 scale-[0.92]"
+                            ? "z-30 translate-x-48 translate-y-12 scale-[0.92]"
                             : "z-50 translate-x-2 -translate-y-2 scale-[0.97]"
                           : "z-50"
                       }`}
