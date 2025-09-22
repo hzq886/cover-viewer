@@ -214,8 +214,8 @@ export default function ZoomModal({
                 ? "opacity-0 scale-92 blur-sm brightness-90"
                 : "opacity-100 scale-100 blur-0 brightness-100"
             }`}
-          />)
-        : null}
+          />
+        ) : null}
         <Image
           key={`modal-image-${current.url}`}
           src={displaySrc}
