@@ -526,7 +526,7 @@ export default function Home() {
       >
         <header
           ref={headerRef}
-          className={`relative z-20 flex w-full ${compact ? "justify-start" : "justify-center"}`}
+          className={`relative z-[80] flex w-full ${compact ? "justify-start" : "justify-center"}`}
         >
           <nav className={navBase}>
             <div
