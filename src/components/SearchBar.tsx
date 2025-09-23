@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
+import { GENRE_GROUPS } from "@/data/genres";
 
 type Props = {
   keyword: string;
@@ -148,8 +149,6 @@ export default function SearchBar({
     : `flex h-11 min-w-[3rem] items-center justify-center rounded-full bg-gradient-to-r from-violet-500/90 via-fuchsia-500/90 to-violet-600/90 px-4 text-sm font-medium text-white shadow-[0_12px_28px_-16px_rgba(168,85,247,0.9)] transition hover:from-violet-400 hover:via-fuchsia-400 hover:to-violet-500 active:from-violet-500 active:via-fuchsia-500 active:to-violet-600 disabled:cursor-not-allowed disabled:from-white/10 disabled:via-white/10 disabled:to-white/10 disabled:text-white/50 disabled:shadow-none ${
         compact ? "w-12 px-0" : "w-24"
       } ${loading ? "cursor-wait" : "cursor-pointer"}`;
-
-  const recommendedKeywords = useMemo(() => ["风景", "太阳"], []);
 
   const appendKeywordToken = (word: string) => {
     const tokens = keyword.split(/\s+/).filter(Boolean);
@@ -337,13 +336,13 @@ export default function SearchBar({
       </div>
       {showKeywordPanel && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative mx-4 w-full max-w-2xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">搜索关键词</h2>
+          <div className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">搜索关键词（ジャンル）</h2>
               <button
                 type="button"
                 onClick={() => setShowKeywordPanel(false)}
@@ -367,24 +366,51 @@ export default function SearchBar({
                 </svg>
               </button>
             </div>
-            <div>
-              <div className="flex flex-wrap gap-3">
-                {recommendedKeywords.map((word) => (
-                  <button
-                    key={word}
-                    type="button"
-                    onClick={() => {
-                      appendKeywordToken(word);
-                      setShowKeywordPanel(false);
-                    }}
-                    className="cursor-pointer rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-100 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300"
-                    title={word}
-                  >
-                    {word}
-                  </button>
-                ))}
+            <div className="flex flex-col gap-4">
+              <div className="sticky top-0 z-10 -mx-6 border-b border-white/10 bg-black/60 px-6 py-3 backdrop-blur">
+                <div className="flex flex-wrap gap-2">
+                  {GENRE_GROUPS.map((g) => (
+                    <a
+                      key={g.id}
+                      href={`#genre-${g.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const el = document.getElementById(`genre-${g.id}`);
+                        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
+                    >
+                      {g.title}
+                    </a>
+                  ))}
+                </div>
               </div>
-              <p className="mt-4 text-xs text-slate-300/70">（示例：仅显示一个关键词）</p>
+              <div className="max-h-[70vh] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {GENRE_GROUPS.map((group) => (
+                    <section key={group.id} id={`genre-${group.id}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <h3 className="mb-3 text-base font-medium text-white/90">
+                        {group.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {group.items.map((it) => (
+                          <button
+                            key={(it.id || "") + it.label}
+                            type="button"
+                            onClick={() => {
+                              appendKeywordToken(it.label);
+                            }}
+                            className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-100 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
+                            title={it.label}
+                          >
+                            {it.label}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
