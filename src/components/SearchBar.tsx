@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
+import { GENRE_GROUPS } from "@/data/genres";
 
 type Props = {
   keyword: string;
@@ -40,6 +41,26 @@ export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function MaterialSymbolsBook4SparkOutlineRounded(
+  props: SVGProps<SVGSVGElement>,
+) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      {/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}
+      <path
+        fill="currentColor"
+        d="M5 16.175q.25-.075.488-.125T6 16h1V4H6q-.425 0-.712.288T5 5zM6 22q-1.25 0-2.125-.875T3 19V5q0-1.25.875-2.125T6 2h6q.425 0 .713.288T13 3t-.288.713T12 4H9v12h6v-2q0-.425.288-.712T16 13t.713.288T17 14v4H6q-.425 0-.712.288T5 19t.288.713T6 20h13v-7q0-.425.288-.712T20 12t.713.288T21 13v7q0 .825-.587 1.413T19 22zm-1-5.825V4zM17.5 12q0-2.3 1.6-3.9T23 6.5q-2.3 0-3.9-1.6T17.5 1q0 2.3-1.6 3.9T12 6.5q2.3 0 3.9 1.6t1.6 3.9"
+      />
+    </svg>
+  );
+}
+
 export default function SearchBar({
   keyword,
   setKeyword,
@@ -53,6 +74,7 @@ export default function SearchBar({
   const wrapperRef = useRef<HTMLFormElement>(null);
   const [recentKeywords, setRecentKeywords] = useState<string[]>([]);
   const [showRecent, setShowRecent] = useState(false);
+  const [showKeywordPanel, setShowKeywordPanel] = useState(false);
   const hasRecent = recentKeywords.length > 0;
 
   const placeholder = useMemo(
@@ -128,6 +150,26 @@ export default function SearchBar({
         compact ? "w-12 px-0" : "w-24"
       } ${loading ? "cursor-wait" : "cursor-pointer"}`;
 
+  const appendKeywordToken = (word: string) => {
+    const tokens = keyword.split(/\s+/).filter(Boolean);
+    const nextTokens = tokens.includes(word) ? tokens : [...tokens, word];
+    const newValue = (nextTokens.join(" ") + " ").replace(/\s+$/, " ");
+    setKeyword(newValue);
+    // 将光标移动到文本末尾，便于继续输入
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        const pos = newValue.length;
+        try {
+          el.setSelectionRange(pos, pos);
+        } catch {
+          // ignore environments that don't support setSelectionRange
+        }
+      }
+    });
+  };
+
   return (
     <form
       ref={wrapperRef}
@@ -138,23 +180,15 @@ export default function SearchBar({
         <div
           className={`flex w-full items-center gap-3 border border-white/12 bg-black/45 px-5 py-2 text-slate-100 backdrop-blur-xl shadow-[0_25px_80px_-40px_rgba(76,29,149,0.7)] transition focus-within:border-violet-300/60 focus-within:bg-black/35 focus-within:shadow-[0_35px_120px_-45px_rgba(129,104,238,0.8)] ${containerRounded}`}
         >
-          <span className="flex h-9 w-9 items-center justify-center text-violet-200/80">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <title>Search</title>
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </span>
+          <button
+            type="button"
+            onClick={() => setShowKeywordPanel(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-violet-200/80 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
+            title="打开关键词面板"
+            aria-label="打开关键词面板"
+          >
+            <MaterialSymbolsBook4SparkOutlineRounded className="h-5 w-5" />
+          </button>
           <input
             ref={inputRef}
             value={keyword}
@@ -181,7 +215,7 @@ export default function SearchBar({
                   inputRef.current?.focus();
                 });
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
             >
               <svg
                 width="14"
@@ -275,7 +309,7 @@ export default function SearchBar({
                         prev.filter((keywordItem) => keywordItem !== item),
                       );
                     }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
                     title={t("search.deleteRecent", { value: item })}
                   >
                     <svg
@@ -300,6 +334,87 @@ export default function SearchBar({
           </div>
         )}
       </div>
+      {showKeywordPanel && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">搜索关键词（ジャンル）</h2>
+              <button
+                type="button"
+                onClick={() => setShowKeywordPanel(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
+                aria-label="关闭"
+                title="关闭"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="sticky top-0 z-10 -mx-6 border-b border-white/10 bg-black/60 px-6 py-3 backdrop-blur">
+                <div className="flex flex-wrap gap-2">
+                  {GENRE_GROUPS.map((g) => (
+                    <a
+                      key={g.id}
+                      href={`#genre-${g.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const el = document.getElementById(`genre-${g.id}`);
+                        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
+                    >
+                      {g.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className="max-h-[70vh] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {GENRE_GROUPS.map((group) => (
+                    <section key={group.id} id={`genre-${group.id}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <h3 className="mb-3 text-base font-medium text-white/90">
+                        {group.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {group.items.map((it) => (
+                          <button
+                            key={(it.id || "") + it.label}
+                            type="button"
+                            onClick={() => {
+                              appendKeywordToken(it.label);
+                            }}
+                            className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-100 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
+                            title={it.label}
+                          >
+                            {it.label}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
