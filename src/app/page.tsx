@@ -9,6 +9,7 @@ import Logo from "@/components/Logo";
 import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
 import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
+import FavoriteHeart from "@/components/FavoriteHeart";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
@@ -658,7 +659,7 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
+                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
@@ -744,6 +745,15 @@ export default function Home() {
                           onClick={() => setVideoFront(false)}
                         />
                       ) : null}
+                    </div>
+
+                  </div>
+                  {/* Heart positioned in the right-side area */}
+                  <div className="pointer-events-none absolute top-1/2 -translate-y-1/2 right-0 md:right-2 lg:right-6 z-[60] flex items-center justify-center">
+                    <div className="pointer-events-auto">
+                      <FavoriteHeart
+                        size={Math.max(96, Math.floor(Math.min(stage.stageW, stage.containerH) * 0.28))}
+                      />
                     </div>
                   </div>
                 </div>
