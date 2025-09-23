@@ -399,6 +399,7 @@ export default function SearchBar({
                             type="button"
                             onClick={() => {
                               appendKeywordToken(it.label);
+                              setShowKeywordPanel(false);
                             }}
                             className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-100 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
                             title={it.label}

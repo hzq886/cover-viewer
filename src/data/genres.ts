@@ -31,6 +31,7 @@ export const GENRE_GROUPS: GenreGroup[] = [
       { id: "528", label: "お姫様" },
       { id: "6969", label: "お風呂" },
       { id: "4140", label: "温泉" },
+      { id: "4150", label: "電車" },
       { id: "1016", label: "女教師" },
       { id: "6945", label: "女上司" },
       { id: "1082", label: "女戦士" },
