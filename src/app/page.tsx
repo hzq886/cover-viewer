@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import InfoPanel from "@/components/InfoPanel";
 import InlineVideoCard from "@/components/InlineVideoCard";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import AuthStatus from "@/components/AuthStatus";
 import Logo from "@/components/Logo";
 import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
 import SearchBar from "@/components/SearchBar";
@@ -559,7 +560,10 @@ export default function Home() {
                   : "mt-4 flex w-full items-center justify-center md:mt-0 md:justify-end"
               }
             >
-              <LanguageSwitcher />
+              <div className="flex items-center gap-3">
+                <LanguageSwitcher />
+                <AuthStatus />
+              </div>
             </div>
           </nav>
         </header>
