@@ -236,7 +236,7 @@ export default function ZoomModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl"
+      className="fixed inset-0 z-99 flex items-center justify-center bg-black/80 backdrop-blur-xl"
       style={overlayStyle}
     >
       <button

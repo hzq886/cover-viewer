@@ -10,6 +10,7 @@ import Logo from "@/components/Logo";
 import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
 import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
+import FavoriteHeart from "@/components/FavoriteHeart";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
@@ -646,7 +647,7 @@ export default function Home() {
 
           {!loading && !error && slidesCount > 0 && (
             <div className="relative flex flex-col items-stretch">
-              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start">
+              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)_minmax(0,280px)] md:gap-8 md:items-start xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)_minmax(0,320px)]">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -662,7 +663,7 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
+                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-8 xl:pl-12">
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
@@ -749,6 +750,23 @@ export default function Home() {
                         />
                       ) : null}
                     </div>
+
+                  </div>
+                </div>
+                <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:justify-end md:pl-3 xl:pl-3">
+                  <div className="sticky top-24 flex w-full max-w-xs items-start md:max-w-[260px] xl:max-w-[320px]">
+                    <FavoriteHeart
+                      height={stage.containerH}
+                      size={Math.min(
+                        128,
+                        Math.max(
+                          68,
+                          Math.floor(
+                            Math.min(stage.stageW, stage.containerH) * 0.18,
+                          ),
+                        ),
+                      )}
+                    />
                   </div>
                 </div>
               </div>
