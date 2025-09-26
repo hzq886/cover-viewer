@@ -647,7 +647,7 @@ export default function Home() {
 
           {!loading && !error && slidesCount > 0 && (
             <div className="relative flex flex-col items-stretch">
-              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start">
+              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)_minmax(0,280px)] md:gap-8 md:items-start xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)_minmax(0,320px)]">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -663,7 +663,7 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-12 lg:pl-14">
+                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-8 xl:pl-12">
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
@@ -752,13 +752,21 @@ export default function Home() {
                     </div>
 
                   </div>
-                  {/* Heart positioned in the right-side area */}
-                  <div className="pointer-events-none absolute top-1/2 -translate-y-1/2 right-0 md:right-2 lg:right-6 z-[60] flex items-center justify-center">
-                    <div className="pointer-events-auto">
-                      <FavoriteHeart
-                        size={Math.max(96, Math.floor(Math.min(stage.stageW, stage.containerH) * 0.28))}
-                      />
-                    </div>
+                </div>
+                <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:justify-end md:pl-3 xl:pl-3">
+                  <div className="sticky top-24 flex w-full max-w-xs items-start md:max-w-[260px] xl:max-w-[320px]">
+                    <FavoriteHeart
+                      height={stage.containerH}
+                      size={Math.min(
+                        128,
+                        Math.max(
+                          68,
+                          Math.floor(
+                            Math.min(stage.stageW, stage.containerH) * 0.18,
+                          ),
+                        ),
+                      )}
+                    />
                   </div>
                 </div>
               </div>
