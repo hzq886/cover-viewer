@@ -1,0 +1,5 @@
+GET https://api.dmm.com/affiliate/v3/FloorList?api_id=L5XLLTT99EQR1KQRdGDm&affiliate_id=hzq886-990 HTTP/1.1
+
+###
+
+GET https://api.dmm.com/affiliate/v3/GenreSearch?api_id=L5XLLTT99EQR1KQRdGDm&affiliate_id=hzq886-990&floor_id=43 HTTP/1.1

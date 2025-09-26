@@ -1,0 +1,617 @@
+{
+  "result": {
+    "status": "200",
+    "result_count": 100,
+    "total_count": "341",
+    "first_position": 1,
+    "site_name": "FANZA（アダルト）",
+    "site_code": "FANZA",
+    "service_name": "動画",
+    "service_code": "digital",
+    "floor_id": "43",
+    "floor_name": "ビデオ",
+    "floor_code": "videoa",
+    "genre": [
+      {
+        "genre_id": "6179",
+        "name": "4時間以上作品",
+        "ruby": "4じかんいじょうさくひん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6179%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4118",
+        "name": "アイドル・芸能人",
+        "ruby": "あいどるげいのうじん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4118%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4076",
+        "name": "アクション",
+        "ruby": "あくしょん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4076%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "514",
+        "name": "アクション・格闘",
+        "ruby": "あくしょんかくとう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D514%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6968",
+        "name": "アクメ・オーガズム",
+        "ruby": "あくめおーがずむ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6968%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5048",
+        "name": "足コキ",
+        "ruby": "あしこき",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5048%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4008",
+        "name": "脚フェチ",
+        "ruby": "あしふぇち",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4008%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "2011",
+        "name": "アジア女優",
+        "ruby": "あじあじょゆう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D2011%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6965",
+        "name": "アスリート",
+        "ruby": "あすりーと",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6965%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5075",
+        "name": "汗だく",
+        "ruby": "あせだく",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5075%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5005",
+        "name": "アナル",
+        "ruby": "あなる",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5005%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5076",
+        "name": "アナルセックス",
+        "ruby": "あなるせっくす",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5076%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4073",
+        "name": "アニメ",
+        "ruby": "あにめ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4073%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4057",
+        "name": "姉・妹",
+        "ruby": "あねいもうと",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4057%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "66347",
+        "name": "R-15",
+        "ruby": "あーる15",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D66347%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "79008",
+        "name": "R-18",
+        "ruby": "あーる18",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D79008%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4122",
+        "name": "イタズラ",
+        "ruby": "いたずら",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4122%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "72",
+        "name": "異物挿入",
+        "ruby": "いぶつそうにゅう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D72%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6014",
+        "name": "イメージビデオ",
+        "ruby": "いめーじびでお",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6014%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6170",
+        "name": "イメージビデオ（男性）",
+        "ruby": "いめーじびでおだんせい",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6170%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5068",
+        "name": "イラマチオ",
+        "ruby": "いらまちお",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5068%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5025",
+        "name": "淫語",
+        "ruby": "いんご",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5025%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1004",
+        "name": "インストラクター",
+        "ruby": "いんすとらくたー",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1004%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6063",
+        "name": "インディーズ",
+        "ruby": "いんでぃーず",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6063%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5012",
+        "name": "飲尿",
+        "ruby": "いんにょう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5012%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4030",
+        "name": "淫乱・ハード系",
+        "ruby": "いんらんはーどけい",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4030%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1040",
+        "name": "ウェイトレス",
+        "ruby": "うぇいとれす",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1040%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6942",
+        "name": "受付嬢",
+        "ruby": "うけつけじょう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6942%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4075",
+        "name": "SF",
+        "ruby": "えすえふ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4075%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4001",
+        "name": "SM",
+        "ruby": "えすえむ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4001%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4119",
+        "name": "エステ",
+        "ruby": "えすて",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4119%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6996",
+        "name": "エマニエル",
+        "ruby": "えまにえる",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6996%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5074",
+        "name": "M男",
+        "ruby": "えむお",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5074%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6967",
+        "name": "M女",
+        "ruby": "えむおんな",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6967%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "79005",
+        "name": "エロス",
+        "ruby": "えろす",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D79005%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6594",
+        "name": "AV OPEN 2014 スーパーヘビー級",
+        "ruby": "えーぶいおーぷん2014すーぱーへびーきゅう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6594%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6593",
+        "name": "AV OPEN 2014 ヘビー級",
+        "ruby": "えーぶいおーぷん2014へびーきゅう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6593%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6592",
+        "name": "AV OPEN 2014 ミドル級",
+        "ruby": "えーぶいおーぷん2014みどるきゅう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6592%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6655",
+        "name": "AV OPEN 2015 SM/ハード部門",
+        "ruby": "えーぶいおーぷん2015えすえむはーどぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6655%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6658",
+        "name": "AV OPEN 2015 乙女部門",
+        "ruby": "えーぶいおーぷん2015おとめぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6658%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6654",
+        "name": "AV OPEN 2015 企画部門",
+        "ruby": "えーぶいおーぷん2015きかくぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6654%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6656",
+        "name": "AV OPEN 2015 素人部門",
+        "ruby": "えーぶいおーぷん2015しろうとぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6656%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6653",
+        "name": "AV OPEN 2015 熟女部門",
+        "ruby": "えーぶいおーぷん2015じゅくじょぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6653%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6652",
+        "name": "AV OPEN 2015 女優部門",
+        "ruby": "えーぶいおーぷん2015じょゆうぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6652%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6657",
+        "name": "AV OPEN 2015 マニア/フェチ部門",
+        "ruby": "えーぶいおーぷん2015まにあふぇちぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6657%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6792",
+        "name": "AV OPEN 2016 乙女部門",
+        "ruby": "えーぶいおーぷん2016おとめぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6792%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6786",
+        "name": "AV OPEN 2016 企画部門",
+        "ruby": "えーぶいおーぷん2016きかくぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6786%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6789",
+        "name": "AV OPEN 2016 素人部門",
+        "ruby": "えーぶいおーぷん2016しろうとぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6789%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6784",
+        "name": "AV OPEN 2016 女優部門",
+        "ruby": "えーぶいおーぷん2016じょゆうぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6784%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6785",
+        "name": "AV OPEN 2016 ドラマ・ドキュメンタリー部門",
+        "ruby": "えーぶいおーぷん2016どらまどきゅめんたりーぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6785%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6790",
+        "name": "AV OPEN 2016 ハード部門",
+        "ruby": "えーぶいおーぷん2016はーどぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6790%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6788",
+        "name": "AV OPEN 2016 バラエティ部門",
+        "ruby": "えーぶいおーぷん2016ばらえてぃぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6788%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6791",
+        "name": "AV OPEN 2016 人妻・熟女部門",
+        "ruby": "えーぶいおーぷん2016ひとづまじゅくじょぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6791%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6787",
+        "name": "AV OPEN 2016 マニア・フェチ部門",
+        "ruby": "えーぶいおーぷん2016まにあふぇちぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6787%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6910",
+        "name": "AV OPEN 2017 乙女部門",
+        "ruby": "えーぶいおーぷん2017おとめぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6910%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6903",
+        "name": "AV OPEN 2017 企画部門",
+        "ruby": "えーぶいおーぷん2017きかくぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6903%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6906",
+        "name": "AV OPEN 2017 素人部門",
+        "ruby": "えーぶいおーぷん2017しろうとぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6906%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6902",
+        "name": "AV OPEN 2017 女優部門",
+        "ruby": "えーぶいおーぷん2017じょゆうぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6902%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6911",
+        "name": "AV OPEN 2017 ドキュメンタリー部門",
+        "ruby": "えーぶいおーぷん2017どきゅめんたりーぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6911%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6907",
+        "name": "AV OPEN 2017 ドラマ部門",
+        "ruby": "えーぶいおーぷん2017どらまぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6907%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6908",
+        "name": "AV OPEN 2017 ハード部門",
+        "ruby": "えーぶいおーぷん2017はーどぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6908%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6909",
+        "name": "AV OPEN 2017 人妻・熟女部門",
+        "ruby": "えーぶいおーぷん2017ひとづまじゅくじょぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6909%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6905",
+        "name": "AV OPEN 2017 フェチ部門",
+        "ruby": "えーぶいおーぷん2017ふぇちぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6905%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6904",
+        "name": "AV OPEN 2017 マニア部門",
+        "ruby": "えーぶいおーぷん2017まにあぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6904%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6932",
+        "name": "AV OPEN 2018 乙女部門",
+        "ruby": "えーぶいおーぷん2018おとめぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6932%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6927",
+        "name": "AV OPEN 2018 企画部門",
+        "ruby": "えーぶいおーぷん2018きかくぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6927%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6929",
+        "name": "AV OPEN 2018 素人部門",
+        "ruby": "えーぶいおーぷん2018しろうとぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6929%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6926",
+        "name": "AV OPEN 2018 女優部門",
+        "ruby": "えーぶいおーぷん2018じょゆうぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6926%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6930",
+        "name": "AV OPEN 2018 ハード部門",
+        "ruby": "えーぶいおーぷん2018はーどぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6930%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6931",
+        "name": "AV OPEN 2018 人妻・熟女部門",
+        "ruby": "えーぶいおーぷん2018ひとづまじゅくじょぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6931%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6928",
+        "name": "AV OPEN 2018 マニア・フェチ部門",
+        "ruby": "えーぶいおーぷん2018まにあふぇちぶもん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6928%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1032",
+        "name": "お母さん",
+        "ruby": "おかあさん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1032%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1003",
+        "name": "女将・女主人",
+        "ruby": "おかみおんなしゅじん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1003%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1083",
+        "name": "幼なじみ",
+        "ruby": "おさななじみ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1083%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6934",
+        "name": "お爺ちゃん",
+        "ruby": "おじいちゃん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6934%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "527",
+        "name": "お嬢様・令嬢",
+        "ruby": "おじょうさまれいじょう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D527%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6954",
+        "name": "オタク",
+        "ruby": "おたく",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6954%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6948",
+        "name": "男の潮吹き",
+        "ruby": "おとこのしおふき",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6948%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6938",
+        "name": "オナサポ",
+        "ruby": "おなさぽ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6938%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5008",
+        "name": "オナニー",
+        "ruby": "おなにー",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5008%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1033",
+        "name": "お姉さん",
+        "ruby": "おねえさん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1033%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6947",
+        "name": "お婆ちゃん",
+        "ruby": "おばあちゃん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6947%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6943",
+        "name": "叔母さん",
+        "ruby": "おばさん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6943%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "528",
+        "name": "お姫様",
+        "ruby": "おひめさま",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D528%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6969",
+        "name": "お風呂",
+        "ruby": "おふろ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6969%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5017",
+        "name": "おもちゃ",
+        "ruby": "おもちゃ",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5017%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4140",
+        "name": "温泉",
+        "ruby": "おんせん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4140%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1016",
+        "name": "女教師",
+        "ruby": "おんなきょうし",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1016%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "6945",
+        "name": "女上司",
+        "ruby": "おんなじょうし",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D6945%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1082",
+        "name": "女戦士",
+        "ruby": "おんなせんし",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1082%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "2022",
+        "name": "女捜査官",
+        "ruby": "おんなそうさかん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D2022%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1001",
+        "name": "OL",
+        "ruby": "おーえる",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1001%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1021",
+        "name": "格闘家",
+        "ruby": "かくとうか",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1021%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4123",
+        "name": "カップル",
+        "ruby": "かっぷる",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4123%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1022",
+        "name": "家庭教師",
+        "ruby": "かていきょうし",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1022%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5010",
+        "name": "監禁",
+        "ruby": "かんきん",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5010%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "1013",
+        "name": "看護婦・ナース",
+        "ruby": "かんごふなーす",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D1013%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "5014",
+        "name": "浣腸",
+        "ruby": "かんちょう",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D5014%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "4026",
+        "name": "カーセックス",
+        "ruby": "かーせっくす",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D4026%2F&af_id=hzq886-990&ch=api"
+      },
+      {
+        "genre_id": "553",
+        "name": "学園もの",
+        "ruby": "がくえんもの",
+        "list_url": "https://al.fanza.co.jp/?lurl=https%3A%2F%2Fvideo.dmm.co.jp%2Fav%2Flist%2F%3Fgenre%3D553%2F&af_id=hzq886-990&ch=api"
+      }
+    ]
+  }
+}
