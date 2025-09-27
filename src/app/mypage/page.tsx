@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
-import CollectionCardTile from "@/components/CollectionCard";
+import PosterCollection from "@/components/PosterCollection";
 import type {
   CollectionCard as CollectionCardType,
   CollectionRarity,
@@ -371,7 +371,7 @@ export default function MyPage() {
               </div>
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
                 {displayCards.map((card) => (
-                  <CollectionCardTile key={card.id} card={card} />
+                  <PosterCollection key={card.id} card={card} />
                 ))}
               </div>
             </section>

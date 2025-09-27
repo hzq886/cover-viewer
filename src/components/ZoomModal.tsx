@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { MediaSlide } from "./MediaCarousel";
+import type { MediaSlide } from "./PosterPanel";
 
 type Props = {
   open: boolean;

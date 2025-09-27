@@ -45,8 +45,8 @@ type Props = {
   disableKeyboardNavigation?: boolean;
 };
 
-const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
-  function MediaCarousel(
+const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
+  function PosterPanel(
     {
       slides,
       width,
@@ -444,4 +444,4 @@ const MediaCarousel = React.forwardRef<HTMLDivElement, Props>(
   },
 );
 
-export default MediaCarousel;
+export default PosterPanel;

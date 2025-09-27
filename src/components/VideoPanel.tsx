@@ -50,7 +50,7 @@ const getTogglePlay = (value: unknown): (() => void) | undefined => {
 const isPlyrPlaying = (value: unknown): boolean =>
   Boolean(value && typeof value === "object" && (value as PlyrLike).playing);
 
-export default function InlineVideoCard({
+export default function VideoPanel({
   videoUrl,
   posterUrl,
   width,

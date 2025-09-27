@@ -7,7 +7,7 @@ type Props = {
   className?: string;
 };
 
-export default function AuthStatus({ className }: Props) {
+export default function AuthBar({ className }: Props) {
   const { user, isAuthenticated, loading, signOut } = useAuth();
 
   if (loading) {

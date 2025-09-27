@@ -114,7 +114,7 @@ const formatDate = (value?: string) => {
   }).format(date);
 };
 
-export default function CollectionCardTile({ card }: { card: CollectionCard }) {
+export default function PosterCollection({ card }: { card: CollectionCard }) {
   const accent = accentPresets[card.accent];
   const decor = rarityDecor[card.rarity];
   const obtained = formatDate(card.obtainedAt);

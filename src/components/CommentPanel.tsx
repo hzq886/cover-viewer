@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   MaterialSymbolsLightFavorite,
   MaterialSymbolsLightFavoriteOutline,
-} from "@/components/icons/HeartIcons";
+} from "@/components/icons/FavoriteIcon";
 
 type Props = {
   size?: number; // pixel size baseline for heart icon
@@ -30,7 +30,7 @@ const createComment = (text: string): Comment => ({
   text,
 });
 
-export default function FavoriteHeart({ size = 96, height }: Props) {
+export default function CommentPanel({ size = 96, height }: Props) {
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(0);
   const [popKey, setPopKey] = useState(0);

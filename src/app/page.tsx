@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import AuthStatus from "@/components/AuthStatus";
-import FavoriteHeart from "@/components/FavoriteHeart";
+import AuthBar from "@/components/AuthBar";
+import CommentPanel from "@/components/CommentPanel";
 import InfoPanel from "@/components/InfoPanel";
-import InlineVideoCard from "@/components/InlineVideoCard";
+import VideoPanel from "@/components/VideoPanel";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
-import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
+import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
@@ -632,7 +632,7 @@ export default function Home() {
             >
               <div className="flex items-center gap-3">
                 <LanguageSwitcher />
-                <AuthStatus />
+                <AuthBar />
               </div>
             </div>
           </nav>
@@ -749,7 +749,7 @@ export default function Home() {
                             : "z-20 translate-x-12 translate-y-10 scale-[0.95]"
                         } ${videoFront ? "" : "cursor-pointer"}`}
                       >
-                        <InlineVideoCard
+                        <VideoPanel
                           videoUrl={resolvedVideoUrl || sampleMovie}
                           posterUrl={
                             basePosterUrl
@@ -772,7 +772,7 @@ export default function Home() {
                         videoSlide ? (videoFront ? "z-30" : "z-50") : "z-50"
                       }`}
                     >
-                      <MediaCarousel
+                      <PosterPanel
                         ref={carouselRef}
                         slides={imageSlides}
                         width={stage.stageW}
@@ -804,7 +804,7 @@ export default function Home() {
                 </div>
                 <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:justify-end md:pl-3 xl:pl-3">
                   <div className="sticky top-24 flex w-full max-w-xs items-start md:max-w-[260px] xl:max-w-[320px]">
-                    <FavoriteHeart
+                    <CommentPanel
                       height={stage.containerH}
                       size={Math.min(
                         128,
