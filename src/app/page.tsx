@@ -5,11 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AuthBar from "@/components/AuthBar";
 import CommentPanel from "@/components/CommentPanel";
 import InfoPanel from "@/components/InfoPanel";
-import VideoPanel from "@/components/VideoPanel";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
+import VideoPanel from "@/components/VideoPanel";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
@@ -24,23 +24,14 @@ const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
 const POSTER_SPINE_RATIO = 0.02;
 // 舞台目标宽高比（宽:高 = 2:3）
 const TARGET_ASPECT_RATIO = 2 / 3;
-// 舞台宽度上限占视口宽度的比例
-const STAGE_WIDTH_FRACTION = 0.72;
-// 舞台允许的最大高度
-const MAX_STAGE_HEIGHT = 800;
-// 舞台可用高度下限，避免过小
-const MIN_AVAILABLE_HEIGHT = 180;
-// 紧凑布局时的上下内边距
-const COMPACT_PADDING = 24;
-// 宽松布局时的上下内边距
-const RELAXED_PADDING = 40;
-// 额外安全间距，避免底部遮挡
-const SAFETY_GAP = 48;
-// 视频原生尺寸（DMM 示例片段）
-const VIDEO_NATIVE_WIDTH = 720;
-const VIDEO_NATIVE_HEIGHT = 480;
-const VIDEO_ASPECT_RATIO = VIDEO_NATIVE_WIDTH / VIDEO_NATIVE_HEIGHT;
-const VIDEO_HEIGHT_FACTOR = VIDEO_NATIVE_HEIGHT / VIDEO_NATIVE_WIDTH;
+// 舞台宽度在不同断点下的预设值
+const STAGE_WIDTH_PRESETS: Array<{ min: number; width: number }> = [
+  { min: 1280, width: 420 },
+  { min: 1024, width: 380 },
+  { min: 768, width: 360 },
+  { min: 640, width: 320 },
+];
+const STAGE_WIDTH_DEFAULT = 280;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -96,15 +87,12 @@ export default function Home() {
   } = useDmmSearch();
   // 是否处于紧凑布局（显示结果后自动启用）
   const [compact, setCompact] = useState(false);
-  // 当前视口尺寸，驱动舞台自适应
-  const [viewport, setViewport] = useState<{ vw: number; vh: number }>({
-    vw: 0,
-    vh: 0,
-  });
+  // 当前窗口宽度，驱动舞台的断点切换
+  const [viewportWidth, setViewportWidth] = useState(0);
   // 媒体展示区域引用，用于阻止冒泡
   const carouselRef = useRef<HTMLDivElement>(null);
   // 布局高度 Hook，提供 header/footer 引用与高度
-  const { headerRef, footerRef, layoutH } = useLayoutHeights();
+  const { headerRef, footerRef } = useLayoutHeights();
   // 详情信息面板引用，阻止外层点击切换
   const detailsRef = useRef<HTMLDivElement>(null);
   // Logo 容器引用，阻止外层点击切换
@@ -335,11 +323,9 @@ export default function Home() {
 
   // 一旦有海报可用则切换为紧凑模式
 
-  // 监听窗口尺寸变化，更新视口参数
+  // 监听窗口尺寸变化，更新视口宽度
   useEffect(() => {
-    // 窗口尺寸变更时的处理逻辑
-    const handleResize = () =>
-      setViewport({ vw: window.innerWidth, vh: window.innerHeight });
+    const handleResize = () => setViewportWidth(window.innerWidth);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -354,51 +340,21 @@ export default function Home() {
   // 色彩渐变背景样式字符串
   const radial = `radial-gradient(1200px 800px at 80% -10%, rgba(${accent.r},${accent.g},${accent.b},0.45), transparent), radial-gradient(900px 600px at 10% 110%, rgba(${subtle.r},${subtle.g},${subtle.b},0.55), transparent)`;
 
-  // Header/Footer 的高度信息
-  const { header: headerHeight, footer: footerHeight } = layoutH;
-
-  // 舞台相关尺寸，随视口变化动态计算
+  // 舞台相关尺寸，按照断点预设值计算
   const stage = useMemo(() => {
-    // 当前上下 padding，根据紧凑状态决定
-    const verticalPadding = compact ? COMPACT_PADDING : RELAXED_PADDING;
-    // 计算可用高度，扣除头尾与安全间距
-    const availableHeight = Math.max(
-      MIN_AVAILABLE_HEIGHT,
-      viewport.vh - headerHeight - footerHeight - verticalPadding - SAFETY_GAP,
-    );
-    // 限制高度不超过设定上限
-    const clampedHeight = Math.floor(
-      Math.min(availableHeight, MAX_STAGE_HEIGHT),
-    );
-    // 初始舞台高度，保持在最小高度以上
-    let containerH = Math.max(clampedHeight, MIN_AVAILABLE_HEIGHT);
-    // 根据目标宽高比计算舞台宽度
-    let stageW = Math.floor(containerH * TARGET_ASPECT_RATIO);
-    // 视口允许的最大宽度
-    const widthLimit = Math.floor(viewport.vw * STAGE_WIDTH_FRACTION);
-    // 如果舞台宽度超限，按宽度反推高度
-    if (widthLimit > 0 && stageW > widthLimit) {
-      stageW = widthLimit;
-      containerH = Math.floor(stageW / TARGET_ASPECT_RATIO);
-    }
+    const preset = STAGE_WIDTH_PRESETS.find(({ min }) => viewportWidth >= min);
+    const stageW = preset ? preset.width : STAGE_WIDTH_DEFAULT;
+    const containerH = Math.round(stageW / TARGET_ASPECT_RATIO);
     return {
       containerH,
       stageW,
       stageSizeText: `${stageW}px × ${containerH}px`,
     };
-  }, [compact, footerHeight, headerHeight, viewport.vh, viewport.vw]);
+  }, [viewportWidth]);
 
   const videoCardDimensions = useMemo(() => {
     const inactiveWidth = stage.stageW;
     const inactiveHeight = stage.containerH;
-    if (!inactiveWidth || !inactiveHeight) {
-      return {
-        inactiveWidth,
-        inactiveHeight,
-        activeWidth: inactiveWidth,
-        activeHeight: inactiveHeight,
-      };
-    }
     if (!videoSlide) {
       return {
         inactiveWidth,
@@ -408,33 +364,13 @@ export default function Home() {
       };
     }
 
-    const viewportLimit =
-      viewport.vw > 0
-        ? Math.floor(viewport.vw * 0.8)
-        : Number.POSITIVE_INFINITY;
-    const heightDrivenWidth = Math.round(inactiveHeight * VIDEO_ASPECT_RATIO);
-    const widthDrivenWidth = Math.round(inactiveWidth * 1.35);
-    const baseMinWidth = Math.max(inactiveWidth, VIDEO_NATIVE_WIDTH);
-    const rawWidth = Math.max(
-      baseMinWidth,
-      heightDrivenWidth,
-      widthDrivenWidth,
-    );
-    const maxByMultiplier = Math.round(inactiveWidth * 1.8);
-    const cappedWidth = Math.max(
-      baseMinWidth,
-      Math.min(rawWidth, viewportLimit, maxByMultiplier),
-    );
-    const aspectHeight = Math.round(cappedWidth * VIDEO_HEIGHT_FACTOR);
-    const activeHeight = Math.max(VIDEO_NATIVE_HEIGHT, aspectHeight);
-
     return {
       inactiveWidth,
       inactiveHeight,
-      activeWidth: cappedWidth,
-      activeHeight,
+      activeWidth: inactiveWidth,
+      activeHeight: inactiveHeight,
     };
-  }, [stage.containerH, stage.stageW, videoSlide, viewport.vw]);
+  }, [stage.containerH, stage.stageW, videoSlide]);
 
   const inlineVideoWidth = videoFront
     ? videoCardDimensions.activeWidth
@@ -716,7 +652,7 @@ export default function Home() {
 
           {!loading && !error && slidesCount > 0 && (
             <div className="relative flex flex-col items-stretch">
-              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)_minmax(0,280px)] md:gap-8 md:items-start xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)_minmax(0,320px)]">
+              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start lg:grid-cols-[minmax(0,340px)_minmax(0,380px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,360px)_minmax(0,420px)_minmax(0,1fr)]">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -732,7 +668,7 @@ export default function Home() {
                   remainingCount={remainingItems.length}
                 />
 
-                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-start md:pl-8 xl:pl-12">
+                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-center">
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
@@ -802,8 +738,8 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:justify-end md:pl-3 xl:pl-3">
-                  <div className="sticky top-24 flex w-full max-w-xs items-start md:max-w-[260px] xl:max-w-[320px]">
+                <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:w-full md:justify-end md:justify-self-end">
+                  <div className="sticky top-24 flex w-full max-w-[22rem] items-start md:max-w-[312px] lg:max-w-[360px] xl:max-w-[360px]">
                     <CommentPanel
                       height={stage.containerH}
                       size={Math.min(

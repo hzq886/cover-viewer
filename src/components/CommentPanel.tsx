@@ -72,7 +72,7 @@ export default function CommentPanel({ size = 96, height }: Props) {
 
   return (
     <div
-      className="flex h-full min-h-[320px] w-full max-w-[320px] flex-col gap-4 rounded-3xl border border-white/12 bg-black/30 p-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md"
+      className="flex h-full min-h-[320px] w-full max-w-[360px] flex-col gap-4 rounded-3xl border border-white/12 bg-black/30 p-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md"
       style={panelHeight ? { height: `${panelHeight}px` } : undefined}
     >
       <div className="flex items-center justify-between px-2">
