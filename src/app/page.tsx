@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import AuthStatus from "@/components/AuthStatus";
+import FavoriteHeart from "@/components/FavoriteHeart";
 import InfoPanel from "@/components/InfoPanel";
 import InlineVideoCard from "@/components/InlineVideoCard";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import AuthStatus from "@/components/AuthStatus";
 import Logo from "@/components/Logo";
 import MediaCarousel, { type MediaSlide } from "@/components/MediaCarousel";
 import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
-import FavoriteHeart from "@/components/FavoriteHeart";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
@@ -36,6 +36,11 @@ const COMPACT_PADDING = 24;
 const RELAXED_PADDING = 40;
 // 额外安全间距，避免底部遮挡
 const SAFETY_GAP = 48;
+// 视频原生尺寸（DMM 示例片段）
+const VIDEO_NATIVE_WIDTH = 720;
+const VIDEO_NATIVE_HEIGHT = 480;
+const VIDEO_ASPECT_RATIO = VIDEO_NATIVE_WIDTH / VIDEO_NATIVE_HEIGHT;
+const VIDEO_HEIGHT_FACTOR = VIDEO_NATIVE_HEIGHT / VIDEO_NATIVE_WIDTH;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -383,6 +388,68 @@ export default function Home() {
     };
   }, [compact, footerHeight, headerHeight, viewport.vh, viewport.vw]);
 
+  const videoCardDimensions = useMemo(() => {
+    const inactiveWidth = stage.stageW;
+    const inactiveHeight = stage.containerH;
+    if (!inactiveWidth || !inactiveHeight) {
+      return {
+        inactiveWidth,
+        inactiveHeight,
+        activeWidth: inactiveWidth,
+        activeHeight: inactiveHeight,
+      };
+    }
+    if (!videoSlide) {
+      return {
+        inactiveWidth,
+        inactiveHeight,
+        activeWidth: inactiveWidth,
+        activeHeight: inactiveHeight,
+      };
+    }
+
+    const viewportLimit =
+      viewport.vw > 0 ? Math.floor(viewport.vw * 0.8) : Number.POSITIVE_INFINITY;
+    const heightDrivenWidth = Math.round(inactiveHeight * VIDEO_ASPECT_RATIO);
+    const widthDrivenWidth = Math.round(inactiveWidth * 1.35);
+    const baseMinWidth = Math.max(inactiveWidth, VIDEO_NATIVE_WIDTH);
+    const rawWidth = Math.max(
+      baseMinWidth,
+      heightDrivenWidth,
+      widthDrivenWidth,
+    );
+    const maxByMultiplier = Math.round(inactiveWidth * 1.8);
+    const cappedWidth = Math.max(
+      baseMinWidth,
+      Math.min(rawWidth, viewportLimit, maxByMultiplier),
+    );
+    const aspectHeight = Math.round(cappedWidth * VIDEO_HEIGHT_FACTOR);
+    const activeHeight = Math.max(VIDEO_NATIVE_HEIGHT, aspectHeight);
+
+    return {
+      inactiveWidth,
+      inactiveHeight,
+      activeWidth: cappedWidth,
+      activeHeight,
+    };
+  }, [stage.containerH, stage.stageW, videoSlide, viewport.vw]);
+
+  const inlineVideoWidth = videoFront
+    ? videoCardDimensions.activeWidth
+    : videoCardDimensions.inactiveWidth;
+
+  const inlineVideoHeight = videoFront
+    ? videoCardDimensions.activeHeight
+    : videoCardDimensions.inactiveHeight;
+
+  const videoContainerWidth = videoFront
+    ? Math.max(videoCardDimensions.activeWidth, stage.stageW)
+    : stage.stageW;
+
+  const videoContainerHeight = videoFront
+    ? Math.max(videoCardDimensions.activeHeight, stage.containerH)
+    : stage.containerH;
+
   // 展示在 InfoPanel 中的图片尺寸文案
   const imageSizeText = useMemo(() => {
     if (!activeSlide) return undefined;
@@ -667,20 +734,17 @@ export default function Home() {
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
-                      width: `${
-                        videoFront && videoSlide
-                          ? Math.floor(stage.stageW * 1.3)
-                          : stage.stageW
-                      }px`,
-                      height: `${stage.containerH}px`,
+                      width: `${videoContainerWidth}px`,
+                      height: `${videoContainerHeight}px`,
+                      transition: "width 0.45s ease, height 0.45s ease",
                     }}
                   >
                     {videoSlide && (
                       <div
                         className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                           videoFront
-                            ? "z-40 translate-x-2 -translate-y-2 scale-[0.97]"
-                            : "z-20 translate-x-16 translate-y-12 scale-[0.92]"
+                            ? "z-40"
+                            : "z-20 translate-x-12 translate-y-10 scale-[0.95]"
                         } ${videoFront ? "" : "cursor-pointer"}`}
                       >
                         <InlineVideoCard
@@ -690,8 +754,8 @@ export default function Home() {
                               ? toProxyUrl(basePosterUrl)
                               : undefined
                           }
-                          width={Math.floor(stage.stageW * 1.3)}
-                          height={stage.containerH}
+                          width={inlineVideoWidth}
+                          height={inlineVideoHeight}
                           active={videoFront}
                           onActivate={() => {
                             setVideoFront(true);
@@ -705,8 +769,8 @@ export default function Home() {
                       className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
                         videoSlide
                           ? videoFront
-                            ? "z-30 translate-x-50 translate-y-12 scale-[0.92]"
-                            : "z-50 translate-x-2 -translate-y-2 scale-[0.97]"
+                            ? "z-30"
+                            : "z-50"
                           : "z-50"
                       }`}
                     >
@@ -737,18 +801,6 @@ export default function Home() {
                           setZoomOpen(true);
                         }}
                       />
-                      {videoSlide && videoFront ? (
-                        <button
-                          type="button"
-                          className="absolute inset-0 z-40 cursor-pointer rounded-[28px] bg-black/20 transition hover:bg-black/30 focus-visible:outline-none border border-transparent hover:border-violet-200/60"
-                          style={{
-                            maxWidth: `${stage.stageW}px`,
-                            width: "100%",
-                          }}
-                          aria-label="返回图片预览"
-                          onClick={() => setVideoFront(false)}
-                        />
-                      ) : null}
                     </div>
 
                   </div>

@@ -11,6 +11,8 @@ const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
 });
 
 const DEFAULT_VOLUME = 0.7;
+const VIDEO_MIN_WIDTH = 720;
+const VIDEO_MIN_HEIGHT = 480;
 
 type PromiseLikeValue<_T = unknown> = { then?: unknown } & object;
 
@@ -220,7 +222,13 @@ export default function InlineVideoCard({
     width: `${width}px`,
     height: `${height}px`,
     maxWidth: "100%",
+    transition: "width 0.45s ease, height 0.45s ease",
   };
+
+  if (active) {
+    cardStyle.minWidth = `${VIDEO_MIN_WIDTH}px`;
+    cardStyle.minHeight = `${VIDEO_MIN_HEIGHT}px`;
+  }
 
   if (!active) {
     return (
@@ -268,6 +276,30 @@ export default function InlineVideoCard({
       className="relative flex w-full overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-4 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl"
       style={cardStyle}
     >
+      {onDeactivate ? (
+        <button
+          type="button"
+          onClick={onDeactivate}
+          className="absolute left-4 top-4 z-30 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-md transition hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+          aria-label="返回图片预览"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="15 18 9 12 15 6" />
+            <line x1="9" y1="12" x2="21" y2="12" />
+          </svg>
+          <span>返回</span>
+        </button>
+      ) : null}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />
       <div className="relative z-10 flex h-full w-full flex-col">
         <div className="pointer-events-none absolute inset-0" />
