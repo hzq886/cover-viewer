@@ -100,7 +100,6 @@ export default function Home() {
   // 媒体放大模态框控制
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomIndex, setZoomIndex] = useState(0);
-  const [activeSlide, setActiveSlide] = useState<MediaSlide | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [videoFront, setVideoFront] = useState(false);
   const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>("");
@@ -129,7 +128,6 @@ export default function Home() {
   // 作品切换时重置媒体状态
   useEffect(() => {
     setActiveIndex(0);
-    setActiveSlide(null);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
     setVideoFront(false);
@@ -199,10 +197,12 @@ export default function Home() {
     [pick],
   );
 
+  const videoUrl = resolvedVideoUrl || sampleMovie;
+
   const ensureVideoSource = useCallback(async () => {
     if (!sampleMovie) return undefined;
     if (resolvedVideoUrl) return resolvedVideoUrl;
-    if (resolvingVideoRef.current) return resolvedVideoUrl || sampleMovie;
+    if (resolvingVideoRef.current) return videoUrl;
     resolvingVideoRef.current = true;
     try {
       const response = await fetch(
@@ -218,7 +218,7 @@ export default function Home() {
     } finally {
       resolvingVideoRef.current = false;
     }
-  }, [resolvedVideoUrl, sampleMovie]);
+  }, [resolvedVideoUrl, sampleMovie, videoUrl]);
 
   const { imageSlides, videoSlide } = useMemo(() => {
     const images: MediaSlide[] = [];
@@ -259,7 +259,7 @@ export default function Home() {
     }
 
     if (sampleMovie) {
-      const videoSource = resolvedVideoUrl || sampleMovie;
+      const videoSource = videoUrl;
       video = {
         type: "video",
         url: videoSource,
@@ -269,7 +269,12 @@ export default function Home() {
     }
 
     return { imageSlides: images, videoSlide: video };
-  }, [basePosterUrl, orderedSamples, resolvedVideoUrl, sampleMovie]);
+  }, [basePosterUrl, orderedSamples, sampleMovie, videoUrl]);
+
+  const activeSlide = useMemo(
+    () => imageSlides[activeIndex] ?? null,
+    [imageSlides, activeIndex],
+  );
 
   useEffect(() => {
     if (!videoSlide) {
@@ -300,15 +305,15 @@ export default function Home() {
     () => toProxyUrl(activeDisplayUrl),
     [activeDisplayUrl],
   );
-  // 用于取色的海报代理地址
-  const proxiedColorUrl = useMemo(
+  // 基础海报的代理地址
+  const proxiedBasePosterUrl = useMemo(
     () => toProxyUrl(basePosterUrl),
     [basePosterUrl],
   );
   // 主图的主色与原始尺寸信息
   const { dominant, naturalSize } = useImageColor(
     basePosterUrl,
-    proxiedColorUrl,
+    proxiedBasePosterUrl,
   );
 
   // 选中样图的尺寸信息，用于展示面板
@@ -320,9 +325,6 @@ export default function Home() {
     activeImageOriginal || null,
     activeImageOriginal ? activeImageProxy : undefined,
   );
-
-  // 一旦有海报可用则切换为紧凑模式
-
   // 监听窗口尺寸变化，更新视口宽度
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
@@ -351,42 +353,6 @@ export default function Home() {
       stageSizeText: `${stageW}px × ${containerH}px`,
     };
   }, [viewportWidth]);
-
-  const videoCardDimensions = useMemo(() => {
-    const inactiveWidth = stage.stageW;
-    const inactiveHeight = stage.containerH;
-    if (!videoSlide) {
-      return {
-        inactiveWidth,
-        inactiveHeight,
-        activeWidth: inactiveWidth,
-        activeHeight: inactiveHeight,
-      };
-    }
-
-    return {
-      inactiveWidth,
-      inactiveHeight,
-      activeWidth: inactiveWidth,
-      activeHeight: inactiveHeight,
-    };
-  }, [stage.containerH, stage.stageW, videoSlide]);
-
-  const inlineVideoWidth = videoFront
-    ? videoCardDimensions.activeWidth
-    : videoCardDimensions.inactiveWidth;
-
-  const inlineVideoHeight = videoFront
-    ? videoCardDimensions.activeHeight
-    : videoCardDimensions.inactiveHeight;
-
-  const videoContainerWidth = videoFront
-    ? Math.max(videoCardDimensions.activeWidth, stage.stageW)
-    : stage.stageW;
-
-  const videoContainerHeight = videoFront
-    ? Math.max(videoCardDimensions.activeHeight, stage.containerH)
-    : stage.containerH;
 
   // 展示在 InfoPanel 中的图片尺寸文案
   const imageSizeText = useMemo(() => {
@@ -431,11 +397,20 @@ export default function Home() {
     return { zoomSlides, imageIndexToZoom, zoomToImage };
   }, [imageSlides]);
 
+  // 避免索引在媒体数量变化后越界
+  useEffect(() => {
+    setActiveIndex((prev) => {
+      if (imageSlides.length === 0) return 0;
+      const clamped = Math.min(prev, imageSlides.length - 1);
+      return clamped < 0 ? 0 : clamped;
+    });
+  }, [imageSlides.length]);
+
   const slidesCount = imageSlides.length;
 
+  // 根据媒体是否可展示切换到紧凑布局
   useEffect(() => {
-    if (!slidesCount) return;
-    setCompact(true);
+    setCompact(slidesCount > 0);
   }, [slidesCount]);
 
   useEffect(() => {
@@ -453,13 +428,8 @@ export default function Home() {
       setZoomIndex(finalIndex);
       const nextImageIndex = zoomToImage[finalIndex] ?? 0;
       setActiveIndex(nextImageIndex);
-      const nextSlide = imageSlides[nextImageIndex] ?? null;
-      setActiveSlide(nextSlide);
-      if (nextSlide?.type === "video") {
-        void ensureVideoSource();
-      }
     },
-    [ensureVideoSource, imageSlides, zoomToImage],
+    [zoomToImage],
   );
 
   // 搜索事件处理（触发 DMM 接口请求）
@@ -473,7 +443,6 @@ export default function Home() {
     setCompact(false);
     setOrderedSamples([]);
     setActiveIndex(0);
-    setActiveSlide(null);
     setZoomIndex(0);
     setZoomOpen(false);
     setResolvedVideoUrl("");
@@ -485,20 +454,26 @@ export default function Home() {
     ? "flex w-full items-center justify-start gap-4 md:gap-6 transition"
     : "flex w-full flex-col items-center justify-center gap-6 transition";
 
-  // 作品 ID（多字段兼容）
-  const contentId = pick?.content_id || pick?.contentid || "";
-  // 作品标题
-  const title = pick?.title || "";
-  // 推广链接或原始详情页
-  const affiliate = pick?.affiliateURL || pick?.URL || "";
-  // 演员列表
-  const actressNames = joinNames(pick?.iteminfo?.actress);
-  // 导演列表
-  const directorNames = joinNames(pick?.iteminfo?.director);
-  // 制作方名称
-  const makerName = joinNames(pick?.iteminfo?.maker) || pick?.maker?.name || "";
-  // 发售日期
-  const releaseDate = pick?.date || pick?.release_date || "";
+  const {
+    contentId,
+    title,
+    affiliate,
+    actressNames,
+    directorNames,
+    makerName,
+    releaseDate,
+  } = useMemo(() => {
+    const iteminfo = pick?.iteminfo;
+    return {
+      contentId: pick?.content_id || pick?.contentid || "",
+      title: pick?.title || "",
+      affiliate: pick?.affiliateURL || pick?.URL || "",
+      actressNames: joinNames(iteminfo?.actress),
+      directorNames: joinNames(iteminfo?.director),
+      makerName: joinNames(iteminfo?.maker) || pick?.maker?.name || "",
+      releaseDate: pick?.date || pick?.release_date || "",
+    };
+  }, [pick]);
 
   return (
     <div
@@ -672,8 +647,8 @@ export default function Home() {
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
-                      width: `${videoContainerWidth}px`,
-                      height: `${videoContainerHeight}px`,
+                      width: `${stage.stageW}px`,
+                      height: `${stage.containerH}px`,
                       transition: "width 0.45s ease, height 0.45s ease",
                     }}
                   >
@@ -686,14 +661,12 @@ export default function Home() {
                         } ${videoFront ? "" : "cursor-pointer"}`}
                       >
                         <VideoPanel
-                          videoUrl={resolvedVideoUrl || sampleMovie}
+                          videoUrl={videoUrl}
                           posterUrl={
-                            basePosterUrl
-                              ? toProxyUrl(basePosterUrl)
-                              : undefined
+                            basePosterUrl ? proxiedBasePosterUrl : undefined
                           }
-                          width={inlineVideoWidth}
-                          height={inlineVideoHeight}
+                          width={stage.stageW}
+                          height={stage.containerH}
                           active={videoFront}
                           onActivate={() => {
                             setVideoFront(true);
@@ -717,15 +690,11 @@ export default function Home() {
                           videoSlide && videoFront,
                         )}
                         initialIndex={activeIndex}
-                        onSlideChange={(slide, index) => {
-                          if (
-                            index === activeIndex &&
-                            activeSlide?.url === slide.url
-                          ) {
+                        onSlideChange={(_, index) => {
+                          if (index === activeIndex) {
                             return;
                           }
                           setActiveIndex(index);
-                          setActiveSlide(slide);
                           setVideoFront(false);
                         }}
                         onRequestZoom={(index) => {
