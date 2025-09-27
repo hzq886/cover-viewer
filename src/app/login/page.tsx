@@ -49,7 +49,8 @@ export default function LoginPage() {
 
         {!ready ? (
           <div className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-            Firebase 配置未设置。请参考 README 的“登录（Firebase 邮件链接）”部分。
+            Firebase 配置未设置。请参考 README 的“登录（Firebase
+            邮件链接）”部分。
           </div>
         ) : !sent ? (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">

@@ -409,7 +409,9 @@ export default function Home() {
     }
 
     const viewportLimit =
-      viewport.vw > 0 ? Math.floor(viewport.vw * 0.8) : Number.POSITIVE_INFINITY;
+      viewport.vw > 0
+        ? Math.floor(viewport.vw * 0.8)
+        : Number.POSITIVE_INFINITY;
     const heightDrivenWidth = Math.round(inactiveHeight * VIDEO_ASPECT_RATIO);
     const widthDrivenWidth = Math.round(inactiveWidth * 1.35);
     const baseMinWidth = Math.max(inactiveWidth, VIDEO_NATIVE_WIDTH);
@@ -767,11 +769,7 @@ export default function Home() {
                     )}
                     <div
                       className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
-                        videoSlide
-                          ? videoFront
-                            ? "z-30"
-                            : "z-50"
-                          : "z-50"
+                        videoSlide ? (videoFront ? "z-30" : "z-50") : "z-50"
                       }`}
                     >
                       <MediaCarousel
@@ -802,7 +800,6 @@ export default function Home() {
                         }}
                       />
                     </div>
-
                   </div>
                 </div>
                 <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:justify-end md:pl-3 xl:pl-3">

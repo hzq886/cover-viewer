@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { useI18n } from "@/i18n/I18nProvider";
 import { GENRE_GROUPS } from "@/data/genres";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Props = {
   keyword: string;
@@ -52,6 +52,7 @@ export function MaterialSymbolsBook4SparkOutlineRounded(
       viewBox="0 0 24 24"
       {...props}
     >
+      <title>Books</title>
       {/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}
       <path
         fill="currentColor"
@@ -153,7 +154,7 @@ export default function SearchBar({
   const appendKeywordToken = (word: string) => {
     const tokens = keyword.split(/\s+/).filter(Boolean);
     const nextTokens = tokens.includes(word) ? tokens : [...tokens, word];
-    const newValue = (nextTokens.join(" ") + " ").replace(/\s+$/, " ");
+    const newValue = `${nextTokens.join(" ")} `.replace(/\s+$/, " ");
     setKeyword(newValue);
     // 将光标移动到文本末尾，便于继续输入
     requestAnimationFrame(() => {
@@ -361,6 +362,7 @@ export default function SearchBar({
                   strokeLinejoin="round"
                   aria-hidden
                 >
+                  <title>Close keyword panel</title>
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -376,7 +378,10 @@ export default function SearchBar({
                       onClick={(e) => {
                         e.preventDefault();
                         const el = document.getElementById(`genre-${g.id}`);
-                        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        el?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
                       }}
                       className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
                     >
@@ -388,7 +393,11 @@ export default function SearchBar({
               <div className="max-h-[70vh] overflow-y-auto pr-1">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {GENRE_GROUPS.map((group) => (
-                    <section key={group.id} id={`genre-${group.id}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <section
+                      key={group.id}
+                      id={`genre-${group.id}`}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
                       <h3 className="mb-3 text-base font-medium text-white/90">
                         {group.title}
                       </h3>

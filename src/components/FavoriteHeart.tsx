@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   MaterialSymbolsLightFavorite,
   MaterialSymbolsLightFavoriteOutline,
@@ -11,13 +11,30 @@ type Props = {
   height?: number; // align panel height with carousel container
 };
 
-const DEFAULT_COMMENTS = ["Aaaaaa", "Bbbbbb", "Cccccc"];
+type Comment = {
+  id: string;
+  text: string;
+};
+
+const DEFAULT_COMMENTS: Comment[] = [
+  { id: "sample-1", text: "Aaaaaa" },
+  { id: "sample-2", text: "Bbbbbb" },
+  { id: "sample-3", text: "Cccccc" },
+];
+
+const createComment = (text: string): Comment => ({
+  id:
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  text,
+});
 
 export default function FavoriteHeart({ size = 96, height }: Props) {
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(0);
   const [popKey, setPopKey] = useState(0);
-  const [comments, setComments] = useState<string[]>(DEFAULT_COMMENTS);
+  const [comments, setComments] = useState<Comment[]>(DEFAULT_COMMENTS);
   const [pending, setPending] = useState("");
 
   const handleClick = () => {
@@ -34,19 +51,11 @@ export default function FavoriteHeart({ size = 96, height }: Props) {
     }
   };
 
-  // Ensure a short animation rerun when state changes
-  useEffect(() => {
-    const t = setTimeout(() => {
-      // no-op; allow CSS animation to complete
-    }, 320);
-    return () => clearTimeout(t);
-  }, [liked, popKey]);
-
   const handleCommentSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     const value = pending.trim();
     if (!value) return;
-    setComments((prev) => [...prev, value]);
+    setComments((prev) => [...prev, createComment(value)]);
     setPending("");
   };
 
@@ -89,7 +98,9 @@ export default function FavoriteHeart({ size = 96, height }: Props) {
           <span
             key={popKey}
             className={`relative flex items-center justify-center transition-all duration-300 ease-out ${
-              liked ? "scale-100 opacity-100 animate-heart-pop" : "scale-50 opacity-0"
+              liked
+                ? "scale-100 opacity-100 animate-heart-pop"
+                : "scale-50 opacity-0"
             }`}
           >
             <MaterialSymbolsLightFavorite className="text-red-500 drop-shadow-[0_14px_34px_rgba(239,68,68,0.55)]" />
@@ -114,14 +125,16 @@ export default function FavoriteHeart({ size = 96, height }: Props) {
           style={{ msOverflowStyle: "none" }}
         >
           {comments.length === 0 ? (
-            <p className="text-sm text-slate-200/60">还没有评论，快来抢个沙发。</p>
+            <p className="text-sm text-slate-200/60">
+              还没有评论，快来抢个沙发。
+            </p>
           ) : (
-            comments.map((text, index) => (
+            comments.map((comment) => (
               <div
-                key={`${text}-${index}`}
+                key={comment.id}
                 className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm text-slate-50/90 shadow-[0_6px_14px_-10px_rgba(0,0,0,0.8)]"
               >
-                {text}
+                {comment.text}
               </div>
             ))
           )}

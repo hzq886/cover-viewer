@@ -41,9 +41,10 @@ export default function ZoomModal({
   useEffect(() => {
     if (open && total) {
       const safeIndex = Math.min(initialIndex, total - 1);
+      const nextSlide = slides[safeIndex] ?? null;
       setIndex(safeIndex);
       // Avoid crossfade on initial open
-      lastSlideRef.current = slides[safeIndex] ?? null;
+      lastSlideRef.current = nextSlide;
       setShowNew(true);
       setRendered(true);
       requestAnimationFrame(() => setVisible(true));
@@ -55,7 +56,7 @@ export default function ZoomModal({
       const timer = setTimeout(() => setRendered(false), 220);
       return () => clearTimeout(timer);
     }
-  }, [open, total, initialIndex]);
+  }, [open, total, initialIndex, slides]);
 
   const handleClose = useCallback(() => {
     setVisible(false);
@@ -178,7 +179,7 @@ export default function ZoomModal({
   } as const;
 
   const videoClass = "h-full w-auto max-w-full object-contain select-none";
-  const imageClass = "object-contain select-none";
+  const imageBaseClass = "object-contain select-none";
 
   const renderMedia = () => {
     const displaySrc = current.zoomUrl || current.displayUrl;
@@ -209,7 +210,7 @@ export default function ZoomModal({
             unoptimized
             sizes="100vw"
             draggable={false}
-            className={`object-contain select-none filter transition-all duration-500 ease-out ${
+            className={`${imageBaseClass} filter transition-all duration-500 ease-out ${
               showNew
                 ? "opacity-0 scale-92 blur-sm brightness-90"
                 : "opacity-100 scale-100 blur-0 brightness-100"
@@ -224,7 +225,7 @@ export default function ZoomModal({
           unoptimized
           sizes="100vw"
           draggable={false}
-          className={`object-contain select-none filter transition-all duration-500 ease-out ${
+          className={`${imageBaseClass} filter transition-all duration-500 ease-out ${
             showNew
               ? "opacity-100 scale-100 blur-0 brightness-100"
               : "opacity-0 scale-110 blur-sm brightness-110"

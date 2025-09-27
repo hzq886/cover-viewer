@@ -1,14 +1,14 @@
 "use client";
 
 import {
-  onAuthStateChanged,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
   signOut as firebaseSignOut,
+  isSignInWithEmailLink,
+  onAuthStateChanged,
+  signInWithEmailLink,
   type User,
 } from "firebase/auth";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getFirebaseAuth, hasFirebaseConfig } from "@/lib/firebase";
 
 type AuthContextValue = {
@@ -57,7 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!email) {
           // Ask user to input email if not available locally
           // eslint-disable-next-line no-alert
-          email = window.prompt("请输入您的邮箱以完成登录 / メールを入力してください", "") || "";
+          email =
+            window.prompt(
+              "请输入您的邮箱以完成登录 / メールを入力してください",
+              "",
+            ) || "";
         }
         if (!email) {
           setError("Email is required to complete sign-in.");
