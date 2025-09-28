@@ -72,6 +72,21 @@ export default function VideoPanel({
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
       if (!activeRef.current) return;
+      if (event.defaultPrevented) return;
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tagName = target.tagName;
+        const isEditable = target.isContentEditable;
+        const isFormField =
+          isEditable ||
+          tagName === "INPUT" ||
+          tagName === "TEXTAREA" ||
+          tagName === "SELECT" ||
+          tagName === "BUTTON";
+        if (isFormField && event.key !== "Escape") {
+          return;
+        }
+      }
       const instance = playerRef.current?.plyr;
       if (!instance) return;
       if (event.key === "Escape") {

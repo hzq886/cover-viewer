@@ -369,6 +369,19 @@ export default function Home() {
     return { width: stage.stageW, height: stage.containerH };
   }, [stage.containerH, stage.stageW, videoFront, videoSlide]);
 
+  const containerDimensions = useMemo(
+    () => ({
+      width: Math.max(mediaDimensions.width, stage.stageW),
+      height: Math.max(mediaDimensions.height, stage.containerH),
+    }),
+    [
+      mediaDimensions.height,
+      mediaDimensions.width,
+      stage.containerH,
+      stage.stageW,
+    ],
+  );
+
   const mediaStageSizeText = useMemo(() => {
     if (videoFront && videoSlide) {
       return `${mediaDimensions.width}px × ${mediaDimensions.height}px`;
@@ -675,8 +688,8 @@ export default function Home() {
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
-                      width: `${mediaDimensions.width}px`,
-                      height: `${mediaDimensions.height}px`,
+                      width: `${containerDimensions.width}px`,
+                      height: `${containerDimensions.height}px`,
                       transition: "width 0.45s ease, height 0.45s ease",
                     }}
                   >
@@ -709,29 +722,45 @@ export default function Home() {
                         videoSlide ? (videoFront ? "z-30" : "z-50") : "z-50"
                       }`}
                     >
-                      <PosterPanel
-                        ref={carouselRef}
-                        slides={imageSlides}
-                        width={stage.stageW}
-                        height={stage.containerH}
-                        disableKeyboardNavigation={Boolean(
-                          videoSlide && videoFront,
-                        )}
-                        initialIndex={activeIndex}
-                        onSlideChange={(_, index) => {
-                          if (index === activeIndex) {
-                            return;
+                      <div className="relative h-full w-full overflow-hidden rounded-[28px]">
+                        <div
+                          className={
+                            videoSlide && videoFront
+                              ? "pointer-events-none"
+                              : "pointer-events-auto"
                           }
-                          setActiveIndex(index);
-                          setVideoFront(false);
-                        }}
-                        onRequestZoom={(index) => {
-                          setVideoFront(false);
-                          const target = imageIndexToZoom[index] ?? 0;
-                          setZoomIndex(target);
-                          setZoomOpen(true);
-                        }}
-                      />
+                        >
+                          <PosterPanel
+                            ref={carouselRef}
+                            slides={imageSlides}
+                            width={stage.stageW}
+                            height={stage.containerH}
+                            disableKeyboardNavigation={Boolean(
+                              videoSlide && videoFront,
+                            )}
+                            initialIndex={activeIndex}
+                            onSlideChange={(_, index) => {
+                              if (index === activeIndex) {
+                                return;
+                              }
+                              setActiveIndex(index);
+                              setVideoFront(false);
+                            }}
+                            onRequestZoom={(index) => {
+                              setVideoFront(false);
+                              const target = imageIndexToZoom[index] ?? 0;
+                              setZoomIndex(target);
+                              setZoomOpen(true);
+                            }}
+                          />
+                        </div>
+                        {videoSlide && videoFront ? (
+                          <div
+                            aria-hidden="true"
+                            className="pointer-events-auto absolute inset-0 z-30 rounded-[28px] border border-white/15 bg-white/15 backdrop-blur-[5px]"
+                          />
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </div>
