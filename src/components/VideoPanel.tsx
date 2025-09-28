@@ -10,9 +10,10 @@ const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
   ssr: false,
 });
 
+export const VIDEO_MIN_WIDTH = 720;
+export const VIDEO_MIN_HEIGHT = 480;
 const DEFAULT_VOLUME = 0.7;
-const VIDEO_MIN_WIDTH = 720;
-const VIDEO_MIN_HEIGHT = 480;
+const VIDEO_ASPECT_RATIO = VIDEO_MIN_HEIGHT / VIDEO_MIN_WIDTH;
 
 type PromiseLikeValue<_T = unknown> = { then?: unknown } & object;
 
@@ -195,7 +196,7 @@ export default function VideoPanel({
     () => ({
       autoplay: true,
       muted: true,
-      ratio: "16:9",
+      ratio: `${VIDEO_MIN_WIDTH}:${VIDEO_MIN_HEIGHT}`,
       seekTime: 5,
       volume: DEFAULT_VOLUME,
       tooltips: { controls: true, seek: true },
@@ -218,9 +219,15 @@ export default function VideoPanel({
     [],
   );
 
+  const effectiveWidth = active ? Math.max(width, VIDEO_MIN_WIDTH) : width;
+  const activeHeight = Math.round(effectiveWidth * VIDEO_ASPECT_RATIO);
+  const effectiveHeight = active
+    ? Math.max(VIDEO_MIN_HEIGHT, activeHeight)
+    : height;
+
   const cardStyle: React.CSSProperties = {
-    width: `${width}px`,
-    height: `${height}px`,
+    width: `${effectiveWidth}px`,
+    height: `${effectiveHeight}px`,
     maxWidth: "100%",
     transition: "width 0.45s ease, height 0.45s ease",
   };
@@ -228,6 +235,7 @@ export default function VideoPanel({
   if (active) {
     cardStyle.minWidth = `${VIDEO_MIN_WIDTH}px`;
     cardStyle.minHeight = `${VIDEO_MIN_HEIGHT}px`;
+    cardStyle.aspectRatio = `${VIDEO_MIN_WIDTH} / ${VIDEO_MIN_HEIGHT}`;
   }
 
   if (!active) {

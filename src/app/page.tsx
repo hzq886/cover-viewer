@@ -9,7 +9,10 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
-import VideoPanel from "@/components/VideoPanel";
+import VideoPanel, {
+  VIDEO_MIN_HEIGHT,
+  VIDEO_MIN_WIDTH,
+} from "@/components/VideoPanel";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
@@ -354,6 +357,31 @@ export default function Home() {
     };
   }, [viewportWidth]);
 
+  const mediaDimensions = useMemo(() => {
+    if (videoFront && videoSlide) {
+      const width = Math.max(stage.stageW, VIDEO_MIN_WIDTH);
+      const height = Math.max(
+        VIDEO_MIN_HEIGHT,
+        Math.round((width * VIDEO_MIN_HEIGHT) / VIDEO_MIN_WIDTH),
+      );
+      return { width, height };
+    }
+    return { width: stage.stageW, height: stage.containerH };
+  }, [stage.containerH, stage.stageW, videoFront, videoSlide]);
+
+  const mediaStageSizeText = useMemo(() => {
+    if (videoFront && videoSlide) {
+      return `${mediaDimensions.width}px × ${mediaDimensions.height}px`;
+    }
+    return stage.stageSizeText;
+  }, [
+    mediaDimensions.height,
+    mediaDimensions.width,
+    stage.stageSizeText,
+    videoFront,
+    videoSlide,
+  ]);
+
   // 展示在 InfoPanel 中的图片尺寸文案
   const imageSizeText = useMemo(() => {
     if (!activeSlide) return undefined;
@@ -638,7 +666,7 @@ export default function Home() {
                   directorNames={directorNames}
                   releaseDate={releaseDate}
                   keyword={keyword}
-                  stageSizeText={stage.stageSizeText}
+                  stageSizeText={mediaStageSizeText}
                   imageSizeText={imageSizeText}
                   remainingCount={remainingItems.length}
                 />
@@ -647,8 +675,8 @@ export default function Home() {
                   <div
                     className="relative flex items-center justify-center overflow-visible"
                     style={{
-                      width: `${stage.stageW}px`,
-                      height: `${stage.containerH}px`,
+                      width: `${mediaDimensions.width}px`,
+                      height: `${mediaDimensions.height}px`,
                       transition: "width 0.45s ease, height 0.45s ease",
                     }}
                   >
@@ -665,8 +693,8 @@ export default function Home() {
                           posterUrl={
                             basePosterUrl ? proxiedBasePosterUrl : undefined
                           }
-                          width={stage.stageW}
-                          height={stage.containerH}
+                          width={mediaDimensions.width}
+                          height={mediaDimensions.height}
                           active={videoFront}
                           onActivate={() => {
                             setVideoFront(true);
@@ -677,7 +705,7 @@ export default function Home() {
                       </div>
                     )}
                     <div
-                      className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
+                      className={`absolute inset-0 flex justify-center transition-all duration-500 ease-out ${
                         videoSlide ? (videoFront ? "z-30" : "z-50") : "z-50"
                       }`}
                     >
