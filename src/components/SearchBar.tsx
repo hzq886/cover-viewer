@@ -132,12 +132,16 @@ export default function SearchBar({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmed = keyword.trim();
-    if (trimmed) {
+    const trimmedForSubmit = keyword.trimEnd();
+    const normalized = trimmedForSubmit.trim();
+    if (normalized) {
       setRecentKeywords((prev) => {
-        const withoutCurrent = prev.filter((item) => item !== trimmed);
-        return [trimmed, ...withoutCurrent].slice(0, 10);
+        const withoutCurrent = prev.filter((item) => item !== normalized);
+        return [normalized, ...withoutCurrent].slice(0, 10);
       });
+    }
+    if (trimmedForSubmit !== keyword) {
+      setKeyword(trimmedForSubmit);
     }
     setShowRecent(false);
     onSubmit();
