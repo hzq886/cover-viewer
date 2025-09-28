@@ -590,7 +590,7 @@ export default function Home() {
           </nav>
         </header>
 
-        {!compact && (
+        {!compact && !loading && (
           <section className="mt-6 w-full">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/10 px-6 py-7 shadow-[0_40px_120px_-45px_rgba(15,23,42,0.95)] md:px-9 md:py-9">
               <div className="pointer-events-none absolute -top-20 right-6 h-44 w-44 rounded-full bg-violet-500/30 blur-3xl" />
@@ -644,9 +644,7 @@ export default function Home() {
         <main className={`${compact ? "mt-3 md:mt-4" : "mt-12 md:mt-16"}`}>
           {loading && (
             <div className="flex items-center justify-center h-[60svh]">
-              <div className="relative">
-                <div className="h-24 w-24 rounded-full border-4 border-white/20 border-t-violet-400 animate-spin" />
-              </div>
+              <div className="h-24 w-24 rounded-full border border-white/15 bg-white/10 shadow-[0_0_60px_-20px_rgba(148,163,184,0.6)] animate-pulse" />
             </div>
           )}
 

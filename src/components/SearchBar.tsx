@@ -108,18 +108,27 @@ export default function SearchBar({
   }, [recentKeywords]);
 
   useEffect(() => {
-    if (!hasRecent) setShowRecent(false);
-  }, [hasRecent]);
-
-  useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      if (!wrapperRef.current) return;
-      if (wrapperRef.current.contains(event.target as Node)) return;
+      const current = wrapperRef.current;
+      if (!current) return;
+      if (current.contains(event.target as Node)) return;
       setShowRecent(false);
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  useEffect(() => {
+    if (!showKeywordPanel) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowKeywordPanel(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showKeywordPanel]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -135,13 +144,12 @@ export default function SearchBar({
   };
 
   const openRecent = () => {
-    if (hasRecent) setShowRecent(true);
+    setShowRecent(true);
   };
 
-  const containerRounded =
-    showRecent && hasRecent
-      ? "rounded-[32px] rounded-b-none border-b-0"
-      : "rounded-[32px]";
+  const containerRounded = showRecent
+    ? "rounded-[32px] rounded-b-none border-b-0"
+    : "rounded-[32px]";
   const widthClass = compact ? "max-w-2xl" : "max-w-3xl";
   const submitButtonClass = compact
     ? `flex h-10 w-10 items-center justify-center rounded-full text-violet-200/90 transition hover:bg-violet-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent ${
@@ -261,77 +269,87 @@ export default function SearchBar({
           </button>
         </div>
 
-        {showRecent && hasRecent && (
+        {showRecent && (
           <div className="absolute left-0 right-0 top-full z-40 rounded-b-[32px] border border-t border-white/12 bg-black/65 pb-3 pt-2 text-slate-100 backdrop-blur-xl shadow-[0_35px_120px_-45px_rgba(76,29,149,0.75)]">
-            <ul className="max-h-64 overflow-y-auto hide-scrollbar">
-              {recentKeywords.map((item) => (
-                <li
-                  key={item}
-                  className="group flex items-center gap-3 px-5 py-2 text-sm text-slate-100 transition hover:bg-white/10"
-                >
-                  <span className="flex h-6 w-6 items-center justify-center text-violet-200/80">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <title>Open recent search</title>
-                      <path d="M12 6v6l3 3" />
-                      <circle cx="12" cy="12" r="9" />
-                    </svg>
-                  </span>
-                  <button
-                    type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      setKeyword(item);
-                      requestAnimationFrame(() => {
-                        inputRef.current?.focus();
-                        setShowRecent(false);
-                      });
-                    }}
-                    className="flex-1 truncate text-left text-slate-100 hover:text-white cursor-pointer"
-                    title={item}
+            {hasRecent ? (
+              <ul className="max-h-64 overflow-y-auto hide-scrollbar">
+                {recentKeywords.map((item) => (
+                  <li
+                    key={item}
+                    className="group flex items-center gap-3 px-5 py-2 text-sm text-slate-100 transition hover:bg-white/10"
                   >
-                    {item}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t("search.deleteRecent", { value: item })}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      setRecentKeywords((prev) =>
-                        prev.filter((keywordItem) => keywordItem !== item),
-                      );
-                    }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
-                    title={t("search.deleteRecent", { value: item })}
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
+                    <span className="flex h-6 w-6 items-center justify-center text-violet-200/80">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <title>Open recent search</title>
+                        <path d="M12 6v6l3 3" />
+                        <circle cx="12" cy="12" r="9" />
+                      </svg>
+                    </span>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        setKeyword(item);
+                        requestAnimationFrame(() => {
+                          inputRef.current?.focus();
+                          setShowRecent(false);
+                        });
+                      }}
+                      className="flex-1 truncate text-left text-slate-100 hover:text-white cursor-pointer"
+                      title={item}
                     >
-                      <title>Remove recent search</title>
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      {item}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={t("search.deleteRecent", { value: item })}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setRecentKeywords((prev) =>
+                          prev.filter((keywordItem) => keywordItem !== item),
+                        );
+                        requestAnimationFrame(() => {
+                          setShowRecent(true);
+                        });
+                      }}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-slate-200/80 opacity-0 transition hover:bg-white/15 hover:text-white focus-visible:opacity-100 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 group-hover:opacity-100 cursor-pointer"
+                      title={t("search.deleteRecent", { value: item })}
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <title>Remove recent search</title>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="px-5 py-4 text-sm text-slate-300/80">
+                {t("search.noRecent")}
+              </div>
+            )}
           </div>
         )}
       </div>

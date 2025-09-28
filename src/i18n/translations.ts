@@ -22,6 +22,7 @@ type TranslationShape = {
     submitTitle: string;
     submitCompactAria: string;
     deleteRecent: string;
+    noRecent: string;
   };
   logo: {
     homeAria: string;
@@ -91,6 +92,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitTitle: "搜索",
       submitCompactAria: "执行搜索",
       deleteRecent: "删除 '{{value}}'",
+      noRecent: "暂无搜索历史",
     },
     logo: {
       homeAria: "返回首页",
@@ -175,6 +177,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitTitle: "搜尋",
       submitCompactAria: "執行搜尋",
       deleteRecent: "刪除『{{value}}』",
+      noRecent: "尚無搜尋歷史",
     },
     logo: {
       homeAria: "返回首頁",
@@ -259,6 +262,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitTitle: "検索",
       submitCompactAria: "検索を実行",
       deleteRecent: "『{{value}}』を削除",
+      noRecent: "検索履歴はありません",
     },
     logo: {
       homeAria: "トップに戻る",
@@ -345,6 +349,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitTitle: "Search",
       submitCompactAria: "Run search",
       deleteRecent: "Remove '{{value}}'",
+      noRecent: "No recent searches yet",
     },
     logo: {
       homeAria: "Go back to home",
