@@ -3,6 +3,7 @@
 
 import { type FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
 import { type Auth, getAuth } from "firebase/auth";
+import { type Firestore, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,6 +16,7 @@ const firebaseConfig = {
 };
 
 let app: FirebaseApp | undefined;
+let firestore: Firestore | undefined;
 
 export function hasFirebaseConfig() {
   return Boolean(
@@ -40,4 +42,14 @@ export function getFirebaseAuth(): Auth {
     throw new Error("getFirebaseAuth must be called in the browser");
   }
   return getAuth(getFirebaseApp());
+}
+
+export function getFirestoreDb(): Firestore {
+  if (typeof window === "undefined") {
+    throw new Error("getFirestoreDb must be called in the browser");
+  }
+  if (!firestore) {
+    firestore = getFirestore(getFirebaseApp());
+  }
+  return firestore;
 }

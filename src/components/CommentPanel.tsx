@@ -1,26 +1,39 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   MaterialSymbolsLightFavorite,
   MaterialSymbolsLightFavoriteOutline,
 } from "@/components/icons/FavoriteIcon";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  type Timestamp,
+} from "firebase/firestore";
+import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
 
 type Props = {
   size?: number; // pixel size baseline for heart icon
   height?: number; // align panel height with carousel container
+  contentId?: string;
 };
 
 type Comment = {
   id: string;
   text: string;
+  createdAt?: Date | null;
 };
 
-const DEFAULT_COMMENTS: Comment[] = [
-  { id: "sample-1", text: "Aaaaaa" },
-  { id: "sample-2", text: "Bbbbbb" },
-  { id: "sample-3", text: "Cccccc" },
-];
+const DEFAULT_COMMENTS: Comment[] = [];
+const LIKE_STORAGE_KEY_PREFIX = "cover-viewer:like:";
 
 const createComment = (text: string): Comment => ({
   id:
@@ -28,35 +41,202 @@ const createComment = (text: string): Comment => ({
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   text,
+  createdAt: new Date(),
 });
 
-export default function CommentPanel({ size = 96, height }: Props) {
+const getLikeStorageKey = (contentId: string) =>
+  `${LIKE_STORAGE_KEY_PREFIX}${contentId}`;
+
+export default function CommentPanel({
+  size = 96,
+  height,
+  contentId,
+}: Props) {
+  const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
   const [liked, setLiked] = useState(false);
-  const [count, setCount] = useState(0);
+  const [likeCount, setLikeCount] = useState(0);
   const [popKey, setPopKey] = useState(0);
   const [comments, setComments] = useState<Comment[]>(DEFAULT_COMMENTS);
   const [pending, setPending] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleClick = () => {
-    setLiked((v) => !v);
-    setCount((c) => c + 1);
-    setPopKey((k) => k + 1); // retrigger CSS animation
-  };
+  const timeFormatter = useMemo(
+    () =>
+      typeof Intl !== "undefined"
+        ? new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          })
+        : null,
+    [],
+  );
 
-  // Keyboard accessibility: space/enter to toggle
+  useEffect(() => {
+    setComments(DEFAULT_COMMENTS);
+    setLikeCount(0);
+    setPending("");
+    setPopKey(0);
+  }, [contentId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!contentId) {
+      setLiked(false);
+      return;
+    }
+    const stored = window.localStorage.getItem(getLikeStorageKey(contentId));
+    setLiked(stored === "1");
+  }, [contentId]);
+
+  useEffect(() => {
+    if (!firebaseReady || !contentId) {
+      return;
+    }
+
+    const db = getFirestoreDb();
+    const baseDocRef = doc(db, "avs", contentId);
+    const commentsQuery = query(
+      collection(baseDocRef, "comments"),
+      orderBy("createdAt", "asc"),
+    );
+
+    const docUnsub = onSnapshot(
+      baseDocRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          setLikeCount(0);
+          return;
+        }
+        const data = snapshot.data();
+        const value =
+          data && typeof data.likeCount === "number" ? data.likeCount : 0;
+        setLikeCount(value);
+      },
+      (error) => {
+        console.error("Failed to load like count", error);
+      },
+    );
+
+    const commentsUnsub = onSnapshot(
+      commentsQuery,
+      (snapshot) => {
+        const next: Comment[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data() as {
+            content?: string;
+            createdAt?: Timestamp | Date | null;
+          } | null;
+          const rawCreatedAt = data?.createdAt;
+          let created: Date | null = null;
+          if (rawCreatedAt instanceof Date) {
+            created = rawCreatedAt;
+          } else if (rawCreatedAt && typeof rawCreatedAt.toDate === "function") {
+            try {
+              created = rawCreatedAt.toDate();
+            } catch (err) {
+              console.warn("Failed to parse comment timestamp", err);
+            }
+          }
+          return {
+            id: docSnap.id,
+            text: data?.content ?? "",
+            createdAt: created,
+          };
+        });
+        setComments(next);
+      },
+      (error) => {
+        console.error("Failed to load comments", error);
+      },
+    );
+
+    return () => {
+      docUnsub();
+      commentsUnsub();
+    };
+  }, [firebaseReady, contentId]);
+
+  const handleToggleLike = useCallback(async () => {
+    const nextLiked = !liked;
+    const delta = nextLiked ? 1 : -1;
+
+    setLiked(nextLiked);
+    setPopKey((k) => k + 1);
+    setLikeCount((prev) => Math.max(0, prev + delta));
+
+    if (typeof window !== "undefined" && contentId) {
+      const key = getLikeStorageKey(contentId);
+      if (nextLiked) {
+        window.localStorage.setItem(key, "1");
+      } else {
+        window.localStorage.removeItem(key);
+      }
+    }
+
+    if (!firebaseReady || !contentId) {
+      return;
+    }
+
+    try {
+      const db = getFirestoreDb();
+      const docRef = doc(db, "avs", contentId);
+      await setDoc(
+        docRef,
+        { likeCount: increment(delta) },
+        { merge: true },
+      );
+    } catch (error) {
+      console.error("Failed to update like count", error);
+      setLikeCount((prev) => Math.max(0, prev - delta));
+      setLiked(!nextLiked);
+      if (typeof window !== "undefined" && contentId) {
+        const key = getLikeStorageKey(contentId);
+        if (nextLiked) {
+          window.localStorage.removeItem(key);
+        } else {
+          window.localStorage.setItem(key, "1");
+        }
+      }
+    }
+  }, [liked, firebaseReady, contentId]);
+
   const handleKeyDown: React.KeyboardEventHandler<HTMLButtonElement> = (e) => {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      handleClick();
+      void handleToggleLike();
     }
   };
 
-  const handleCommentSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
+  const handleCommentSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    event,
+  ) => {
+    event.preventDefault();
     const value = pending.trim();
     if (!value) return;
-    setComments((prev) => [...prev, createComment(value)]);
-    setPending("");
+
+    if (!firebaseReady || !contentId) {
+      setComments((prev) => [...prev, createComment(value)]);
+      setPending("");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const db = getFirestoreDb();
+      const docRef = doc(db, "avs", contentId);
+      const snapshot = await getDoc(docRef);
+      if (!snapshot.exists()) {
+        await setDoc(docRef, { likeCount: 0 });
+      }
+      await addDoc(collection(docRef, "comments"), {
+        content: value,
+        createdAt: serverTimestamp(),
+      });
+      setPending("");
+    } catch (error) {
+      console.error("Failed to submit comment", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const placeholder = useMemo(() => {
@@ -80,7 +260,7 @@ export default function CommentPanel({ size = 96, height }: Props) {
           type="button"
           aria-label={liked ? "取消喜欢" : "点个喜欢"}
           aria-pressed={liked}
-          onClick={handleClick}
+          onClick={() => void handleToggleLike()}
           onKeyDown={handleKeyDown}
           className="relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out hover:scale-105 focus-visible:ring-2 focus-visible:ring-rose-300/60"
           style={{ fontSize: `${size}px` }}
@@ -115,7 +295,7 @@ export default function CommentPanel({ size = 96, height }: Props) {
           className="ml-6 text-right text-3xl font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]"
           aria-live="polite"
         >
-          {count}
+          {likeCount}
         </div>
       </div>
 
@@ -134,7 +314,12 @@ export default function CommentPanel({ size = 96, height }: Props) {
                 key={comment.id}
                 className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm text-slate-50/90 shadow-[0_6px_14px_-10px_rgba(0,0,0,0.8)]"
               >
-                {comment.text}
+                <div>{comment.text}</div>
+                {comment.createdAt && timeFormatter ? (
+                  <div className="mt-1 text-[11px] text-slate-200/50">
+                    {timeFormatter.format(comment.createdAt)}
+                  </div>
+                ) : null}
               </div>
             ))
           )}
@@ -160,9 +345,9 @@ export default function CommentPanel({ size = 96, height }: Props) {
           <button
             type="submit"
             className="h-10 min-w-[68px] rounded-xl bg-rose-500 px-4 text-sm font-semibold text-white transition hover:bg-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200/70 disabled:cursor-not-allowed disabled:bg-rose-500/50"
-            disabled={!pending.trim()}
+            disabled={submitting || !pending.trim()}
           >
-            发送
+            {submitting ? "发送中" : "发送"}
           </button>
         </div>
       </form>
