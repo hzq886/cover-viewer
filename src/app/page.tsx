@@ -775,6 +775,7 @@ export default function Home() {
                           ),
                         ),
                       )}
+                      contentId={contentId}
                     />
                   </div>
                 </div>
