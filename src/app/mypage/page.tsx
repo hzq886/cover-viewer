@@ -2,11 +2,14 @@
 
 import {
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   limit,
   orderBy,
   type QueryDocumentSnapshot,
   query,
+  runTransaction,
   startAfter,
 } from "firebase/firestore";
 import Image from "next/image";
@@ -21,6 +24,7 @@ const PAGE_SIZE = 10;
 type Poster = {
   id: string;
   imagePath: string;
+  affiliateUrl: string;
 };
 
 type PageData = {
@@ -37,6 +41,7 @@ export default function MyPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const uid = user?.uid;
@@ -94,6 +99,7 @@ export default function MyPage() {
           docs.map(async (docSnap) => {
             const data = docSnap.data() as {
               imagePath?: string;
+              affiliateUrl?: string;
               likedAt?: { toDate?: () => Date } | Date | null;
             } | null;
 
@@ -113,6 +119,7 @@ export default function MyPage() {
             return {
               id: docSnap.id,
               imagePath,
+              affiliateUrl: data?.affiliateUrl || "",
             } satisfies Poster;
           }),
         );
@@ -179,6 +186,81 @@ export default function MyPage() {
     isAuthenticated &&
     visiblePosters.length === 0 &&
     !(currentData?.hasMore ?? false);
+
+  const updateLikeDocument = useCallback(
+    async (contentId: string, delta: number) => {
+      if (!firebaseReady) return;
+      const db = getFirestoreDb();
+      const baseDocRef = doc(db, "avs", contentId);
+
+      await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(baseDocRef);
+        if (!snapshot.exists()) {
+          return;
+        }
+        const data = snapshot.data();
+        const current =
+          data && typeof data.likeCount === "number" ? data.likeCount : 0;
+        const next = Math.max(0, current + delta);
+        transaction.update(baseDocRef, { likeCount: next });
+      });
+    },
+    [firebaseReady],
+  );
+
+  const handleDeletePoster = useCallback(
+    async (poster: Poster) => {
+      if (!firebaseReady || !user) {
+        console.warn("Cannot delete poster without Firebase or user");
+        return;
+      }
+
+      setDeletingIds((prev) => ({ ...prev, [poster.id]: true }));
+
+      try {
+        await updateLikeDocument(poster.id, -1);
+        const db = getFirestoreDb();
+        const likeRef = doc(db, "users", user.uid, "likes", poster.id);
+        await deleteDoc(likeRef);
+
+        let updatedPages: PageData[] = pagesRef.current;
+        setPages((prev) => {
+          const next = prev.map((page) => {
+            const filtered = page.items.filter((item) => item.id !== poster.id);
+            if (filtered.length === page.items.length) {
+              return page;
+            }
+            return { ...page, items: filtered } satisfies PageData;
+          });
+          pagesRef.current = next;
+          updatedPages = next;
+          return next;
+        });
+
+        if (!updatedPages[currentPage]?.items.length && currentPage > 0) {
+          let target = currentPage;
+          while (target > 0 && !updatedPages[target]?.items.length) {
+            target -= 1;
+          }
+          if (target !== currentPage) {
+            setCurrentPage(target);
+          }
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error("Failed to delete poster", err);
+        setError((err as Error).message ?? "删除海报失败");
+      } finally {
+        setDeletingIds((prev) => {
+          const next = { ...prev };
+          delete next[poster.id];
+          return next;
+        });
+      }
+    },
+    [currentPage, firebaseReady, updateLikeDocument, user],
+  );
 
   return (
     <div className="relative h-[100svh] overflow-x-hidden overflow-y-auto bg-[#07030f] text-slate-100">
@@ -265,6 +347,10 @@ export default function MyPage() {
                         <div className="relative flex h-[232px] w-[188px] flex-col items-center justify-center rounded-[30px] border border-white/15 bg-gradient-to-br from-slate-900/80 to-slate-900/40 p-4 shadow-[inset_10px_18px_40px_rgba(255,255,255,0.08)]">
                           <button
                             type="button"
+                            onClick={() => {
+                              void handleDeletePoster(poster);
+                            }}
+                            disabled={Boolean(deletingIds[poster.id])}
                             className="absolute right-3 top-3 z-20 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/65 text-sm font-semibold text-white/90 shadow-[0_6px_16px_rgba(0,0,0,0.45)] backdrop-blur hover:border-fuchsia-300/50 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-black/30 disabled:text-white/50"
                             aria-label="删除海报"
                           >
@@ -289,12 +375,20 @@ export default function MyPage() {
                         </div>
                       </div>
                       <div className="mt-4 flex w-full max-w-[188px] items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          className="flex-1 cursor-pointer rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
-                        >
-                          购买
-                        </button>
+                        {poster.affiliateUrl ? (
+                          <a
+                            href={poster.affiliateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
+                          >
+                            购买
+                          </a>
+                        ) : (
+                          <span className="flex-1 cursor-not-allowed rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/40">
+                            购买
+                          </span>
+                        )}
                         <button
                           type="button"
                           className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50"

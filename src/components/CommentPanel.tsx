@@ -30,8 +30,8 @@ type Props = {
   size?: number; // pixel size baseline for heart icon
   height?: number; // align panel height with carousel container
   contentId?: string;
-  posterImageUrl?: string;
   posterProxyUrl?: string;
+  affiliateUrl?: string;
 };
 
 type Comment = {
@@ -44,12 +44,83 @@ const DEFAULT_COMMENTS: Comment[] = [];
 const LIKE_STORAGE_KEY_PREFIX = "cover-viewer:like:";
 void LIKE_STORAGE_KEY_PREFIX;
 
+async function convertBlobToWebp(sourceBlob: Blob): Promise<Blob> {
+  if (sourceBlob.type === "image/webp") {
+    return sourceBlob;
+  }
+
+  const quality = 0.5;
+
+  const renderToCanvas = async (
+    image: ImageBitmap | HTMLImageElement,
+  ): Promise<Blob> => {
+    if (typeof document === "undefined") {
+      throw new Error("Cannot convert image to WebP without DOM access");
+    }
+
+    const width = image.width;
+    const height = image.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to acquire canvas context for WebP conversion");
+    }
+    ctx.drawImage(image, 0, 0, width, height);
+
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(new Error("Canvas failed to produce WebP blob"));
+          }
+        },
+        "image/webp",
+        quality,
+      );
+    });
+  };
+
+  if (typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(sourceBlob);
+    try {
+      const webp = await renderToCanvas(bitmap);
+      bitmap.close();
+      return webp;
+    } catch (error) {
+      bitmap.close();
+      throw error;
+    }
+  }
+
+  if (typeof document === "undefined") {
+    throw new Error("Cannot convert image to WebP without DOM access");
+  }
+
+  const objectUrl = URL.createObjectURL(sourceBlob);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Failed to load image for WebP conversion"));
+      img.src = objectUrl;
+    });
+    const webp = await renderToCanvas(image);
+    return webp;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export default function CommentPanel({
   size = 96,
   height,
   contentId,
-  posterImageUrl,
   posterProxyUrl,
+  affiliateUrl
 }: Props) {
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
   const router = useRouter();
@@ -201,7 +272,7 @@ export default function CommentPanel({
     if (!firebaseReady) {
       throw new Error("Firebase is not configured");
     }
-    const storagePath = `posters/${contentId}.jpg`;
+    const storagePath = `posters/${contentId}.webp`;
     const storageRef = getStorageRef(storagePath);
 
     try {
@@ -214,7 +285,7 @@ export default function CommentPanel({
       }
     }
 
-    const sourceUrl = posterProxyUrl || posterImageUrl;
+    const sourceUrl = posterProxyUrl;
     if (!sourceUrl) {
       throw new Error("Poster image URL is missing");
     }
@@ -223,10 +294,16 @@ export default function CommentPanel({
       throw new Error(`Failed to fetch poster image: ${response.status}`);
     }
     const blob = await response.blob();
-    const contentType = blob.type || "image/webp";
-    await uploadBytes(storageRef, blob, { contentType });
+    let uploadBlob = blob;
+    try {
+      uploadBlob = await convertBlobToWebp(blob);
+    } catch (error) {
+      console.warn("Failed to convert poster to WebP; uploading original", error);
+    }
+    const contentType = uploadBlob.type || "image/webp";
+    await uploadBytes(storageRef, uploadBlob, { contentType });
     return storagePath;
-  }, [contentId, firebaseReady, posterProxyUrl, posterImageUrl]);
+  }, [contentId, firebaseReady, posterProxyUrl]);
 
   const updateLikeDocument = useCallback(
     async (delta: number) => {
@@ -284,6 +361,7 @@ export default function CommentPanel({
         await updateLikeDocument(1);
         await setDoc(userLikeRef, {
           imagePath,
+          affiliateUrl,
           likedAt: serverTimestamp(),
         });
       } else {
@@ -308,8 +386,6 @@ export default function CommentPanel({
     firebaseReady,
     isAuthenticated,
     liked,
-    posterImageUrl,
-    posterProxyUrl,
     router,
     updateLikeDocument,
     user,
@@ -379,7 +455,7 @@ export default function CommentPanel({
       className="flex h-full min-h-[320px] w-full max-w-[360px] flex-col gap-4 rounded-3xl border border-white/12 bg-black/30 p-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md"
       style={panelHeight ? { height: `${panelHeight}px` } : undefined}
     >
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center gap-3 px-2">
         <button
           type="button"
           aria-label={liked ? "取消喜欢" : "点个喜欢"}
@@ -390,7 +466,7 @@ export default function CommentPanel({
             }
           }}
           onKeyDown={handleKeyDown}
-          className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 ${likeLoading ? "opacity-60" : "hover:scale-105"}`}
+          className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${likeLoading ? "cursor-wait" : "hover:scale-105"}`}
           style={{ fontSize: `${size}px` }}
           disabled={likeLoading || authLoading}
         >
@@ -416,13 +492,12 @@ export default function CommentPanel({
             )}
           </span>
         </button>
-
-        <div
-          className="ml-6 text-right text-3xl font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]"
+        <span
+          className="text-2xl font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]"
           aria-live="polite"
         >
           {likeCount}
-        </div>
+        </span>
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden rounded-2xl border border-white/5 bg-black/30 p-4">

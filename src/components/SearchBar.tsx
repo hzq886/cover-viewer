@@ -22,6 +22,25 @@ type Props = {
 
 const storageKey = "recentSearchKeywords";
 
+const loadRecentKeywords = (): string[] => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    if (!stored) {
+      return [];
+    }
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((item): item is string => typeof item === "string");
+  } catch {
+    return [];
+  }
+};
+
 export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -73,7 +92,9 @@ export default function SearchBar({
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
-  const [recentKeywords, setRecentKeywords] = useState<string[]>([]);
+  const [recentKeywords, setRecentKeywords] = useState<string[]>(() =>
+    loadRecentKeywords(),
+  );
   const [showRecent, setShowRecent] = useState(false);
   const [showKeywordPanel, setShowKeywordPanel] = useState(false);
   const hasRecent = recentKeywords.length > 0;
@@ -86,26 +107,36 @@ export default function SearchBar({
     [compact, t],
   );
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (!stored) return;
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        setRecentKeywords(
-          parsed.filter((item): item is string => typeof item === "string"),
-        );
-      }
-    } catch {
-      // ignore malformed storage content
-    }
-  }, []);
+  const hasHydratedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true;
+      return;
+    }
     window.localStorage.setItem(storageKey, JSON.stringify(recentKeywords));
   }, [recentKeywords]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromStorage = () => {
+      const loaded = loadRecentKeywords();
+      setRecentKeywords((prev) => {
+        if (prev.length === loaded.length && prev.every((v, i) => v === loaded[i])) {
+          return prev;
+        }
+        return loaded;
+      });
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== storageKey) return;
+      syncFromStorage();
+    };
+    syncFromStorage();
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {

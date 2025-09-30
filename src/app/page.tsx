@@ -784,8 +784,8 @@ export default function Home() {
                         ),
                       )}
                       contentId={contentId}
-                      posterImageUrl={posterSmallUrl || undefined}
                       posterProxyUrl={proxiedPosterSmallUrl || undefined}
+                      affiliateUrl={affiliate || undefined}
                     />
                   </div>
                 </div>
