@@ -30,8 +30,8 @@ type Props = {
   size?: number; // pixel size baseline for heart icon
   height?: number; // align panel height with carousel container
   contentId?: string;
-  posterImageUrl?: string;
   posterProxyUrl?: string;
+  affiliateUrl?: string;
 };
 
 type Comment = {
@@ -48,8 +48,8 @@ export default function CommentPanel({
   size = 96,
   height,
   contentId,
-  posterImageUrl,
   posterProxyUrl,
+  affiliateUrl
 }: Props) {
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
   const router = useRouter();
@@ -214,7 +214,7 @@ export default function CommentPanel({
       }
     }
 
-    const sourceUrl = posterProxyUrl || posterImageUrl;
+    const sourceUrl = posterProxyUrl;
     if (!sourceUrl) {
       throw new Error("Poster image URL is missing");
     }
@@ -226,7 +226,7 @@ export default function CommentPanel({
     const contentType = blob.type || "image/webp";
     await uploadBytes(storageRef, blob, { contentType });
     return storagePath;
-  }, [contentId, firebaseReady, posterProxyUrl, posterImageUrl]);
+  }, [contentId, firebaseReady, posterProxyUrl]);
 
   const updateLikeDocument = useCallback(
     async (delta: number) => {
@@ -284,6 +284,7 @@ export default function CommentPanel({
         await updateLikeDocument(1);
         await setDoc(userLikeRef, {
           imagePath,
+          affiliateUrl,
           likedAt: serverTimestamp(),
         });
       } else {
@@ -308,8 +309,6 @@ export default function CommentPanel({
     firebaseReady,
     isAuthenticated,
     liked,
-    posterImageUrl,
-    posterProxyUrl,
     router,
     updateLikeDocument,
     user,
@@ -379,7 +378,7 @@ export default function CommentPanel({
       className="flex h-full min-h-[320px] w-full max-w-[360px] flex-col gap-4 rounded-3xl border border-white/12 bg-black/30 p-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md"
       style={panelHeight ? { height: `${panelHeight}px` } : undefined}
     >
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center gap-3 px-2">
         <button
           type="button"
           aria-label={liked ? "取消喜欢" : "点个喜欢"}
@@ -390,7 +389,7 @@ export default function CommentPanel({
             }
           }}
           onKeyDown={handleKeyDown}
-          className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 ${likeLoading ? "opacity-60" : "hover:scale-105"}`}
+          className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${likeLoading ? "cursor-wait" : "hover:scale-105"}`}
           style={{ fontSize: `${size}px` }}
           disabled={likeLoading || authLoading}
         >
@@ -416,13 +415,12 @@ export default function CommentPanel({
             )}
           </span>
         </button>
-
-        <div
-          className="ml-6 text-right text-3xl font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]"
+        <span
+          className="text-2xl font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]"
           aria-live="polite"
         >
           {likeCount}
-        </div>
+        </span>
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden rounded-2xl border border-white/5 bg-black/30 p-4">
