@@ -44,6 +44,77 @@ const DEFAULT_COMMENTS: Comment[] = [];
 const LIKE_STORAGE_KEY_PREFIX = "cover-viewer:like:";
 void LIKE_STORAGE_KEY_PREFIX;
 
+async function convertBlobToWebp(sourceBlob: Blob): Promise<Blob> {
+  if (sourceBlob.type === "image/webp") {
+    return sourceBlob;
+  }
+
+  const quality = 0.5;
+
+  const renderToCanvas = async (
+    image: ImageBitmap | HTMLImageElement,
+  ): Promise<Blob> => {
+    if (typeof document === "undefined") {
+      throw new Error("Cannot convert image to WebP without DOM access");
+    }
+
+    const width = image.width;
+    const height = image.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to acquire canvas context for WebP conversion");
+    }
+    ctx.drawImage(image, 0, 0, width, height);
+
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(new Error("Canvas failed to produce WebP blob"));
+          }
+        },
+        "image/webp",
+        quality,
+      );
+    });
+  };
+
+  if (typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(sourceBlob);
+    try {
+      const webp = await renderToCanvas(bitmap);
+      bitmap.close();
+      return webp;
+    } catch (error) {
+      bitmap.close();
+      throw error;
+    }
+  }
+
+  if (typeof document === "undefined") {
+    throw new Error("Cannot convert image to WebP without DOM access");
+  }
+
+  const objectUrl = URL.createObjectURL(sourceBlob);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Failed to load image for WebP conversion"));
+      img.src = objectUrl;
+    });
+    const webp = await renderToCanvas(image);
+    return webp;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export default function CommentPanel({
   size = 96,
   height,
@@ -201,7 +272,7 @@ export default function CommentPanel({
     if (!firebaseReady) {
       throw new Error("Firebase is not configured");
     }
-    const storagePath = `posters/${contentId}.jpg`;
+    const storagePath = `posters/${contentId}.webp`;
     const storageRef = getStorageRef(storagePath);
 
     try {
@@ -223,8 +294,14 @@ export default function CommentPanel({
       throw new Error(`Failed to fetch poster image: ${response.status}`);
     }
     const blob = await response.blob();
-    const contentType = blob.type || "image/webp";
-    await uploadBytes(storageRef, blob, { contentType });
+    let uploadBlob = blob;
+    try {
+      uploadBlob = await convertBlobToWebp(blob);
+    } catch (error) {
+      console.warn("Failed to convert poster to WebP; uploading original", error);
+    }
+    const contentType = uploadBlob.type || "image/webp";
+    await uploadBytes(storageRef, uploadBlob, { contentType });
     return storagePath;
   }, [contentId, firebaseReady, posterProxyUrl]);
 
