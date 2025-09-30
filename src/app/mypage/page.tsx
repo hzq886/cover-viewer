@@ -21,6 +21,7 @@ const PAGE_SIZE = 10;
 type Poster = {
   id: string;
   imagePath: string;
+  affiliateUrl: string;
 };
 
 type PageData = {
@@ -94,6 +95,7 @@ export default function MyPage() {
           docs.map(async (docSnap) => {
             const data = docSnap.data() as {
               imagePath?: string;
+              affiliateUrl?: string;
               likedAt?: { toDate?: () => Date } | Date | null;
             } | null;
 
@@ -113,6 +115,7 @@ export default function MyPage() {
             return {
               id: docSnap.id,
               imagePath,
+              affiliateUrl: data?.affiliateUrl || "",
             } satisfies Poster;
           }),
         );
@@ -289,12 +292,20 @@ export default function MyPage() {
                         </div>
                       </div>
                       <div className="mt-4 flex w-full max-w-[188px] items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          className="flex-1 cursor-pointer rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
-                        >
-                          购买
-                        </button>
+                        {poster.affiliateUrl ? (
+                          <a
+                            href={poster.affiliateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
+                          >
+                            购买
+                          </a>
+                        ) : (
+                          <span className="flex-1 cursor-not-allowed rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/40">
+                            购买
+                          </span>
+                        )}
                         <button
                           type="button"
                           className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50"
