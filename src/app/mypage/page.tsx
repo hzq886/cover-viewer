@@ -1,114 +1,184 @@
 "use client";
 
+import {
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  type QueryDocumentSnapshot,
+  query,
+  startAfter,
+} from "firebase/firestore";
+import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
+import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
+import { getDownloadURL, getStorageRef } from "@/lib/storage";
+
+const PAGE_SIZE = 10;
 
 type Poster = {
   id: string;
-  url: string;
+  imagePath: string;
 };
 
-const POSTER_STORAGE_KEY = "cover-viewer:poster-album";
-const PAGE_SIZE = 10;
-const TEST_POSTER_URL =
-  "https://pics.dmm.co.jp/digital/video/mizd00320/mizd00320ps.jpg";
-
-const samplePosters: Poster[] = Array.from({ length: 12 }, (_, index) => ({
-  id: `preview-${index + 1}`,
-  url: `${TEST_POSTER_URL}?variant=${index + 1}`,
-}));
-
-const normalizePoster = (value: unknown, index: number): Poster | null => {
-  if (!value || typeof value !== "object") return null;
-  const maybePoster = value as Partial<Poster>;
-  if (!maybePoster.url || typeof maybePoster.url !== "string") return null;
-  const url = maybePoster.url.trim();
-  if (!url) return null;
-  const id =
-    typeof maybePoster.id === "string" && maybePoster.id.trim().length > 0
-      ? maybePoster.id
-      : `poster-${index + 1}`;
-  return { id, url };
+type PageData = {
+  items: Poster[];
+  cursor: QueryDocumentSnapshot | null;
+  hasMore: boolean;
 };
 
 export default function MyPage() {
-  const { user, isAuthenticated, loading } = useAuth();
-  const [posters, setPosters] = useState<Poster[]>([]);
-  const [ready, setReady] = useState(false);
+  const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const [pages, setPages] = useState<PageData[]>([]);
+  const pagesRef = useRef<PageData[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setPosters([]);
-      if (!loading) {
-        setReady(true);
-      }
+    const uid = user?.uid;
+    if (!uid) {
+      setPages([]);
+      pagesRef.current = [];
+      setCurrentPage(0);
+      setError(null);
       return;
     }
+    setPages([]);
+    pagesRef.current = [];
+    setCurrentPage(0);
+    setError(null);
+  }, [user?.uid]);
 
-    if (typeof window === "undefined") return;
-
-    try {
-      const raw = window.localStorage.getItem(POSTER_STORAGE_KEY);
-      if (!raw) {
-        setPosters([]);
-        setReady(true);
-        return;
+  const fetchPage = useCallback(
+    async (pageIndex: number) => {
+      if (!firebaseReady || !user) return;
+      if (pageIndex > 0) {
+        const prev = pagesRef.current[pageIndex - 1];
+        if (!prev || (!prev.cursor && prev.items.length < PAGE_SIZE)) {
+          // Previous page not loaded or already exhausted.
+          setPages((prevPages) => {
+            const next = [...prevPages];
+            next[pageIndex] = { items: [], cursor: null, hasMore: false };
+            pagesRef.current = next;
+            return next;
+          });
+          setCurrentPage(pageIndex);
+          return;
+        }
       }
 
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) {
-        setPosters([]);
-        setReady(true);
-        return;
+      setLoading(true);
+      setError(null);
+      try {
+        const db = getFirestoreDb();
+        const likesCol = collection(db, "users", user.uid, "likes");
+        const baseOrder = orderBy("likedAt", "desc");
+        const previousCursor =
+          pageIndex > 0 ? pagesRef.current[pageIndex - 1]?.cursor : null;
+        const likesQuery = previousCursor
+          ? query(
+              likesCol,
+              baseOrder,
+              startAfter(previousCursor),
+              limit(PAGE_SIZE),
+            )
+          : query(likesCol, baseOrder, limit(PAGE_SIZE));
+
+        const snapshot = await getDocs(likesQuery);
+        const docs = snapshot.docs;
+        const items: Poster[] = await Promise.all(
+          docs.map(async (docSnap) => {
+            const data = docSnap.data() as {
+              imagePath?: string;
+              likedAt?: { toDate?: () => Date } | Date | null;
+            } | null;
+
+            let imagePath =
+              typeof data?.imagePath === "string" ? data.imagePath : "";
+            if (imagePath) {
+              try {
+                imagePath = await getDownloadURL(getStorageRef(imagePath));
+              } catch (err) {
+                console.warn(
+                  `Failed to get download URL for ${imagePath}`,
+                  err,
+                );
+              }
+            }
+
+            return {
+              id: docSnap.id,
+              imagePath,
+            } satisfies Poster;
+          }),
+        );
+
+        const lastDoc = docs.length > 0 ? docs[docs.length - 1] : null;
+        const pageData: PageData = {
+          items,
+          cursor: lastDoc,
+          hasMore: docs.length === PAGE_SIZE,
+        };
+
+        setPages((prevPages) => {
+          const next = [...prevPages];
+          next[pageIndex] = pageData;
+          pagesRef.current = next;
+          return next;
+        });
+        setCurrentPage(pageIndex);
+      } catch (err) {
+        console.error("Failed to load liked posters", err);
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-
-      const normalized = parsed
-        .map((item, index) => normalizePoster(item, index))
-        .filter((item): item is Poster => !!item);
-
-      setPosters(normalized);
-    } catch (error) {
-      console.error("Failed to load posters", error);
-      setPosters([]);
-    } finally {
-      setReady(true);
-    }
-  }, [isAuthenticated, loading]);
-
-  useEffect(() => {
-    if (!ready || !isAuthenticated) return;
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(POSTER_STORAGE_KEY, JSON.stringify(posters));
-  }, [isAuthenticated, posters, ready]);
-
-  const showContent = ready && !loading && isAuthenticated;
-  const usingSample = posters.length === 0;
-  const displayPosters = usingSample ? samplePosters : posters;
-  const totalPages = Math.max(1, Math.ceil(displayPosters.length / PAGE_SIZE));
-  const currentSliceStart = currentPage * PAGE_SIZE;
-  const visiblePosters = displayPosters.slice(
-    currentSliceStart,
-    currentSliceStart + PAGE_SIZE,
+    },
+    [firebaseReady, user],
   );
 
   useEffect(() => {
-    setCurrentPage((prev) => {
-      const maxPageIndex = Math.max(0, totalPages - 1);
-      return Math.min(prev, maxPageIndex);
-    });
-  }, [totalPages]);
+    if (!firebaseReady || !isAuthenticated || authLoading) return;
+    if (pagesRef.current[0]?.items) return;
+    void fetchPage(0);
+  }, [firebaseReady, isAuthenticated, authLoading, fetchPage]);
 
-  const handleRemovePoster = useCallback((posterId: string) => {
-    if (posters.length === 0) return;
-    setPosters((prev) => prev.filter((poster) => poster.id !== posterId));
-  }, [posters.length]);
+  const handleNextPage = useCallback(() => {
+    const current = pagesRef.current[currentPage];
+    if (!current?.hasMore) return;
+    const target = currentPage + 1;
+    if (pagesRef.current[target]?.items) {
+      setCurrentPage(target);
+    } else {
+      void fetchPage(target);
+    }
+  }, [currentPage, fetchPage]);
 
-  const handlePosterAction = useCallback((url: string) => {
-    if (typeof window === "undefined") return;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const handlePrevPage = useCallback(() => {
+    setCurrentPage((prev) => Math.max(0, prev - 1));
   }, []);
+
+  const totalLoadedPages = pages.length;
+  const currentData = pages[currentPage];
+  const visiblePosters = currentData?.items ?? [];
+  const hasNext = currentData?.hasMore ?? false;
+  const hasPrev = currentPage > 0;
+  const totalKnownPages = Math.max(
+    1,
+    totalLoadedPages +
+      (pagesRef.current[totalLoadedPages - 1]?.hasMore ? 1 : 0),
+  );
+
+  const showLoginPrompt = !loading && !authLoading && !isAuthenticated;
+  const showEmpty =
+    !loading &&
+    isAuthenticated &&
+    visiblePosters.length === 0 &&
+    !(currentData?.hasMore ?? false);
 
   return (
     <div className="relative h-[100svh] overflow-x-hidden overflow-y-auto bg-[#07030f] text-slate-100">
@@ -131,7 +201,7 @@ export default function MyPage() {
                 Posters
               </div>
               <div className="text-xl font-semibold text-white">
-                {displayPosters.length.toString().padStart(2, "0")}
+                {visiblePosters.length.toString().padStart(2, "0")}
               </div>
             </div>
           </header>
@@ -142,9 +212,17 @@ export default function MyPage() {
             </div>
           )}
 
-          {!loading && !isAuthenticated && (
+          {error && (
+            <div className="mt-10 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+              {error}
+            </div>
+          )}
+
+          {showLoginPrompt && (
             <section className="mt-20 flex flex-col items-center gap-6 text-center">
-              <h2 className="text-2xl font-semibold text-white">需要登录以查看私人藏册</h2>
+              <h2 className="text-2xl font-semibold text-white">
+                需要登录以查看私人藏册
+              </h2>
               <p className="max-w-md text-sm text-slate-200/70">
                 登录后，我们会为你的专属海报建立一整册收藏夹。每张海报会记录保养痕迹，随时能翻阅与管理。
               </p>
@@ -157,20 +235,21 @@ export default function MyPage() {
             </section>
           )}
 
-          {showContent && (
+          {showEmpty && (
+            <section className="mt-20 flex flex-col items-center gap-4 text-center text-slate-200/70">
+              <h2 className="text-xl font-semibold text-white">还没有收藏</h2>
+              <p className="max-w-md text-sm">
+                回到首页点个喜欢，海报就会自动收藏到这里。
+              </p>
+            </section>
+          )}
+
+          {!showLoginPrompt && !showEmpty && visiblePosters.length > 0 && (
             <section className="mt-14">
               <div className="rounded-[32px] border border-white/10 bg-slate-950/40 p-8 shadow-[0_40px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
                 <div className="flex flex-col gap-4 pb-8 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">
-                      {usingSample ? "示例册页" : "我的收藏"}
-                    </h2>
-                    <p className="text-sm text-slate-200/70">
-                      一页陈列 10 张海报，排成双行，可通过翻页切换更多藏品。
-                    </p>
-                  </div>
                   <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs uppercase tracking-[0.28em] text-white/70">
-                    第 {currentPage + 1} / {totalPages} 页
+                    第 {currentPage + 1} / {totalKnownPages} 页
                   </div>
                 </div>
 
@@ -186,34 +265,38 @@ export default function MyPage() {
                         <div className="relative flex h-[232px] w-[188px] flex-col items-center justify-center rounded-[30px] border border-white/15 bg-gradient-to-br from-slate-900/80 to-slate-900/40 p-4 shadow-[inset_10px_18px_40px_rgba(255,255,255,0.08)]">
                           <button
                             type="button"
-                            onClick={() => handleRemovePoster(poster.id)}
-                            disabled={posters.length === 0}
                             className="absolute right-3 top-3 z-20 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/65 text-sm font-semibold text-white/90 shadow-[0_6px_16px_rgba(0,0,0,0.45)] backdrop-blur hover:border-fuchsia-300/50 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-black/30 disabled:text-white/50"
                             aria-label="删除海报"
                           >
                             ×
                           </button>
                           <div className="relative flex h-[200px] w-[147px] items-center justify-center overflow-hidden rounded-[20px] border border-white/15 bg-slate-800/70 shadow-[0_18px_30px_rgba(2,6,23,0.55)]">
-                            <img
-                              src={poster.url}
-                              alt="Poster"
-                              className="h-full w-full object-cover pointer-events-none"
-                              draggable={false}
-                            />
+                            {poster.imagePath ? (
+                              <Image
+                                src={poster.imagePath}
+                                alt={`Poster`}
+                                width={147}
+                                height={200}
+                                className="h-full w-full object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs text-slate-200/60">
+                                图像缺失
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                       <div className="mt-4 flex w-full max-w-[188px] items-center justify-between gap-3">
                         <button
                           type="button"
-                          onClick={() => handlePosterAction(poster.url)}
                           className="flex-1 cursor-pointer rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
                         >
                           购买
                         </button>
                         <button
                           type="button"
-                          onClick={() => handlePosterAction(poster.url)}
                           className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50"
                         >
                           观看
@@ -223,27 +306,20 @@ export default function MyPage() {
                   ))}
                 </div>
 
-                <div className="mt-12 flex items-center justify-between gap-4 text-xs uppercase tracking-[0.3em] text-white/70">
+                <div className="mt-10 flex items-center justify-center gap-4">
                   <button
                     type="button"
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
-                    disabled={currentPage === 0}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={handlePrevPage}
+                    disabled={!hasPrev}
+                    className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     上一页
                   </button>
-                  <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                    {currentPage + 1} / {totalPages}
-                  </div>
                   <button
                     type="button"
-                    onClick={() =>
-                      setCurrentPage((prev) =>
-                        Math.min(prev + 1, Math.max(0, totalPages - 1)),
-                      )
-                    }
-                    disabled={currentPage >= totalPages - 1}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={handleNextPage}
+                    disabled={!hasNext}
+                    className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     下一页
                   </button>

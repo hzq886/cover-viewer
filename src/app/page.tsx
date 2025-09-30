@@ -128,6 +128,14 @@ export default function Home() {
     () => extractPosterUrl(pick?.imageURL ?? null),
     [pick],
   );
+  const posterSmallUrl = useMemo(
+    () => (pick?.imageURL?.small ? String(pick.imageURL.small) : ""),
+    [pick],
+  );
+  const proxiedPosterSmallUrl = useMemo(
+    () => toProxyUrl(posterSmallUrl),
+    [posterSmallUrl],
+  );
   // 作品切换时重置媒体状态
   useEffect(() => {
     setActiveIndex(0);
@@ -776,6 +784,8 @@ export default function Home() {
                         ),
                       )}
                       contentId={contentId}
+                      posterImageUrl={posterSmallUrl || undefined}
+                      posterProxyUrl={proxiedPosterSmallUrl || undefined}
                     />
                   </div>
                 </div>

@@ -1,29 +1,37 @@
 "use client";
 
+import type { FirebaseError } from "firebase/app";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  type Timestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/auth/AuthProvider";
 import {
   MaterialSymbolsLightFavorite,
   MaterialSymbolsLightFavoriteOutline,
 } from "@/components/icons/FavoriteIcon";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  increment,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  type Timestamp,
-} from "firebase/firestore";
 import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
+import { getMetadata, getStorageRef, uploadBytes } from "@/lib/storage";
 
 type Props = {
   size?: number; // pixel size baseline for heart icon
   height?: number; // align panel height with carousel container
   contentId?: string;
+  posterImageUrl?: string;
+  posterProxyUrl?: string;
 };
 
 type Comment = {
@@ -34,31 +42,26 @@ type Comment = {
 
 const DEFAULT_COMMENTS: Comment[] = [];
 const LIKE_STORAGE_KEY_PREFIX = "cover-viewer:like:";
-
-const createComment = (text: string): Comment => ({
-  id:
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  text,
-  createdAt: new Date(),
-});
-
-const getLikeStorageKey = (contentId: string) =>
-  `${LIKE_STORAGE_KEY_PREFIX}${contentId}`;
+void LIKE_STORAGE_KEY_PREFIX;
 
 export default function CommentPanel({
   size = 96,
   height,
   contentId,
+  posterImageUrl,
+  posterProxyUrl,
 }: Props) {
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
+  const router = useRouter();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [popKey, setPopKey] = useState(0);
   const [comments, setComments] = useState<Comment[]>(DEFAULT_COMMENTS);
   const [pending, setPending] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   const timeFormatter = useMemo(
     () =>
@@ -71,21 +74,21 @@ export default function CommentPanel({
     [],
   );
 
+  const panelHeight = useMemo(
+    () => (height ? Math.max(height, 320) : undefined),
+    [height],
+  );
+
   useEffect(() => {
+    const id = contentId;
+    setLiked(false);
     setComments(DEFAULT_COMMENTS);
     setLikeCount(0);
     setPending("");
     setPopKey(0);
-  }, [contentId]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!contentId) {
-      setLiked(false);
+    if (!id) {
       return;
     }
-    const stored = window.localStorage.getItem(getLikeStorageKey(contentId));
-    setLiked(stored === "1");
   }, [contentId]);
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function CommentPanel({
       orderBy("createdAt", "asc"),
     );
 
-    const docUnsub = onSnapshot(
+    const unsubDoc = onSnapshot(
       baseDocRef,
       (snapshot) => {
         if (!snapshot.exists()) {
@@ -117,10 +120,10 @@ export default function CommentPanel({
       },
     );
 
-    const commentsUnsub = onSnapshot(
+    const unsubComments = onSnapshot(
       commentsQuery,
       (snapshot) => {
-        const next: Comment[] = snapshot.docs.map((docSnap) => {
+        const next = snapshot.docs.map((docSnap) => {
           const data = docSnap.data() as {
             content?: string;
             createdAt?: Timestamp | Date | null;
@@ -129,7 +132,10 @@ export default function CommentPanel({
           let created: Date | null = null;
           if (rawCreatedAt instanceof Date) {
             created = rawCreatedAt;
-          } else if (rawCreatedAt && typeof rawCreatedAt.toDate === "function") {
+          } else if (
+            rawCreatedAt &&
+            typeof rawCreatedAt.toDate === "function"
+          ) {
             try {
               created = rawCreatedAt.toDate();
             } catch (err) {
@@ -140,7 +146,7 @@ export default function CommentPanel({
             id: docSnap.id,
             text: data?.content ?? "",
             createdAt: created,
-          };
+          } satisfies Comment;
         });
         setComments(next);
       },
@@ -150,59 +156,173 @@ export default function CommentPanel({
     );
 
     return () => {
-      docUnsub();
-      commentsUnsub();
+      unsubDoc();
+      unsubComments();
     };
   }, [firebaseReady, contentId]);
 
-  const handleToggleLike = useCallback(async () => {
-    const nextLiked = !liked;
-    const delta = nextLiked ? 1 : -1;
-
-    setLiked(nextLiked);
-    setPopKey((k) => k + 1);
-    setLikeCount((prev) => Math.max(0, prev + delta));
-
-    if (typeof window !== "undefined" && contentId) {
-      const key = getLikeStorageKey(contentId);
-      if (nextLiked) {
-        window.localStorage.setItem(key, "1");
-      } else {
-        window.localStorage.removeItem(key);
+  useEffect(() => {
+    if (!firebaseReady || !contentId || !user || authLoading) {
+      if (!isAuthenticated && !authLoading) {
+        setLiked(false);
       }
-    }
-
-    if (!firebaseReady || !contentId) {
+      setLikeLoading(false);
       return;
     }
 
+    setLikeLoading(true);
+    const db = getFirestoreDb();
+    const likeRef = doc(db, "users", user.uid, "likes", contentId);
+    const unsubscribe = onSnapshot(
+      likeRef,
+      (snapshot) => {
+        const exists = snapshot.exists();
+        setLiked(exists);
+        setLikeLoading(false);
+      },
+      (error) => {
+        console.error("Failed to load user like state", error);
+        setLikeLoading(false);
+      },
+    );
+    return () => unsubscribe();
+  }, [firebaseReady, contentId, user, authLoading, isAuthenticated]);
+
+  const placeholder = useMemo(() => {
+    if (liked) return "留下你的想法...";
+    if (comments.length === 0) return "抢个沙发吧";
+    return "写点什么";
+  }, [liked, comments.length]);
+
+  const ensurePosterStored = useCallback(async () => {
+    if (!contentId) {
+      throw new Error("Missing contentId for poster upload");
+    }
+    if (!firebaseReady) {
+      throw new Error("Firebase is not configured");
+    }
+    const storagePath = `posters/${contentId}.jpg`;
+    const storageRef = getStorageRef(storagePath);
+
     try {
-      const db = getFirestoreDb();
-      const docRef = doc(db, "avs", contentId);
-      await setDoc(
-        docRef,
-        { likeCount: increment(delta) },
-        { merge: true },
-      );
+      await getMetadata(storageRef);
+      return storagePath;
     } catch (error) {
-      console.error("Failed to update like count", error);
-      setLikeCount((prev) => Math.max(0, prev - delta));
-      setLiked(!nextLiked);
-      if (typeof window !== "undefined" && contentId) {
-        const key = getLikeStorageKey(contentId);
-        if (nextLiked) {
-          window.localStorage.removeItem(key);
-        } else {
-          window.localStorage.setItem(key, "1");
-        }
+      const fbError = error as FirebaseError;
+      if (!fbError?.code || fbError.code !== "storage/object-not-found") {
+        throw error;
       }
     }
-  }, [liked, firebaseReady, contentId]);
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLButtonElement> = (e) => {
-    if (e.key === " " || e.key === "Enter") {
-      e.preventDefault();
-      void handleToggleLike();
+    const sourceUrl = posterProxyUrl || posterImageUrl;
+    if (!sourceUrl) {
+      throw new Error("Poster image URL is missing");
+    }
+    const response = await fetch(sourceUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch poster image: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const contentType = blob.type || "image/webp";
+    await uploadBytes(storageRef, blob, { contentType });
+    return storagePath;
+  }, [contentId, firebaseReady, posterProxyUrl, posterImageUrl]);
+
+  const updateLikeDocument = useCallback(
+    async (delta: number) => {
+      if (!firebaseReady || !contentId) return;
+      const db = getFirestoreDb();
+      const baseDocRef = doc(db, "avs", contentId);
+      await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(baseDocRef);
+        if (!snapshot.exists()) {
+          transaction.set(baseDocRef, {
+            likeCount: delta > 0 ? delta : 0,
+            createdAt: serverTimestamp(),
+          });
+          return;
+        }
+        const data = snapshot.data();
+        const current =
+          data && typeof data.likeCount === "number" ? data.likeCount : 0;
+        const next = Math.max(0, current + delta);
+        const payload: Record<string, unknown> = { likeCount: next };
+        if (!data?.createdAt) {
+          payload.createdAt = serverTimestamp();
+        }
+        transaction.update(baseDocRef, payload);
+      });
+    },
+    [firebaseReady, contentId],
+  );
+
+  const handleToggleLike = useCallback(async () => {
+    if (authLoading) return;
+    if (!contentId) return;
+    if (!firebaseReady) {
+      console.warn("Firebase configuration missing; cannot like");
+      return;
+    }
+
+    if (!isAuthenticated || !user) {
+      router.push("/login");
+      return;
+    }
+
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    if (nextLiked) {
+      setPopKey((key) => key + 1);
+    }
+    setLikeLoading(true);
+
+    try {
+      const db = getFirestoreDb();
+      const userLikeRef = doc(db, "users", user.uid, "likes", contentId);
+      if (nextLiked) {
+        const imagePath = await ensurePosterStored();
+        await updateLikeDocument(1);
+        await setDoc(userLikeRef, {
+          imagePath,
+          likedAt: serverTimestamp(),
+        });
+      } else {
+        await updateLikeDocument(-1);
+        await deleteDoc(userLikeRef);
+      }
+    } catch (error) {
+      console.error("Failed to toggle like", error);
+      setLiked((previous) => {
+        if (nextLiked === previous) {
+          return !nextLiked;
+        }
+        return previous;
+      });
+    } finally {
+      setLikeLoading(false);
+    }
+  }, [
+    authLoading,
+    contentId,
+    ensurePosterStored,
+    firebaseReady,
+    isAuthenticated,
+    liked,
+    posterImageUrl,
+    posterProxyUrl,
+    router,
+    updateLikeDocument,
+    user,
+  ]);
+
+  const handleKeyDown: React.KeyboardEventHandler<HTMLButtonElement> = (
+    event,
+  ) => {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      if (!likeLoading) {
+        void handleToggleLike();
+      }
     }
   };
 
@@ -214,7 +334,17 @@ export default function CommentPanel({
     if (!value) return;
 
     if (!firebaseReady || !contentId) {
-      setComments((prev) => [...prev, createComment(value)]);
+      setComments((prev) => [
+        ...prev,
+        {
+          id:
+            typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          text: value,
+          createdAt: new Date(),
+        },
+      ]);
       setPending("");
       return;
     }
@@ -222,12 +352,17 @@ export default function CommentPanel({
     setSubmitting(true);
     try {
       const db = getFirestoreDb();
-      const docRef = doc(db, "avs", contentId);
-      const snapshot = await getDoc(docRef);
+      const baseDocRef = doc(db, "avs", contentId);
+      const snapshot = await getDoc(baseDocRef);
       if (!snapshot.exists()) {
-        await setDoc(docRef, { likeCount: 0 });
+        await setDoc(baseDocRef, {
+          likeCount: 0,
+          createdAt: serverTimestamp(),
+        });
+      } else if (!snapshot.data()?.createdAt) {
+        await updateDoc(baseDocRef, { createdAt: serverTimestamp() });
       }
-      await addDoc(collection(docRef, "comments"), {
+      await addDoc(collection(baseDocRef, "comments"), {
         content: value,
         createdAt: serverTimestamp(),
       });
@@ -239,17 +374,6 @@ export default function CommentPanel({
     }
   };
 
-  const placeholder = useMemo(() => {
-    if (liked) return "留下你的想法...";
-    if (comments.length === 0) return "抢个沙发吧";
-    return "写点什么";
-  }, [liked, comments.length]);
-
-  const panelHeight = useMemo(
-    () => (height ? Math.max(height, 320) : undefined),
-    [height],
-  );
-
   return (
     <div
       className="flex h-full min-h-[320px] w-full max-w-[360px] flex-col gap-4 rounded-3xl border border-white/12 bg-black/30 p-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md"
@@ -260,12 +384,16 @@ export default function CommentPanel({
           type="button"
           aria-label={liked ? "取消喜欢" : "点个喜欢"}
           aria-pressed={liked}
-          onClick={() => void handleToggleLike()}
+          onClick={() => {
+            if (!likeLoading) {
+              void handleToggleLike();
+            }
+          }}
           onKeyDown={handleKeyDown}
-          className="relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out hover:scale-105 focus-visible:ring-2 focus-visible:ring-rose-300/60"
+          className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 ${likeLoading ? "opacity-60" : "hover:scale-105"}`}
           style={{ fontSize: `${size}px` }}
+          disabled={likeLoading || authLoading}
         >
-          {/* Outline */}
           <span
             className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out ${
               liked ? "scale-75 opacity-0" : "scale-100 opacity-100"
@@ -274,7 +402,6 @@ export default function CommentPanel({
             <MaterialSymbolsLightFavoriteOutline className="text-white drop-shadow-[0_10px_26px_rgba(255,255,255,0.28)]" />
           </span>
 
-          {/* Filled */}
           <span
             key={popKey}
             className={`relative flex items-center justify-center transition-all duration-300 ease-out ${
@@ -284,7 +411,6 @@ export default function CommentPanel({
             }`}
           >
             <MaterialSymbolsLightFavorite className="text-red-500 drop-shadow-[0_14px_34px_rgba(239,68,68,0.55)]" />
-            {/* Sparkle ring when liking */}
             {liked && (
               <span className="pointer-events-none absolute inset-0 rounded-full border-2 border-red-300/60 shadow-[0_0_0_8px_rgba(239,68,68,0.1)] animate-heart-ring" />
             )}
@@ -338,7 +464,7 @@ export default function CommentPanel({
             id="comment-input"
             type="text"
             value={pending}
-            onChange={(e) => setPending(e.target.value)}
+            onChange={(event) => setPending(event.target.value)}
             placeholder={placeholder}
             className="h-10 flex-1 rounded-xl border border-white/10 bg-black/50 px-3 text-sm text-white placeholder:text-slate-300/50 outline-none ring-2 ring-transparent transition focus:border-white/30 focus:ring-rose-300/40"
           />
