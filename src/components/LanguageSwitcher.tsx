@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
-import type { LanguageCode } from "@/i18n/translations";
+import { LANGUAGE_DISPLAY_NAMES, type LanguageCode } from "@/i18n/translations";
 
 type Props = {
   className?: string;
@@ -15,22 +15,19 @@ export default function LanguageSwitcher({ className }: Props) {
     () =>
       languages.map((code) => ({
         code,
-        label: dictionary.languages[code],
+        label: LANGUAGE_DISPLAY_NAMES[code],
       })),
-    [dictionary.languages, languages],
+    [languages],
   );
 
   return (
     <div className={`inline-flex items-center gap-2 ${className ?? ""}`.trim()}>
-      <span className="text-xs uppercase tracking-[0.24em] text-slate-200/70 hidden lg:inline">
-        {dictionary.languageSwitcher.label}
-      </span>
       <label className="relative">
         <span className="sr-only">{dictionary.languageSwitcher.ariaLabel}</span>
         <select
           value={language}
           onChange={(event) => setLanguage(event.target.value as LanguageCode)}
-          className="appearance-none rounded-full border border-white/12 bg-black/40 py-2 pl-4 pr-10 text-sm text-slate-100 shadow-[0_12px_30px_-18px_rgba(76,29,149,0.7)] backdrop-blur focus:border-violet-300/70 focus:outline-none focus:ring-2 focus:ring-violet-400/50"
+          className="appearance-none rounded-full border border-white/12 bg-black/40 py-2 pl-4 pr-10 text-sm text-slate-100 shadow-[0_12px_30px_-18px_rgba(76,29,149,0.7)] backdrop-blur focus:border-violet-300/70 focus:outline-none focus:ring-2 focus:ring-violet-400/50 cursor-pointer"
           aria-label={dictionary.languageSwitcher.ariaLabel}
         >
           {options.map((item) => (

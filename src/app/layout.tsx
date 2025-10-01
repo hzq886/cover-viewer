@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import Providers from "./providers";
 import "./globals.css";
+import {
+  DEFAULT_LANGUAGE,
+  resolveFromAcceptLanguage,
+} from "@/i18n/language-utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,12 +31,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerStore = headers();
+  const acceptLanguage = headerStore.get("accept-language");
+  const initialLanguage =
+    resolveFromAcceptLanguage(acceptLanguage) ?? DEFAULT_LANGUAGE;
+
   return (
-    <html lang="zh-CN">
+    <html lang={initialLanguage}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers initialLanguage={initialLanguage}>{children}</Providers>
       </body>
     </html>
   );

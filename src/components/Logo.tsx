@@ -27,9 +27,6 @@ export default function Logo({ onHome, className }: Props) {
       <span className="text-3xl font-semibold tracking-tight bg-gradient-to-tr from-pink-400 to-rose-400 bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(168,85,247,0.35)]">
         JAV
       </span>
-      <span className="text-3xl font-semibold tracking-tight bg-gradient-to-tr from-violet-200 to-fuchsia-200 bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(168,85,247,0.35)]">
-        Cover
-      </span>
     </Link>
   );
 }

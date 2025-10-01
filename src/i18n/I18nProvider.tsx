@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { DEFAULT_LANGUAGE, resolveLanguage } from "./language-utils";
 import {
   type LanguageCode,
   SUPPORTED_LANGUAGES,
@@ -28,30 +29,6 @@ type I18nContextValue = {
 };
 
 const STORAGE_KEY = "cover-viewer:language";
-const FALLBACK_LANGUAGE: LanguageCode = "zh-CN";
-
-// 通过别名映射浏览器常见的语言标识到支持的语言代码
-const LANGUAGE_ALIAS: Record<string, LanguageCode> = {
-  zh: "zh-CN",
-  "zh-cn": "zh-CN",
-  "zh-hans": "zh-CN",
-  "zh-sg": "zh-CN",
-  "zh-my": "zh-CN",
-  "zh-tw": "zh-TW",
-  "zh-hant": "zh-TW",
-  "zh-hk": "zh-TW",
-  "zh-mo": "zh-TW",
-  ja: "ja",
-  "ja-jp": "ja",
-  en: "en",
-  "en-us": "en",
-  "en-gb": "en",
-  "en-au": "en",
-  "en-ca": "en",
-};
-
-const SUPPORTED_SET = new Set<LanguageCode>(SUPPORTED_LANGUAGES);
-
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
 // 同步 <html> 标签的语言信息，便于辅助功能/SEO
@@ -61,25 +38,9 @@ function applyLanguageToDocument(lang: LanguageCode) {
   document.documentElement.setAttribute("data-lang", lang);
 }
 
-// 根据浏览器语言与别名表计算最合适的语言
-function resolveLanguage(value?: string | null): LanguageCode | null {
-  if (!value) return null;
-  if (SUPPORTED_SET.has(value as LanguageCode)) {
-    return value as LanguageCode;
-  }
-  const normalized = value.toLowerCase();
-  if (SUPPORTED_SET.has(normalized as LanguageCode)) {
-    return normalized as LanguageCode;
-  }
-  if (LANGUAGE_ALIAS[normalized]) {
-    return LANGUAGE_ALIAS[normalized];
-  }
-  return null;
-}
-
-// 检测初始语言：优先本地缓存，其次浏览器环境，最后兜底
-function detectInitialLanguage(): LanguageCode {
-  if (typeof window === "undefined") return FALLBACK_LANGUAGE;
+// 检测初始语言：优先本地缓存，其次服务端推断，再加浏览器环境，最后兜底
+function detectInitialLanguage(preferred: LanguageCode): LanguageCode {
+  if (typeof window === "undefined") return preferred;
   const candidates: Array<string | null | undefined> = [];
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -87,6 +48,7 @@ function detectInitialLanguage(): LanguageCode {
   } catch {
     // Ignore storage access errors
   }
+  candidates.push(preferred);
   const { navigator } = window;
   if (navigator) {
     if (Array.isArray(navigator.languages)) {
@@ -100,7 +62,7 @@ function detectInitialLanguage(): LanguageCode {
       return resolved;
     }
   }
-  return FALLBACK_LANGUAGE;
+  return preferred;
 }
 
 // 支持通过路径形式（如 "search.placeholder.default"）获取嵌套的翻译文案
@@ -143,18 +105,27 @@ function translate(
   return key;
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+type LanguageProviderProps = {
+  children: ReactNode;
+  initialLanguage?: LanguageCode;
+};
+
+export function LanguageProvider({
+  children,
+  initialLanguage,
+}: LanguageProviderProps) {
+  const preferredLanguage = initialLanguage ?? DEFAULT_LANGUAGE;
   const [language, setLanguageState] =
-    useState<LanguageCode>(FALLBACK_LANGUAGE);
+    useState<LanguageCode>(preferredLanguage);
   const [initialized, setInitialized] = useState(false);
 
   // 页面挂载后检测首选语言，并立即同步到文档
   useEffect(() => {
-    const initial = detectInitialLanguage();
+    const initial = detectInitialLanguage(preferredLanguage);
     setLanguageState(initial);
     applyLanguageToDocument(initial);
     setInitialized(true);
-  }, []);
+  }, [preferredLanguage]);
 
   // 语言切换后写入 localStorage，并更新 <html lang>
   useEffect(() => {

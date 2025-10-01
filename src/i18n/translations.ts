@@ -5,6 +5,13 @@ type Feature = {
   description: string;
 };
 
+export const LANGUAGE_DISPLAY_NAMES: Record<LanguageCode, string> = {
+  "zh-CN": "简体中文",
+  "zh-TW": "繁體中文",
+  ja: "日本語",
+  en: "English",
+};
+
 type TranslationShape = {
   languageSwitcher: {
     label: string;
@@ -12,6 +19,13 @@ type TranslationShape = {
     optionAria: string;
   };
   languages: Record<LanguageCode, string>;
+  authBar: {
+    loading: string;
+    login: string;
+    myPage: string;
+    logout: string;
+    menuAria: string;
+  };
   search: {
     placeholder: {
       default: string;
@@ -76,11 +90,13 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       ariaLabel: "选择界面语言",
       optionAria: "切换为{{language}}",
     },
-    languages: {
-      "zh-CN": "简体中文",
-      "zh-TW": "繁体中文",
-      ja: "日语",
-      en: "英语",
+    languages: LANGUAGE_DISPLAY_NAMES,
+    authBar: {
+      loading: "认证中…",
+      login: "登录",
+      myPage: "个人主页",
+      logout: "退出登录",
+      menuAria: "打开个人菜单",
     },
     search: {
       placeholder: {
@@ -161,11 +177,13 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       ariaLabel: "選擇介面語言",
       optionAria: "切換為{{language}}",
     },
-    languages: {
-      "zh-CN": "簡體中文",
-      "zh-TW": "繁體中文",
-      ja: "日語",
-      en: "英語",
+    languages: LANGUAGE_DISPLAY_NAMES,
+    authBar: {
+      loading: "驗證中…",
+      login: "登入",
+      myPage: "我的頁面",
+      logout: "登出",
+      menuAria: "開啟個人選單",
     },
     search: {
       placeholder: {
@@ -246,11 +264,13 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       ariaLabel: "表示言語を選択する",
       optionAria: "{{language}}に切り替える",
     },
-    languages: {
-      "zh-CN": "簡体字中国語",
-      "zh-TW": "繁体字中国語",
-      ja: "日本語",
-      en: "英語",
+    languages: LANGUAGE_DISPLAY_NAMES,
+    authBar: {
+      loading: "認証中…",
+      login: "ログイン",
+      myPage: "マイページ",
+      logout: "ログアウト",
+      menuAria: "プロフィールメニューを開く",
     },
     search: {
       placeholder: {
@@ -333,11 +353,13 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       ariaLabel: "Select interface language",
       optionAria: "Switch to {{language}}",
     },
-    languages: {
-      "zh-CN": "Chinese (Simplified)",
-      "zh-TW": "Chinese (Traditional)",
-      ja: "Japanese",
-      en: "English",
+    languages: LANGUAGE_DISPLAY_NAMES,
+    authBar: {
+      loading: "Authenticating…",
+      login: "Login",
+      myPage: "My Page",
+      logout: "Logout",
+      menuAria: "Open profile menu",
     },
     search: {
       placeholder: {
