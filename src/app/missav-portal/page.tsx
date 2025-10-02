@@ -111,7 +111,6 @@ export default function MissavPortal() {
                 <p className="text-sm uppercase tracking-[0.5em] text-amber-200/80">
                   {portalText.redirecting}
                 </p>
-                <p className="text-xs text-amber-200/60">{targetUrl}</p>
               </>
             ) : (
               <p className="text-sm text-rose-200/90">
