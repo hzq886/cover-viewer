@@ -3,11 +3,13 @@
 import {
   type FormEvent,
   type SVGProps,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { GENRE_TRANSLATIONS } from "@/data/genre-translations";
 import { GENRE_GROUPS } from "@/data/genres";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -39,6 +41,12 @@ const loadRecentKeywords = (): string[] => {
   } catch {
     return [];
   }
+};
+
+type TooltipState = {
+  text: string;
+  x: number;
+  y: number;
 };
 
 export function MdiMagnify(props: SVGProps<SVGSVGElement>) {
@@ -89,7 +97,7 @@ export default function SearchBar({
   compact,
   className,
 }: Props) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
   const [recentKeywords, setRecentKeywords] = useState<string[]>(() =>
@@ -97,7 +105,54 @@ export default function SearchBar({
   );
   const [showRecent, setShowRecent] = useState(false);
   const [showKeywordPanel, setShowKeywordPanel] = useState(false);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const hasRecent = recentKeywords.length > 0;
+
+  const getGenreTranslation = useCallback(
+    (key: string | undefined, fallback: string) => {
+      const map = GENRE_TRANSLATIONS[language];
+      if (!map) return fallback;
+      if (key && map[key]) return map[key];
+      return map[fallback] ?? fallback;
+    },
+    [language],
+  );
+
+  const beginTooltip = useCallback(
+    (
+      event: React.MouseEvent<HTMLElement> | React.FocusEvent<HTMLElement>,
+      text: string,
+    ) => {
+      if (!text) {
+        setTooltip(null);
+        return;
+      }
+      const target = event.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      setTooltip({
+        text,
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    },
+    [],
+  );
+
+  const moveTooltip = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setTooltip((current) =>
+      current
+        ? {
+            ...current,
+            x: event.clientX,
+            y: event.clientY,
+          }
+        : current,
+    );
+  }, []);
+
+  const endTooltip = useCallback(() => {
+    setTooltip(null);
+  }, []);
 
   const placeholder = useMemo(
     () =>
@@ -151,6 +206,12 @@ export default function SearchBar({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  useEffect(() => {
+    if (!showKeywordPanel) {
+      setTooltip(null);
+    }
+  }, [showKeywordPanel]);
 
   useEffect(() => {
     if (!showKeywordPanel) return;
@@ -229,10 +290,13 @@ export default function SearchBar({
         >
           <button
             type="button"
-            onClick={() => setShowKeywordPanel(true)}
+            onClick={() => {
+              setTooltip(null);
+              setShowKeywordPanel(true);
+            }}
             className="flex h-9 w-9 items-center justify-center rounded-full text-violet-200/80 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
-            title="打开关键词面板"
-            aria-label="打开关键词面板"
+            title={t("search.keywordPanel.open")}
+            aria-label={t("search.keywordPanel.open")}
           >
             <MaterialSymbolsBook4SparkOutlineRounded className="h-5 w-5" />
           </button>
@@ -399,13 +463,18 @@ export default function SearchBar({
         >
           <div className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">搜索关键词（ジャンル）</h2>
+              <h2 className="text-lg font-semibold">
+                {t("search.keywordPanel.title")}
+              </h2>
               <button
                 type="button"
-                onClick={() => setShowKeywordPanel(false)}
+                onClick={() => {
+                  setTooltip(null);
+                  setShowKeywordPanel(false);
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
-                aria-label="关闭"
-                title="关闭"
+                aria-label={t("search.keywordPanel.close")}
+                title={t("search.keywordPanel.close")}
               >
                 <svg
                   width="14"
@@ -440,6 +509,22 @@ export default function SearchBar({
                         });
                       }}
                       className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
+                      onMouseEnter={(event) =>
+                        beginTooltip(
+                          event,
+                          getGenreTranslation(`group:${g.id}`, g.title),
+                        )
+                      }
+                      onMouseMove={moveTooltip}
+                      onMouseLeave={endTooltip}
+                      onFocus={(event) =>
+                        beginTooltip(
+                          event,
+                          getGenreTranslation(`group:${g.id}`, g.title),
+                        )
+                      }
+                      onBlur={endTooltip}
+                      title={getGenreTranslation(`group:${g.id}`, g.title)}
                     >
                       {g.title}
                     </a>
@@ -464,10 +549,26 @@ export default function SearchBar({
                             type="button"
                             onClick={() => {
                               appendKeywordToken(it.label);
+                              setTooltip(null);
                               setShowKeywordPanel(false);
                             }}
                             className="cursor-pointer rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-100 transition hover:border-violet-300/60 hover:bg-white/10 hover:text-white"
-                            title={it.label}
+                            onMouseEnter={(event) =>
+                              beginTooltip(
+                                event,
+                                getGenreTranslation(it.id, it.label),
+                              )
+                            }
+                            onMouseMove={moveTooltip}
+                            onMouseLeave={endTooltip}
+                            onFocus={(event) =>
+                              beginTooltip(
+                                event,
+                                getGenreTranslation(it.id, it.label),
+                              )
+                            }
+                            onBlur={endTooltip}
+                            title={getGenreTranslation(it.id, it.label)}
                           >
                             {it.label}
                           </button>
@@ -481,6 +582,25 @@ export default function SearchBar({
           </div>
         </div>
       )}
+      {tooltip ? (
+        <div
+          className="pointer-events-none fixed z-[120] max-w-xs rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white shadow-[0_18px_60px_-30px_rgba(76,29,149,0.75)] backdrop-blur"
+          style={{
+            left: (() => {
+              const desired = tooltip.x + 16;
+              if (typeof window === "undefined") return desired;
+              return Math.min(desired, window.innerWidth - 220);
+            })(),
+            top: (() => {
+              const desired = tooltip.y + 20;
+              if (typeof window === "undefined") return desired;
+              return Math.min(desired, window.innerHeight - 60);
+            })(),
+          }}
+        >
+          {tooltip.text}
+        </div>
+      ) : null}
     </form>
   );
 }

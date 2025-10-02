@@ -71,6 +71,11 @@ type TranslationShape = {
     submitCompactAria: string;
     deleteRecent: string;
     noRecent: string;
+    keywordPanel: {
+      open: string;
+      title: string;
+      close: string;
+    };
   };
   logo: {
     homeAria: string;
@@ -209,6 +214,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitCompactAria: "执行搜索",
       deleteRecent: "删除 '{{value}}'",
       noRecent: "暂无搜索历史",
+      keywordPanel: {
+        open: "打开关键词面板",
+        title: "关键词",
+        close: "关闭关键词面板",
+      },
     },
     logo: {
       homeAria: "返回首页",
@@ -363,6 +373,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitCompactAria: "執行搜尋",
       deleteRecent: "刪除『{{value}}』",
       noRecent: "尚無搜尋歷史",
+      keywordPanel: {
+        open: "開啟關鍵字面板",
+        title: "關鍵字",
+        close: "關閉關鍵字面板",
+      },
     },
     logo: {
       homeAria: "返回首頁",
@@ -520,6 +535,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitCompactAria: "検索を実行",
       deleteRecent: "『{{value}}』を削除",
       noRecent: "検索履歴はありません",
+      keywordPanel: {
+        open: "キーワードパネルを開く",
+        title: "キーワード",
+        close: "キーワードパネルを閉じる",
+      },
     },
     logo: {
       homeAria: "トップに戻る",
@@ -679,6 +699,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitCompactAria: "Run search",
       deleteRecent: "Remove '{{value}}'",
       noRecent: "No recent searches yet",
+      keywordPanel: {
+        open: "Open keyword panel",
+        title: "Keywords",
+        close: "Close keyword panel",
+      },
     },
     logo: {
       homeAria: "Go back to home",
