@@ -56,6 +56,8 @@ type TranslationShape = {
     imageMissing: string;
     buy: string;
     watch: string;
+    checkingVideo: string;
+    videoNotFound: string;
     prevPage: string;
     nextPage: string;
     posterAlt: string;
@@ -186,6 +188,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       imageMissing: "图像缺失",
       buy: "购买",
       watch: "观看",
+      checkingVideo: "检测中…",
+      videoNotFound: "未能找到对应的视频链接",
       prevPage: "上一页",
       nextPage: "下一页",
       posterAlt: "收藏海报预览",
@@ -344,6 +348,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       imageMissing: "缺少圖像",
       buy: "購買",
       watch: "觀看",
+      checkingVideo: "檢查中…",
+      videoNotFound: "找不到對應的影片連結",
       prevPage: "上一頁",
       nextPage: "下一頁",
       posterAlt: "收藏海報預覽",
@@ -504,6 +510,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       imageMissing: "画像がありません",
       buy: "購入",
       watch: "再生",
+      checkingVideo: "確認中…",
+      videoNotFound: "対応する動画を見つけられませんでした",
       prevPage: "前へ",
       nextPage: "次へ",
       posterAlt: "コレクションのジャケット",
@@ -668,6 +676,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       imageMissing: "Image unavailable",
       buy: "Buy",
       watch: "Watch",
+      checkingVideo: "Checking…",
+      videoNotFound: "Could not find the matching video",
       prevPage: "Previous",
       nextPage: "Next",
       posterAlt: "Collected cover preview",

@@ -45,6 +45,7 @@ export default function MyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
+  const [checkingMissavId, setCheckingMissavId] = useState<string | null>(null);
 
   useEffect(() => {
     const uid = user?.uid;
@@ -265,6 +266,40 @@ export default function MyPage() {
     [currentPage, firebaseReady, t, updateLikeDocument, user],
   );
 
+  const handleOpenMissav = useCallback(
+    async (id: string) => {
+      if (!id) return;
+      setCheckingMissavId(id);
+      try {
+        const response = await fetch(
+          `/api/missav-status?contentId=${encodeURIComponent(id)}`,
+          {
+            cache: "no-store",
+          },
+        );
+        if (response.ok) {
+          const data = (await response.json()) as {
+            exists?: boolean;
+          };
+          if (data.exists) {
+            window.open(
+              `https://missav.ai/${encodeURIComponent(id)}`,
+              "_blank",
+              "noopener,noreferrer",
+            );
+            return;
+          }
+        }
+      } catch {
+        // Swallow network errors and fall through to alert
+      } finally {
+        setCheckingMissavId((current) => (current === id ? null : current));
+      }
+      window.alert(myPage.videoNotFound);
+    },
+    [myPage.videoNotFound],
+  );
+
   return (
     <div className="relative h-[100svh] overflow-x-hidden overflow-y-auto bg-[#07030f] text-slate-100">
       <div className="pointer-events-none absolute -left-32 top-12 h-[420px] w-[420px] rounded-full bg-fuchsia-500/20 blur-[160px]" />
@@ -397,9 +432,15 @@ export default function MyPage() {
                         )}
                         <button
                           type="button"
-                          className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50"
+                          className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50 disabled:cursor-not-allowed disabled:border-fuchsia-200/20 disabled:bg-fuchsia-500/30 disabled:text-white/70"
+                          onClick={() => {
+                            void handleOpenMissav(poster.id);
+                          }}
+                          disabled={checkingMissavId === poster.id}
                         >
-                          {myPage.watch}
+                          {checkingMissavId === poster.id
+                            ? myPage.checkingVideo
+                            : myPage.watch}
                         </button>
                       </div>
                     </article>
