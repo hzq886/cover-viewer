@@ -144,6 +144,12 @@ type TranslationShape = {
     likeAria: string;
     unlikeAria: string;
   };
+  portal: {
+    title: string;
+    subtitle: string;
+    subtitleFallback: string;
+    redirecting: string;
+  };
   errors: {
     searchFailed: string;
     missingKeyword: string;
@@ -306,6 +312,12 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "点个喜欢",
       unlikeAria: "取消喜欢",
     },
+    portal: {
+      title: "奥术传送门",
+      subtitle: "远古符文正在追寻 {{code}} 的踪迹…",
+      subtitleFallback: "远古符文正在倾听未知的呼唤…",
+      redirecting: "5 秒后传送至目标领域",
+    },
     errors: {
       searchFailed: "搜索失败，请稍后重试。",
       missingKeyword: "请输入关键词后再搜索。",
@@ -466,6 +478,12 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitting: "送出中",
       likeAria: "點個喜歡",
       unlikeAria: "取消喜歡",
+    },
+    portal: {
+      title: "奧術傳送門",
+      subtitle: "遠古符文正在追尋 {{code}} 的足跡…",
+      subtitleFallback: "遠古符文正在傾聽未知的呼喚…",
+      redirecting: "5 秒後傳送至目的領域",
     },
     errors: {
       searchFailed: "搜尋失敗，請稍候再試。",
@@ -633,6 +651,12 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "いいねする",
       unlikeAria: "いいねを取り消す",
     },
+    portal: {
+      title: "古の転移門",
+      subtitle: "悠久のルーンが {{code}} の座標を探知中…",
+      subtitleFallback: "悠久のルーンが未知の囁きを聞き取っています…",
+      redirecting: "五秒後に転移を開始します",
+    },
     errors: {
       searchFailed: "検索に失敗しました。時間をおいて再度お試しください。",
       missingKeyword: "検索するキーワードを入力してください。",
@@ -797,6 +821,12 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       submitting: "Sending…",
       likeAria: "Like this cover",
       unlikeAria: "Remove like",
+    },
+    portal: {
+      title: "Arcane Gate",
+      subtitle: "Ancient sigils hunt for the trail of {{code}}…",
+      subtitleFallback: "Ancient sigils heed an unnamed summons…",
+      redirecting: "Teleporting in 5 heartbeats",
     },
     errors: {
       searchFailed: "Search failed. Please try again in a moment.",

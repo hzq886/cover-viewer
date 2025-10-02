@@ -280,10 +280,14 @@ export default function MyPage() {
         if (response.ok) {
           const data = (await response.json()) as {
             exists?: boolean;
+            targetUrl?: string;
           };
           if (data.exists) {
+            const urlParam = data.targetUrl
+              ? `&url=${encodeURIComponent(data.targetUrl)}`
+              : "";
             window.open(
-              `https://missav.ai/${encodeURIComponent(id)}`,
+              `/missav-portal?contentId=${encodeURIComponent(id)}${urlParam}`,
               "_blank",
               "noopener,noreferrer",
             );

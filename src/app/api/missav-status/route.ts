@@ -33,12 +33,14 @@ async function probeMissav(contentId: string) {
     return {
       status,
       exists: status !== 404,
+      targetUrl,
     };
   } catch (error) {
     console.error("Failed to probe MissAV", error);
     return {
       status: 0,
       exists: false,
+      targetUrl,
     };
   }
 }
