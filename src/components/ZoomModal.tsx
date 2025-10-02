@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { MediaSlide } from "./PosterPanel";
 
 type Props = {
@@ -26,6 +27,10 @@ export default function ZoomModal({
   initialIndex = 0,
   onIndexChange,
 }: Props) {
+  const { dictionary, t } = useI18n();
+  const posterText = dictionary.posterPanel;
+  const zoomText = dictionary.zoomModal;
+  const videoText = dictionary.video;
   const [rendered, setRendered] = useState(false);
   const [visible, setVisible] = useState(false);
   const [index, setIndex] = useState(initialIndex);
@@ -205,7 +210,7 @@ export default function ZoomModal({
           <Image
             key={`modal-prev-${prevImage.url}`}
             src={prevImage.zoomUrl || prevImage.displayUrl}
-            alt="previous"
+            alt={zoomText.previousAlt}
             fill
             unoptimized
             sizes="100vw"
@@ -220,7 +225,7 @@ export default function ZoomModal({
         <Image
           key={`modal-image-${current.url}`}
           src={displaySrc}
-          alt="zoomed"
+          alt={zoomText.currentAlt}
           fill
           unoptimized
           sizes="100vw"
@@ -242,7 +247,7 @@ export default function ZoomModal({
     >
       <button
         type="button"
-        aria-label="Close zoom viewer"
+        aria-label={zoomText.closeAria}
         className="absolute inset-0 z-10 cursor-zoom-out bg-transparent"
         onClick={handleClose}
       />
@@ -264,7 +269,7 @@ export default function ZoomModal({
               if (index === 0) return;
               setIndex((prev) => Math.max(prev - 1, 0));
             }}
-            aria-label="Previous"
+            aria-label={posterText.previous}
           >
             <svg
               width="26"
@@ -276,7 +281,7 @@ export default function ZoomModal({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <title>Previous</title>
+              <title>{posterText.previous}</title>
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -296,7 +301,7 @@ export default function ZoomModal({
               if (index >= total - 1) return;
               setIndex((prev) => Math.min(prev + 1, total - 1));
             }}
-            aria-label="Next"
+            aria-label={posterText.next}
           >
             <svg
               width="26"
@@ -308,7 +313,7 @@ export default function ZoomModal({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <title>Next</title>
+              <title>{posterText.next}</title>
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -321,7 +326,7 @@ export default function ZoomModal({
             handleClose();
           }}
           className="absolute left-6 top-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white/90 backdrop-blur-md transition hover:bg-black/70 cursor-pointer"
-          aria-label="Close"
+          aria-label={videoText.close}
         >
           <svg
             width="22"
@@ -333,7 +338,7 @@ export default function ZoomModal({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <title>Close</title>
+            <title>{videoText.close}</title>
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -362,7 +367,9 @@ export default function ZoomModal({
                       event.stopPropagation();
                       setIndex(slideIndex);
                     }}
-                    aria-label={`Go to ${slideIndex + 1}`}
+                    aria-label={t("posterPanel.goTo", {
+                      index: slideIndex + 1,
+                    })}
                   />
                 );
               })}
@@ -377,7 +384,7 @@ export default function ZoomModal({
             event.stopPropagation();
             handleClose();
           }}
-          aria-label="Close zoom viewer"
+          aria-label={zoomText.closeAria}
         >
           {renderMedia()}
         </button>

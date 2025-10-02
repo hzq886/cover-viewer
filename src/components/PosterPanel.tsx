@@ -10,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export type MediaSlide =
   | {
@@ -58,6 +59,8 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
     },
     ref,
   ) {
+    const { dictionary, t } = useI18n();
+    const posterText = dictionary.posterPanel;
     const [index, setIndex] = useState(initialIndex);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
@@ -252,7 +255,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
         <Image
           key={`img-${current.url}`}
           src={current.displayUrl}
-          alt="preview"
+          alt={posterText.currentAlt}
           fill
           unoptimized
           draggable={false}
@@ -284,11 +287,11 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
           {canZoom ? (
             <button
               type="button"
-              aria-label="Open media in fullscreen"
+              aria-label={posterText.openFullscreenAria}
               className="absolute inset-0 z-20 cursor-zoom-in bg-transparent"
               onClick={openCurrent}
             >
-              <span className="sr-only">Open media in fullscreen</span>
+              <span className="sr-only">{posterText.openFullscreen}</span>
             </button>
           ) : null}
           <div className="absolute inset-0 z-0">
@@ -303,7 +306,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   <Image
                     key={`prev-${prevImage.url}`}
                     src={prevImage.displayUrl}
-                    alt="previous"
+                    alt={posterText.previousAlt}
                     fill
                     unoptimized
                     draggable={false}
@@ -318,7 +321,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                 <Image
                   key={`img-${current.url}`}
                   src={current.displayUrl}
-                  alt="preview"
+                  alt={posterText.currentAlt}
                   fill
                   unoptimized
                   draggable={false}
@@ -352,7 +355,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   if (index === 0) return;
                   step(-1);
                 }}
-                aria-label="Previous"
+                aria-label={posterText.previous}
               >
                 <svg
                   width="20"
@@ -364,7 +367,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <title>Previous</title>
+                  <title>{posterText.previous}</title>
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
@@ -381,7 +384,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   if (index >= total - 1) return;
                   step(1);
                 }}
-                aria-label="Next"
+                aria-label={posterText.next}
               >
                 <svg
                   width="20"
@@ -393,7 +396,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <title>Next</title>
+                  <title>{posterText.next}</title>
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
@@ -431,7 +434,9 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                         event.stopPropagation();
                         goTo(slideIndex);
                       }}
-                      aria-label={`Go to ${slideIndex + 1}`}
+                      aria-label={t("posterPanel.goTo", {
+                        index: slideIndex + 1,
+                      })}
                     />
                   );
                 })}

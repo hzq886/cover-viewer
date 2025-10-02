@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { APITypes, PlyrOptions } from "plyr-react";
 import "plyr-react/plyr.css";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
   ssr: false,
@@ -60,6 +61,9 @@ export default function VideoPanel({
   onActivate,
   onDeactivate,
 }: Props) {
+  const { dictionary } = useI18n();
+  const videoText = dictionary.video;
+  const playTitle = dictionary.infoPanel.play;
   const playerRef = useRef<APITypes | null>(null);
   const activeRef = useRef(active);
   const initializedRef = useRef(false);
@@ -260,7 +264,7 @@ export default function VideoPanel({
         onClick={onActivate}
         className="relative flex w-full select-none flex-col items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-6 text-slate-200 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition hover:border-violet-200/60 hover:bg-black/45 cursor-pointer"
         style={cardStyle}
-        aria-label="Activate video preview"
+        aria-label={videoText.activateAria}
       >
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />
         <div className="relative z-10 flex flex-col items-center gap-3 text-sm">
@@ -272,18 +276,18 @@ export default function VideoPanel({
               fill="currentColor"
               aria-hidden
             >
-              <title>播放</title>
+              <title>{playTitle}</title>
               <path d="M8 5v14l11-7z" />
             </svg>
           </span>
           <span className="text-base font-medium text-white/90">
-            点击播放视频
+            {videoText.activate}
           </span>
         </div>
         {posterUrl && (
           <Image
             src={posterUrl}
-            alt="video preview"
+            alt={videoText.previewAlt}
             fill
             unoptimized
             sizes="(max-width: 1024px) 90vw, 70vw"
@@ -304,7 +308,7 @@ export default function VideoPanel({
           type="button"
           onClick={onDeactivate}
           className="absolute left-4 top-4 z-30 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-md transition hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
-          aria-label="返回图片预览"
+          aria-label={videoText.backToPreview}
         >
           <svg
             width="14"
@@ -320,7 +324,7 @@ export default function VideoPanel({
             <polyline points="15 18 9 12 15 6" />
             <line x1="9" y1="12" x2="21" y2="12" />
           </svg>
-          <span>返回</span>
+          <span>{videoText.back}</span>
         </button>
       ) : null}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />

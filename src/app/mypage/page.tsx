@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
 import { getDownloadURL, getStorageRef } from "@/lib/storage";
 
@@ -36,6 +37,8 @@ type PageData = {
 export default function MyPage() {
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { dictionary, t } = useI18n();
+  const myPage = dictionary.myPage;
   const [pages, setPages] = useState<PageData[]>([]);
   const pagesRef = useRef<PageData[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -250,7 +253,7 @@ export default function MyPage() {
         setError(null);
       } catch (err) {
         console.error("Failed to delete poster", err);
-        setError((err as Error).message ?? "删除海报失败");
+        setError((err as Error).message ?? t("myPage.deleteFailure"));
       } finally {
         setDeletingIds((prev) => {
           const next = { ...prev };
@@ -259,7 +262,7 @@ export default function MyPage() {
         });
       }
     },
-    [currentPage, firebaseReady, updateLikeDocument, user],
+    [currentPage, firebaseReady, t, updateLikeDocument, user],
   );
 
   return (
@@ -276,11 +279,11 @@ export default function MyPage() {
               href="/"
               className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.32em] text-white transition hover:border-white/40 hover:bg-white/20"
             >
-              返回首页
+              {myPage.backToHome}
             </Link>
             <div className="rounded-3xl border border-white/20 bg-white/15 px-4 py-2 text-right">
               <div className="text-[10px] uppercase tracking-[0.38em] text-white/70">
-                Posters
+                {myPage.posterLabel}
               </div>
               <div className="text-xl font-semibold text-white">
                 {visiblePosters.length.toString().padStart(2, "0")}
@@ -303,26 +306,26 @@ export default function MyPage() {
           {showLoginPrompt && (
             <section className="mt-20 flex flex-col items-center gap-6 text-center">
               <h2 className="text-2xl font-semibold text-white">
-                需要登录以查看私人藏册
+                {myPage.loginRequiredTitle}
               </h2>
               <p className="max-w-md text-sm text-slate-200/70">
-                登录后，我们会为你的专属海报建立一整册收藏夹。每张海报会记录保养痕迹，随时能翻阅与管理。
+                {myPage.loginRequiredDescription}
               </p>
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-6 py-2 text-sm text-white backdrop-blur transition hover:bg-fuchsia-500/50"
               >
-                前往登录
+                {myPage.loginRequiredCta}
               </Link>
             </section>
           )}
 
           {showEmpty && (
             <section className="mt-20 flex flex-col items-center gap-4 text-center text-slate-200/70">
-              <h2 className="text-xl font-semibold text-white">还没有收藏</h2>
-              <p className="max-w-md text-sm">
-                回到首页点个喜欢，海报就会自动收藏到这里。
-              </p>
+              <h2 className="text-xl font-semibold text-white">
+                {myPage.emptyTitle}
+              </h2>
+              <p className="max-w-md text-sm">{myPage.emptyDescription}</p>
             </section>
           )}
 
@@ -331,7 +334,10 @@ export default function MyPage() {
               <div className="rounded-[32px] border border-white/10 bg-slate-950/40 p-8 shadow-[0_40px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
                 <div className="flex flex-col gap-4 pb-8 sm:flex-row sm:items-end sm:justify-between">
                   <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs uppercase tracking-[0.28em] text-white/70">
-                    第 {currentPage + 1} / {totalKnownPages} 页
+                    {t("myPage.pageIndicator", {
+                      current: currentPage + 1,
+                      total: totalKnownPages,
+                    })}
                   </div>
                 </div>
 
@@ -352,7 +358,7 @@ export default function MyPage() {
                             }}
                             disabled={Boolean(deletingIds[poster.id])}
                             className="absolute right-3 top-3 z-20 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/65 text-sm font-semibold text-white/90 shadow-[0_6px_16px_rgba(0,0,0,0.45)] backdrop-blur hover:border-fuchsia-300/50 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-black/30 disabled:text-white/50"
-                            aria-label="删除海报"
+                            aria-label={myPage.deleteAria}
                           >
                             ×
                           </button>
@@ -360,7 +366,7 @@ export default function MyPage() {
                             {poster.imagePath ? (
                               <Image
                                 src={poster.imagePath}
-                                alt={`Poster`}
+                                alt={myPage.posterAlt}
                                 width={147}
                                 height={200}
                                 className="h-full w-full object-cover"
@@ -368,7 +374,7 @@ export default function MyPage() {
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-xs text-slate-200/60">
-                                图像缺失
+                                {myPage.imageMissing}
                               </div>
                             )}
                           </div>
@@ -382,18 +388,18 @@ export default function MyPage() {
                             rel="noopener noreferrer"
                             className="flex-1 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/25"
                           >
-                            购买
+                            {myPage.buy}
                           </a>
                         ) : (
                           <span className="flex-1 cursor-not-allowed rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/40">
-                            购买
+                            {myPage.buy}
                           </span>
                         )}
                         <button
                           type="button"
                           className="flex-1 cursor-pointer rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition hover:border-fuchsia-200/60 hover:bg-fuchsia-500/50"
                         >
-                          观看
+                          {myPage.watch}
                         </button>
                       </div>
                     </article>
@@ -407,7 +413,7 @@ export default function MyPage() {
                     disabled={!hasPrev}
                     className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    上一页
+                    {myPage.prevPage}
                   </button>
                   <button
                     type="button"
@@ -415,7 +421,7 @@ export default function MyPage() {
                     disabled={!hasNext}
                     className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    下一页
+                    {myPage.nextPage}
                   </button>
                 </div>
               </div>

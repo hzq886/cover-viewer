@@ -23,6 +23,7 @@ import {
   MaterialSymbolsLightFavorite,
   MaterialSymbolsLightFavoriteOutline,
 } from "@/components/icons/FavoriteIcon";
+import { useI18n } from "@/i18n/I18nProvider";
 import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
 import { getMetadata, getStorageRef, uploadBytes } from "@/lib/storage";
 
@@ -105,7 +106,8 @@ async function convertBlobToWebp(sourceBlob: Blob): Promise<Blob> {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Failed to load image for WebP conversion"));
+      img.onerror = () =>
+        reject(new Error("Failed to load image for WebP conversion"));
       img.src = objectUrl;
     });
     const webp = await renderToCanvas(image);
@@ -120,11 +122,13 @@ export default function CommentPanel({
   height,
   contentId,
   posterProxyUrl,
-  affiliateUrl
+  affiliateUrl,
 }: Props) {
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { dictionary } = useI18n();
+  const commentText = dictionary.comment;
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -260,10 +264,10 @@ export default function CommentPanel({
   }, [firebaseReady, contentId, user, authLoading, isAuthenticated]);
 
   const placeholder = useMemo(() => {
-    if (liked) return "留下你的想法...";
-    if (comments.length === 0) return "抢个沙发吧";
-    return "写点什么";
-  }, [liked, comments.length]);
+    if (liked) return commentText.placeholderLiked;
+    if (comments.length === 0) return commentText.placeholderEmpty;
+    return commentText.placeholderDefault;
+  }, [liked, comments.length, commentText]);
 
   const ensurePosterStored = useCallback(async () => {
     if (!contentId) {
@@ -298,7 +302,10 @@ export default function CommentPanel({
     try {
       uploadBlob = await convertBlobToWebp(blob);
     } catch (error) {
-      console.warn("Failed to convert poster to WebP; uploading original", error);
+      console.warn(
+        "Failed to convert poster to WebP; uploading original",
+        error,
+      );
     }
     const contentType = uploadBlob.type || "image/webp";
     await uploadBytes(storageRef, uploadBlob, { contentType });
@@ -389,6 +396,7 @@ export default function CommentPanel({
     router,
     updateLikeDocument,
     user,
+    affiliateUrl,
   ]);
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLButtonElement> = (
@@ -458,7 +466,7 @@ export default function CommentPanel({
       <div className="flex items-center gap-3 px-2">
         <button
           type="button"
-          aria-label={liked ? "取消喜欢" : "点个喜欢"}
+          aria-label={liked ? commentText.unlikeAria : commentText.likeAria}
           aria-pressed={liked}
           onClick={() => {
             if (!likeLoading) {
@@ -507,7 +515,7 @@ export default function CommentPanel({
         >
           {comments.length === 0 ? (
             <p className="text-sm text-slate-200/60">
-              还没有评论，快来抢个沙发。
+              {commentText.noComments}
             </p>
           ) : (
             comments.map((comment) => (
@@ -532,7 +540,7 @@ export default function CommentPanel({
         onSubmit={handleCommentSubmit}
       >
         <label className="sr-only" htmlFor="comment-input">
-          添加评论
+          {commentText.addLabel}
         </label>
         <div className="flex items-center gap-2">
           <input
@@ -548,7 +556,7 @@ export default function CommentPanel({
             className="h-10 min-w-[68px] rounded-xl bg-rose-500 px-4 text-sm font-semibold text-white transition hover:bg-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200/70 disabled:cursor-not-allowed disabled:bg-rose-500/50"
             disabled={submitting || !pending.trim()}
           >
-            {submitting ? "发送中" : "发送"}
+            {submitting ? commentText.submitting : commentText.submit}
           </button>
         </div>
       </form>

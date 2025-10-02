@@ -26,6 +26,10 @@ type TranslationShape = {
     logout: string;
     menuAria: string;
   };
+  auth: {
+    promptEmail: string;
+    emailRequired: string;
+  };
   login: {
     title: string;
     description: string;
@@ -37,6 +41,24 @@ type TranslationShape = {
     sentNotice: string;
     sentHelp: string;
     backToHome: string;
+  };
+  myPage: {
+    backToHome: string;
+    posterLabel: string;
+    loginRequiredTitle: string;
+    loginRequiredDescription: string;
+    loginRequiredCta: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    pageIndicator: string;
+    deleteAria: string;
+    deleteFailure: string;
+    imageMissing: string;
+    buy: string;
+    watch: string;
+    prevPage: string;
+    nextPage: string;
+    posterAlt: string;
   };
   search: {
     placeholder: {
@@ -84,6 +106,36 @@ type TranslationShape = {
   };
   video: {
     close: string;
+    activate: string;
+    activateAria: string;
+    previewAlt: string;
+    backToPreview: string;
+    back: string;
+  };
+  posterPanel: {
+    openFullscreen: string;
+    openFullscreenAria: string;
+    previous: string;
+    next: string;
+    goTo: string;
+    currentAlt: string;
+    previousAlt: string;
+  };
+  zoomModal: {
+    closeAria: string;
+    previousAlt: string;
+    currentAlt: string;
+  };
+  comment: {
+    placeholderLiked: string;
+    placeholderEmpty: string;
+    placeholderDefault: string;
+    noComments: string;
+    addLabel: string;
+    submit: string;
+    submitting: string;
+    likeAria: string;
+    unlikeAria: string;
   };
   errors: {
     searchFailed: string;
@@ -109,6 +161,29 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "个人主页",
       logout: "退出登录",
       menuAria: "打开个人菜单",
+    },
+    auth: {
+      promptEmail: "请输入邮箱以完成登录。",
+      emailRequired: "需要提供邮箱才能完成登录。",
+    },
+    myPage: {
+      backToHome: "返回首页",
+      posterLabel: "收藏海报",
+      loginRequiredTitle: "需要登录以查看私人藏册",
+      loginRequiredDescription:
+        "登录后，我们会为你的专属海报建立一整册收藏夹。每张海报会记录保养痕迹，随时能翻阅与管理。",
+      loginRequiredCta: "前往登录",
+      emptyTitle: "还没有收藏",
+      emptyDescription: "回到首页点个喜欢，海报就会自动收藏到这里。",
+      pageIndicator: "第 {{current}} / {{total}} 页",
+      deleteAria: "删除海报",
+      deleteFailure: "删除海报失败",
+      imageMissing: "图像缺失",
+      buy: "购买",
+      watch: "观看",
+      prevPage: "上一页",
+      nextPage: "下一页",
+      posterAlt: "收藏海报预览",
     },
     login: {
       title: "登录",
@@ -186,6 +261,36 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     video: {
       close: "关闭",
+      activate: "点击播放视频",
+      activateAria: "开启视频预览",
+      previewAlt: "视频预览图",
+      backToPreview: "返回图片预览",
+      back: "返回",
+    },
+    posterPanel: {
+      openFullscreen: "打开全屏预览",
+      openFullscreenAria: "在全屏中查看媒体",
+      previous: "上一项",
+      next: "下一项",
+      goTo: "跳转到第 {{index}} 张",
+      currentAlt: "媒体预览",
+      previousAlt: "上一张媒体预览",
+    },
+    zoomModal: {
+      closeAria: "关闭放大预览",
+      previousAlt: "上一张放大图",
+      currentAlt: "放大的媒体",
+    },
+    comment: {
+      placeholderLiked: "留下你的想法...",
+      placeholderEmpty: "抢个沙发吧",
+      placeholderDefault: "写点什么",
+      noComments: "还没有评论，快来抢个沙发。",
+      addLabel: "添加评论",
+      submit: "发送",
+      submitting: "发送中",
+      likeAria: "点个喜欢",
+      unlikeAria: "取消喜欢",
     },
     errors: {
       searchFailed: "搜索失败，请稍后重试。",
@@ -209,6 +314,29 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "我的頁面",
       logout: "登出",
       menuAria: "開啟個人選單",
+    },
+    auth: {
+      promptEmail: "請輸入電子郵件以完成登入。",
+      emailRequired: "需要提供電子郵件才能完成登入。",
+    },
+    myPage: {
+      backToHome: "返回首頁",
+      posterLabel: "收藏海報",
+      loginRequiredTitle: "需要登入才可查看私人收藏",
+      loginRequiredDescription:
+        "登入後，我們會為你的海報建立專屬收藏冊，每一張都能隨時整理與回顧。",
+      loginRequiredCta: "前往登入",
+      emptyTitle: "尚未收藏",
+      emptyDescription: "回到首頁按下喜歡，海報就會自動收藏到這裡。",
+      pageIndicator: "第 {{current}} / {{total}} 頁",
+      deleteAria: "刪除海報",
+      deleteFailure: "刪除海報失敗",
+      imageMissing: "缺少圖像",
+      buy: "購買",
+      watch: "觀看",
+      prevPage: "上一頁",
+      nextPage: "下一頁",
+      posterAlt: "收藏海報預覽",
     },
     login: {
       title: "登入",
@@ -287,6 +415,36 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     video: {
       close: "關閉",
+      activate: "點擊播放影片",
+      activateAria: "開啟影片預覽",
+      previewAlt: "影片預覽圖",
+      backToPreview: "返回圖片預覽",
+      back: "返回",
+    },
+    posterPanel: {
+      openFullscreen: "開啟全螢幕預覽",
+      openFullscreenAria: "在全螢幕中查看媒體",
+      previous: "上一個",
+      next: "下一個",
+      goTo: "跳至第 {{index}} 張",
+      currentAlt: "媒體預覽",
+      previousAlt: "上一張媒體預覽",
+    },
+    zoomModal: {
+      closeAria: "關閉放大預覽",
+      previousAlt: "上一張放大圖",
+      currentAlt: "放大的媒體",
+    },
+    comment: {
+      placeholderLiked: "留下你的想法...",
+      placeholderEmpty: "搶個沙發吧",
+      placeholderDefault: "寫點什麼",
+      noComments: "還沒有留言，快來搶個沙發。",
+      addLabel: "新增留言",
+      submit: "送出",
+      submitting: "送出中",
+      likeAria: "點個喜歡",
+      unlikeAria: "取消喜歡",
     },
     errors: {
       searchFailed: "搜尋失敗，請稍候再試。",
@@ -310,6 +468,30 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "マイページ",
       logout: "ログアウト",
       menuAria: "プロフィールメニューを開く",
+    },
+    auth: {
+      promptEmail: "ログインを完了するにはメールアドレスを入力してください。",
+      emailRequired: "ログインを完了するにはメールアドレスが必要です。",
+    },
+    myPage: {
+      backToHome: "トップに戻る",
+      posterLabel: "コレクション",
+      loginRequiredTitle: "ログインするとコレクションを閲覧できます",
+      loginRequiredDescription:
+        "ログイン後は、お気に入りのジャケットを集めた専用アルバムが作成されます。いつでも見返して管理できます。",
+      loginRequiredCta: "ログインへ",
+      emptyTitle: "まだお気に入りがありません",
+      emptyDescription:
+        "トップで「いいね」を押すと、ここに自動でコレクションされます。",
+      pageIndicator: "{{current}} / {{total}} ページ",
+      deleteAria: "ジャケットを削除",
+      deleteFailure: "ジャケットの削除に失敗しました",
+      imageMissing: "画像がありません",
+      buy: "購入",
+      watch: "再生",
+      prevPage: "前へ",
+      nextPage: "次へ",
+      posterAlt: "コレクションのジャケット",
     },
     login: {
       title: "ログイン",
@@ -392,6 +574,36 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     video: {
       close: "閉じる",
+      activate: "動画を再生する",
+      activateAria: "動画プレビューを開く",
+      previewAlt: "動画プレビュー",
+      backToPreview: "画像プレビューに戻る",
+      back: "戻る",
+    },
+    posterPanel: {
+      openFullscreen: "全画面で表示",
+      openFullscreenAria: "メディアを全画面で表示",
+      previous: "前へ",
+      next: "次へ",
+      goTo: "{{index}} 枚目へ移動",
+      currentAlt: "メディアプレビュー",
+      previousAlt: "前のメディアプレビュー",
+    },
+    zoomModal: {
+      closeAria: "拡大表示を閉じる",
+      previousAlt: "前の拡大表示",
+      currentAlt: "拡大表示",
+    },
+    comment: {
+      placeholderLiked: "感想を残しましょう…",
+      placeholderEmpty: "最初のコメントをどうぞ",
+      placeholderDefault: "コメントを書く",
+      noComments: "まだコメントがありません。最初の一言をどうぞ。",
+      addLabel: "コメントを追加",
+      submit: "送信",
+      submitting: "送信中…",
+      likeAria: "いいねする",
+      unlikeAria: "いいねを取り消す",
     },
     errors: {
       searchFailed: "検索に失敗しました。時間をおいて再度お試しください。",
@@ -415,6 +627,30 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "My Page",
       logout: "Logout",
       menuAria: "Open profile menu",
+    },
+    auth: {
+      promptEmail: "Enter your email to finish signing in.",
+      emailRequired: "Your email is required to complete sign-in.",
+    },
+    myPage: {
+      backToHome: "Back to home",
+      posterLabel: "Posters",
+      loginRequiredTitle: "Sign in to view your collection",
+      loginRequiredDescription:
+        "After signing in, we'll build a private album for every cover you like so you can revisit and manage them anytime.",
+      loginRequiredCta: "Go to login",
+      emptyTitle: "No favorites yet",
+      emptyDescription:
+        "Head back to the home page and like a cover to see it here.",
+      pageIndicator: "Page {{current}} / {{total}}",
+      deleteAria: "Remove cover",
+      deleteFailure: "Failed to remove cover",
+      imageMissing: "Image unavailable",
+      buy: "Buy",
+      watch: "Watch",
+      prevPage: "Previous",
+      nextPage: "Next",
+      posterAlt: "Collected cover preview",
     },
     login: {
       title: "Login",
@@ -496,6 +732,36 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     video: {
       close: "Close",
+      activate: "Play the sample video",
+      activateAria: "Activate video preview",
+      previewAlt: "Video preview",
+      backToPreview: "Back to image preview",
+      back: "Back",
+    },
+    posterPanel: {
+      openFullscreen: "Open fullscreen preview",
+      openFullscreenAria: "View media in fullscreen",
+      previous: "Previous",
+      next: "Next",
+      goTo: "Go to slide {{index}}",
+      currentAlt: "Media preview",
+      previousAlt: "Previous media preview",
+    },
+    zoomModal: {
+      closeAria: "Close zoomed viewer",
+      previousAlt: "Previous zoomed media",
+      currentAlt: "Zoomed media",
+    },
+    comment: {
+      placeholderLiked: "Share what you think…",
+      placeholderEmpty: "Be the first to comment",
+      placeholderDefault: "Type something",
+      noComments: "No comments yet—be the first to say something.",
+      addLabel: "Add comment",
+      submit: "Send",
+      submitting: "Sending…",
+      likeAria: "Like this cover",
+      unlikeAria: "Remove like",
     },
     errors: {
       searchFailed: "Search failed. Please try again in a moment.",

@@ -123,7 +123,10 @@ export default function SearchBar({
     const syncFromStorage = () => {
       const loaded = loadRecentKeywords();
       setRecentKeywords((prev) => {
-        if (prev.length === loaded.length && prev.every((v, i) => v === loaded[i])) {
+        if (
+          prev.length === loaded.length &&
+          prev.every((v, i) => v === loaded[i])
+        ) {
           return prev;
         }
         return loaded;

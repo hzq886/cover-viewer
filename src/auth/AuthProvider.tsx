@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import { getFirebaseAuth, hasFirebaseConfig } from "@/lib/firebase";
 
 type AuthContextValue = {
@@ -23,6 +24,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { dictionary } = useI18n();
+  const authText = dictionary.auth;
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,14 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!email) {
           // Ask user to input email if not available locally
           // eslint-disable-next-line no-alert
-          email =
-            window.prompt(
-              "请输入您的邮箱以完成登录 / メールを入力してください",
-              "",
-            ) || "";
+          email = window.prompt(authText.promptEmail, "") || "";
         }
         if (!email) {
-          setError("Email is required to complete sign-in.");
+          setError(authText.emailRequired);
           setLoading(false);
           return;
         }
@@ -80,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     })();
-  }, [router]);
+  }, [router, authText.promptEmail, authText.emailRequired]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
