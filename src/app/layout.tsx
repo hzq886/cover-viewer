@@ -26,12 +26,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headerStore = headers();
+  const headerStore = await headers();
   const acceptLanguage = headerStore.get("accept-language");
   const initialLanguage =
     resolveFromAcceptLanguage(acceptLanguage) ?? DEFAULT_LANGUAGE;

@@ -26,6 +26,18 @@ type TranslationShape = {
     logout: string;
     menuAria: string;
   };
+  login: {
+    title: string;
+    description: string;
+    missingConfig: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    submit: string;
+    submitting: string;
+    sentNotice: string;
+    sentHelp: string;
+    backToHome: string;
+  };
   search: {
     placeholder: {
       default: string;
@@ -97,6 +109,19 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "个人主页",
       logout: "退出登录",
       menuAria: "打开个人菜单",
+    },
+    login: {
+      title: "登录",
+      description: "使用邮箱登录（无密码）。我们会发送一封带有登录链接的邮件。",
+      missingConfig:
+        "Firebase 配置未设置。请参考 README 的“登录（Firebase 邮件链接）”部分。",
+      emailLabel: "邮箱",
+      emailPlaceholder: "you@example.com",
+      submit: "发送登录链接",
+      submitting: "发送中…",
+      sentNotice: "登录链接已发送至 {{email}}。请在邮件中点击链接完成登录。",
+      sentHelp: "收到邮件后，直接在本设备打开即可自动完成登录。",
+      backToHome: "返回首页",
     },
     search: {
       placeholder: {
@@ -185,6 +210,20 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       logout: "登出",
       menuAria: "開啟個人選單",
     },
+    login: {
+      title: "登入",
+      description:
+        "使用電子郵件登入（免密碼）。我們會寄送一封附有登入連結的信件。",
+      missingConfig:
+        "Firebase 設定尚未完成。請參考 README 的「登入（Firebase 郵件連結）」段落。",
+      emailLabel: "電子郵件",
+      emailPlaceholder: "you@example.com",
+      submit: "寄送登入連結",
+      submitting: "寄送中…",
+      sentNotice: "登入連結已寄送到 {{email}}，請點擊郵件中的連結完成登入。",
+      sentHelp: "收到信件後，在同一裝置開啟即可自動完成登入。",
+      backToHome: "返回首頁",
+    },
     search: {
       placeholder: {
         default: "輸入任意關鍵字（多個關鍵字以空格分隔）",
@@ -271,6 +310,22 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "マイページ",
       logout: "ログアウト",
       menuAria: "プロフィールメニューを開く",
+    },
+    login: {
+      title: "ログイン",
+      description:
+        "メールアドレスでログインします（パスワード不要）。サインイン用リンクをお送りします。",
+      missingConfig:
+        "Firebase の設定が未完了です。README の「ログイン（Firebase メールリンク）」をご確認ください。",
+      emailLabel: "メールアドレス",
+      emailPlaceholder: "you@example.com",
+      submit: "サインインリンクを送信",
+      submitting: "送信中…",
+      sentNotice:
+        "サインインリンクを {{email}} に送信しました。メール内のリンクからログインしてください。",
+      sentHelp:
+        "メールを受信した端末でリンクを開くと、そのままログインが完了します。",
+      backToHome: "トップへ戻る",
     },
     search: {
       placeholder: {
@@ -360,6 +415,22 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       myPage: "My Page",
       logout: "Logout",
       menuAria: "Open profile menu",
+    },
+    login: {
+      title: "Login",
+      description:
+        "Sign in with your email (no password needed). We'll send a message with your sign-in link.",
+      missingConfig:
+        "Firebase isn't configured yet. See the README section “Login (Firebase email link)”.",
+      emailLabel: "Email",
+      emailPlaceholder: "you@example.com",
+      submit: "Send sign-in link",
+      submitting: "Sending…",
+      sentNotice:
+        "We've sent a sign-in link to {{email}}. Open the email and tap the link to finish logging in.",
+      sentHelp:
+        "If you open the email on this device, the link will sign you in automatically.",
+      backToHome: "Back to home",
     },
     search: {
       placeholder: {
