@@ -8,16 +8,32 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const url = searchParams.get("url");
-    if (!url) {
+    const urlParam = searchParams.get("url");
+    if (!urlParam) {
       return NextResponse.json({ message: "缺少 url 参数" }, { status: 400 });
     }
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
-      },
+    // Support relative internal URLs like "/api/proxy?url=..."
+    const reqUrl = new URL(req.url);
+    const fetchUrl = urlParam.startsWith("/")
+      ? `${reqUrl.origin}${urlParam}`
+      : urlParam;
+
+    // Build headers friendlier to upstreams (e.g., DMM)
+    const headers: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)",
+      Accept:
+        "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    };
+    try {
+      const h = new URL(fetchUrl).hostname;
+      if (h.endsWith(".dmm.co.jp") || h === "dmm.co.jp") {
+        headers.Referer = "https://www.dmm.co.jp/";
+      }
+    } catch {}
+
+    const res = await fetch(fetchUrl, {
+      headers,
       signal: timeoutSignal(10000),
     });
     if (!res.ok) {

@@ -60,8 +60,20 @@ export async function GET(req: Request) {
       }
     } catch {}
 
+    // Friendlier headers for upstreams (e.g., DMM may require Referer)
+    const splitHeaders: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)",
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    };
+    try {
+      const h = new URL(url).hostname;
+      if (h.endsWith(".dmm.co.jp") || h === "dmm.co.jp") {
+        splitHeaders.Referer = "https://www.dmm.co.jp/";
+      }
+    } catch {}
+
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)" },
+      headers: splitHeaders,
       signal: timeoutSignal(12000),
     });
     if (!res.ok) {
