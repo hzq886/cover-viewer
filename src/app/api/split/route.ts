@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     // Simple disk cache under .next/cache/split
     const key = createHash("sha1")
-      .update(`${url}|${side}|${spineRatio}|${format}`)
+      .update(`${urlParam}|${side}|${spineRatio}|${format}`)
       .digest("hex");
     const cacheDir = path.join(process.cwd(), ".next", "cache", "split");
     const file = path.join(
