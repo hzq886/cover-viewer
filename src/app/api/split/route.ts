@@ -14,12 +14,12 @@ const bufferToBody = (buf: Buffer) => Uint8Array.from(buf);
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const url = searchParams.get("url");
+    const urlParam = searchParams.get("url");
     const side = (searchParams.get("side") || "front").toLowerCase();
     const spine = Number(searchParams.get("spine") || "0.02");
     const format = (searchParams.get("format") || "webp").toLowerCase();
 
-    if (!url)
+    if (!urlParam)
       return NextResponse.json({ message: "缺少 url 参数" }, { status: 400 });
     if (side !== "front" && side !== "back")
       return NextResponse.json(
@@ -65,14 +65,19 @@ export async function GET(req: Request) {
       "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)",
       Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
     };
+    // Support internal proxy URL (relative path)
+    const reqUrl = new URL(req.url);
+    const fetchUrl = urlParam.startsWith("/")
+      ? `${reqUrl.origin}${urlParam}`
+      : urlParam;
     try {
-      const h = new URL(url).hostname;
+      const h = new URL(fetchUrl).hostname;
       if (h.endsWith(".dmm.co.jp") || h === "dmm.co.jp") {
         splitHeaders.Referer = "https://www.dmm.co.jp/";
       }
     } catch {}
 
-    const res = await fetch(url, {
+    const res = await fetch(fetchUrl, {
       headers: splitHeaders,
       signal: timeoutSignal(12000),
     });

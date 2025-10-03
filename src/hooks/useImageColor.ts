@@ -22,9 +22,9 @@ export function useImageColor(
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(
-          `/api/color?url=${encodeURIComponent(posterUrl)}`,
-        );
+        // Prefer proxied URL to avoid upstream hotlink protection
+        const target = proxiedUrl || posterUrl;
+        const r = await fetch(`/api/color?url=${encodeURIComponent(target)}`);
         const data = await r.json();
         if (!r.ok)
           throw new Error(data?.message || "Failed to analyze dominant colors");
