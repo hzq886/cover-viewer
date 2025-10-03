@@ -35,6 +35,13 @@ const STAGE_WIDTH_PRESETS: Array<{ min: number; width: number }> = [
   { min: 640, width: 320 },
 ];
 const STAGE_WIDTH_DEFAULT = 280;
+const FEATURE_ACCENT_CLASSES = [
+  "bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.35)]",
+  "bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.35)]",
+  "bg-sky-400 shadow-[0_0_0_6px_rgba(56,189,248,0.35)]",
+  "bg-emerald-400 shadow-[0_0_0_6px_rgba(52,211,153,0.35)]",
+  "bg-amber-400 shadow-[0_0_0_6px_rgba(251,191,36,0.35)]",
+] as const;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -600,43 +607,43 @@ export default function Home() {
 
         {!compact && !loading && (
           <section className="mt-6 w-full">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/10 px-6 py-7 shadow-[0_40px_120px_-45px_rgba(15,23,42,0.95)] md:px-9 md:py-9">
-              <div className="pointer-events-none absolute -top-20 right-6 h-44 w-44 rounded-full bg-violet-500/30 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-24 left-0 h-48 w-48 rounded-full bg-fuchsia-500/25 blur-3xl" />
-              <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center">
+            <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-slate-950/80 via-indigo-900/40 to-fuchsia-900/30 px-6 py-8 shadow-[0_40px_120px_-45px_rgba(15,23,42,0.95)] backdrop-blur-xl md:px-10 md:py-10">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_55%)]" />
+              <div className="pointer-events-none absolute -top-24 left-[-15%] h-72 w-72 rounded-full bg-violet-500/35 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-32 right-[-10%] h-80 w-80 rounded-full bg-fuchsia-500/25 blur-3xl" />
+              <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center">
                 <div className="flex-1">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-violet-100 ring-1 ring-inset ring-white/20">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.35em] text-violet-100 ring-1 ring-inset ring-white/25">
                     {hero.badge}
                   </span>
-                  <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
+                  <h1 className="mt-5 text-2xl font-semibold leading-tight text-white md:text-4xl">
                     {hero.heading1}
-                  </h2>
-                  <h2 className="mt-4 text-xl md:text-2xl font-semibold text-white">
-                    {hero.heading2}
-                  </h2>
-                  <p className="mt-3 text-sm md:text-base text-slate-200/80">
+                  </h1>
+                  <p className="mt-4 text-sm leading-relaxed text-slate-200/85 md:text-base">
                     {hero.description}
-                    <br />
-                    <em className="font-mono not-italic">{hero.emphasis}</em>
+                  </p>
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-violet-200/80">
+                    {hero.emphasis}
                   </p>
                 </div>
-                <div className="grid flex-1 grid-cols-1 gap-3 text-sm text-slate-100 md:grid-cols-2">
+                <div className="grid flex-1 grid-cols-1 gap-4 text-sm text-slate-100 md:grid-cols-2">
                   {heroFeatures.map((feature, index) => {
-                    const dotClass =
-                      index === 0
-                        ? "mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.2)]"
-                        : "mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.2)]";
+                    const accent =
+                      FEATURE_ACCENT_CLASSES[
+                        index % FEATURE_ACCENT_CLASSES.length
+                      ];
+                    const dotClass = `mt-[6px] h-2.5 w-2.5 flex-shrink-0 rounded-full ${accent}`;
                     return (
                       <div
                         key={`${feature.title}-${index}`}
-                        className="flex items-start gap-3 rounded-2xl bg-black/30 p-4 ring-1 ring-inset ring-white/10"
+                        className="group flex items-start gap-3 rounded-2xl bg-white/5 p-5 ring-1 ring-inset ring-white/15 backdrop-blur-sm transition will-change-transform hover:-translate-y-1 hover:bg-white/10"
                       >
                         <span className={dotClass} />
                         <div>
                           <p className="font-medium text-white/90">
                             {feature.title}
                           </p>
-                          <p className="mt-1 text-xs text-slate-300/80">
+                          <p className="mt-2 text-xs text-slate-300/85">
                             {feature.description}
                           </p>
                         </div>

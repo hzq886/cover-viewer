@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lucky JAV Cover | Multi-language Poster Viewer",
-  description: "Discover random JAV covers with localized interface support.",
+  title: "Lucky JAV",
+  description: "Discover random JAV with localized interface support.",
   icons: {
     icon: "/favicon.png",
   },

@@ -46,7 +46,6 @@ type TranslationShape = {
     backToHome: string;
     posterLabel: string;
     loginRequiredTitle: string;
-    loginRequiredDescription: string;
     loginRequiredCta: string;
     emptyTitle: string;
     emptyDescription: string;
@@ -85,7 +84,6 @@ type TranslationShape = {
   hero: {
     badge: string;
     heading1: string;
-    heading2: string;
     description: string;
     emphasis: string;
     features: Feature[];
@@ -183,11 +181,9 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "返回首页",
       posterLabel: "收藏海报",
       loginRequiredTitle: "需要登录以查看私人藏册",
-      loginRequiredDescription:
-        "登录后，我们会为你的专属海报建立一整册收藏夹。每张海报会记录保养痕迹，随时能翻阅与管理。",
       loginRequiredCta: "前往登录",
       emptyTitle: "还没有收藏",
-      emptyDescription: "回到首页点个喜欢，海报就会自动收藏到这里。",
+      emptyDescription: "点个赞，海报就会自动收藏到这里。",
       pageIndicator: "第 {{current}} / {{total}} 页",
       deleteAria: "删除海报",
       deleteFailure: "删除海报失败",
@@ -234,27 +230,32 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       homeAria: "返回首页",
     },
     hero: {
-      badge: "今日幸运AV",
-      heading1: "输入任意关键词，随机获取一张今日幸运AV封面",
-      heading2: "来试试手气吧！",
-      description: "支持分类、番号、演员、导演、制作商、标题任意关键词。",
-      emphasis: "要是不满意结果，试试按搜索键再抽一次！",
+      badge: "好运AV",
+      heading1: "任意关键词随机搜 AV，下一秒遇见女神",
+      description:
+        "从番号、演员到剧情口味，输入任何灵感；左侧关键词大词典随时点燃新的搜索思路。",
+      emphasis:
+        "搜得不满意？连续点按搜索键，多刷新几次直到撞见最想要的女神。",
       features: [
         {
-          title: "不只是封面！",
-          description: "右侧预览图包含更多视频截图",
+          title: "随机匹配，灵感不停",
+          description: "任意组合关键词，一键抽选 AV 作品。",
         },
         {
-          title: "放大大图！",
-          description: "点击中央海报可放大截图",
+          title: "关键词词典助攻",
+          description: "搜索框左侧收录热门到冷门标签，点一点拓展灵感池。",
         },
         {
-          title: "动起来！",
-          description: "左侧播放按钮可观赏样片",
+          title: "沉浸式欣赏",
+          description: "封面、剧照、样片同时呈现，还能随手留下评论。",
         },
         {
-          title: "商品详情！",
-          description: "点击影片标题可以跳转购买页面",
+          title: "轻松点赞收藏",
+          description: "快速注册即可点赞，心仪作品一键收入私人收藏册。",
+        },
+        {
+          title: "无限刷新体验",
+          description: "不满意当前结果？继续搜索立刻换一批，全程无等待。",
         },
       ],
     },
@@ -349,11 +350,9 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "返回首頁",
       posterLabel: "收藏海報",
       loginRequiredTitle: "需要登入才可查看私人收藏",
-      loginRequiredDescription:
-        "登入後，我們會為你的海報建立專屬收藏冊，每一張都能隨時整理與回顧。",
       loginRequiredCta: "前往登入",
       emptyTitle: "尚未收藏",
-      emptyDescription: "回到首頁按下喜歡，海報就會自動收藏到這裡。",
+      emptyDescription: "按個讚，海報就會自動收藏到這裡。",
       pageIndicator: "第 {{current}} / {{total}} 頁",
       deleteAria: "刪除海報",
       deleteFailure: "刪除海報失敗",
@@ -401,27 +400,32 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       homeAria: "返回首頁",
     },
     hero: {
-      badge: "今日幸運AV",
-      heading1: "輸入任意關鍵字，隨機抽出一張今日幸運AV封面",
-      heading2: "來試試手氣吧！",
-      description: "支援分類、番號、演員、導演、製作商、標題等任意關鍵字。",
-      emphasis: "不滿意結果？再按一次搜尋鍵重新抽卡！",
+      badge: "好運AV",
+      heading1: "輸入任意關鍵字隨機搜 AV，下一秒邂逅女神",
+      description:
+        "從番號、演員到情境口味，輸入任何靈感；左側關鍵字大詞典讓靈感源源不絕。",
+      emphasis:
+        "結果不對味？連續點擊搜尋鍵再抽幾次，直到抽中最想看的女神。",
       features: [
         {
-          title: "不只看封面！",
-          description: "右側預覽欄提供更多影片截圖",
+          title: "隨機匹配，靈感不斷",
+          description: "自由組合關鍵字，一鍵抽選全站 AV 作品。",
         },
         {
-          title: "放大欣賞！",
-          description: "點擊中央海報即可放大檢視",
+          title: "關鍵字詞典助攻",
+          description: "搜尋框左側收錄熱門到冷門標籤，點一下拓展靈感池。",
         },
         {
-          title: "影音也有！",
-          description: "左側播放鍵可觀賞試看影片",
+          title: "沉浸式欣賞",
+          description: "封面、劇照、樣片同時呈現，還能即時留言互動。",
         },
         {
-          title: "商品詳情！",
-          description: "點擊片名即可前往購買頁面",
+          title: "輕鬆按讚收藏",
+          description: "快速註冊立即按讚，心頭好作品一鍵加入私人收藏冊。",
+        },
+        {
+          title: "無限刷新體驗",
+          description: "不喜歡目前結果？再搜尋立刻換一批，完全不用等待。",
         },
       ],
     },
@@ -516,12 +520,10 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "トップに戻る",
       posterLabel: "コレクション",
       loginRequiredTitle: "ログインするとコレクションを閲覧できます",
-      loginRequiredDescription:
-        "ログイン後は、お気に入りのジャケットを集めた専用アルバムが作成されます。いつでも見返して管理できます。",
       loginRequiredCta: "ログインへ",
       emptyTitle: "まだお気に入りがありません",
       emptyDescription:
-        "トップで「いいね」を押すと、ここに自動でコレクションされます。",
+        "いいねを押すと、ここに自動でコレクションされます。",
       pageIndicator: "{{current}} / {{total}} ページ",
       deleteAria: "ジャケットを削除",
       deleteFailure: "ジャケットの削除に失敗しました",
@@ -571,28 +573,32 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       homeAria: "トップに戻る",
     },
     hero: {
-      badge: "本日のラッキーAV",
-      heading1: "お好みのキーワードで本日のラッキーAVジャケットをランダム表示",
-      heading2: "運試ししてみましょう！",
+      badge: "ラッキーAV",
+      heading1: "好きなキーワードで AV をランダム探索、次の瞬間に出会う決めの一本",
       description:
-        "ジャンル、品番、出演者、監督、メーカー、タイトルなど自由に検索できます。",
-      emphasis: "気に入らなければ検索ボタンでもう一度引き直せます！",
+        "品番、女優、シチュエーションまで、ひらめいた言葉を入力。左側のキーワード大辞典で新しい切り口もすぐ見つかります。",
+      emphasis:
+        "結果がしっくり来なければ検索ボタンを連打、納得いくまで何度でもリロード。",
       features: [
         {
-          title: "ジャケットだけじゃない！",
-          description: "右側のプレビューで追加のスチルを確認",
+          title: "ランダムマッチで新発見",
+          description: "自由なキーワードの組み合わせで全作品をシャッフル抽出。",
         },
         {
-          title: "拡大表示！",
-          description: "中央のジャケットをクリックすると拡大",
+          title: "キーワード大辞典",
+          description: "検索ボックス左の辞典から人気タグもレアタグもワンタップで追加。",
         },
         {
-          title: "動画もチェック！",
-          description: "左側の再生ボタンでサンプル動画を再生",
+          title: "没入型プレビュー",
+          description: "ジャケット・スチル・サンプル映像を同時に楽しみ、コメントも投稿可能。",
         },
         {
-          title: "詳細情報へ！",
-          description: "作品タイトルをクリックすると購入ページへ移動",
+          title: "ワンクリックでお気に入り",
+          description: "スピード登録ですぐにいいね、そしてマイコレクションへ保存。",
+        },
+        {
+          title: "納得するまで再検索",
+          description: "気に入るまで何度でも再抽選、待ち時間ゼロでラインナップを更新。",
         },
       ],
     },
@@ -688,12 +694,10 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "Back to home",
       posterLabel: "Posters",
       loginRequiredTitle: "Sign in to view your collection",
-      loginRequiredDescription:
-        "After signing in, we'll build a private album for every cover you like so you can revisit and manage them anytime.",
       loginRequiredCta: "Go to login",
       emptyTitle: "No favorites yet",
       emptyDescription:
-        "Head back to the home page and like a cover to see it here.",
+        "Like a cover to see it here.",
       pageIndicator: "Page {{current}} / {{total}}",
       deleteAria: "Remove cover",
       deleteFailure: "Failed to remove cover",
@@ -743,28 +747,37 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       homeAria: "Go back to home",
     },
     hero: {
-      badge: "Lucky AV of the Day",
-      heading1: "Enter a keyword to draw a random AV cover for today",
-      heading2: "Give it a spin!",
+      badge: "Lucky AV",
+      heading1: "Search any keyword and let a surprise AV pick find you in seconds",
       description:
-        "Search by category, SKU, actress, director, studio, or any title keyword.",
-      emphasis: "Not happy with the result? Hit search again for a new draw!",
+        "Type whatever sparks your curiosity: IDs, performers, studios, kinks; the discovery engine spins up a tailored lineup. The keyword dictionary on the left keeps fresh ideas flowing.",
+      emphasis:
+        "Not feeling the match? Hit search again and remix your results as many times as you like.",
       features: [
         {
-          title: "More than covers",
-          description: "Preview column shows additional screenshots",
+          title: "Randomized finds on demand",
+          description:
+            "Mash up any keywords to shuffle intelligent AV recommendations instantly.",
         },
         {
-          title: "Zoom in",
-          description: "Click the main poster to view it in large size",
+          title: "Keyword dictionary at hand",
+          description:
+            "Browse the left-side atlas for trending and niche terms to ignite new searches.",
         },
         {
-          title: "Bring it to life",
-          description: "Use the play button to watch the sample clip",
+          title: "Immersive viewing suite",
+          description:
+            "Covers, stills, and trailers load together, and comments keep the conversation going.",
         },
         {
-          title: "Product details",
-          description: "Click the title to open the purchase page",
+          title: "Quick like & collect",
+          description:
+            "Register in moments to drop likes and file favorites into your private collection.",
+        },
+        {
+          title: "Endless re-rolls",
+          description:
+            "Swap the lineup with another search the second you want something different.",
         },
       ],
     },

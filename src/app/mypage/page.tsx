@@ -347,9 +347,6 @@ export default function MyPage() {
               <h2 className="text-2xl font-semibold text-white">
                 {myPage.loginRequiredTitle}
               </h2>
-              <p className="max-w-md text-sm text-slate-200/70">
-                {myPage.loginRequiredDescription}
-              </p>
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-full border border-fuchsia-200/30 bg-fuchsia-500/40 px-6 py-2 text-sm text-white backdrop-blur transition hover:bg-fuchsia-500/50"
