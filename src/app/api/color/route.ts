@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
+export const config = { regions: ["hnd1"] };
 
 export async function GET(req: Request) {
   try {
@@ -82,7 +83,15 @@ export async function GET(req: Request) {
           }
         : { r: 2, g: 6, b: 23 };
 
-    return NextResponse.json({ dominant, original });
+    return NextResponse.json(
+      { dominant, original },
+      {
+        headers: {
+          "Cache-Control":
+            "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      },
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "未知错误";
     return NextResponse.json({ message }, { status: 500 });

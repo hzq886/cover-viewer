@@ -7,6 +7,7 @@ import sharp from "sharp";
 import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
+export const config = { regions: ["hnd1"] };
 
 const bufferToBody = (buf: Buffer) => Uint8Array.from(buf);
 
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
           headers: {
             "Content-Type": type,
             "Cache-Control":
-              "public, max-age=86400, stale-while-revalidate=604800",
+              "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
           },
         });
       }
@@ -131,7 +132,8 @@ export async function GET(req: Request) {
       status: 200,
       headers: {
         "Content-Type": type,
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        "Cache-Control":
+          "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
       },
     });
   } catch (error: unknown) {
