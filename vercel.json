@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["hnd1", "kix1"],
   "functions": {
     "src/app/api/**/route.ts": {
-      "regions": ["hnd1", "kix1"]
+      "runtime": "nodejs20.x"
     }
   }
 }
