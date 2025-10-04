@@ -7,7 +7,6 @@ import sharp from "sharp";
 import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
-export const preferredRegion = ["hnd1", "kix1"];
 
 const bufferToBody = (buf: Buffer) => Uint8Array.from(buf);
 
