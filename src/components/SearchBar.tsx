@@ -100,6 +100,7 @@ export default function SearchBar({
   const { t, language } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
+  const keywordPanelRef = useRef<HTMLDivElement>(null);
   const [recentKeywords, setRecentKeywords] = useState<string[]>(() =>
     loadRecentKeywords(),
   );
@@ -277,6 +278,11 @@ export default function SearchBar({
       }
     });
   };
+
+  const closeKeywordPanel = useCallback(() => {
+    setTooltip(null);
+    setShowKeywordPanel(false);
+  }, []);
 
   return (
     <form
@@ -458,20 +464,28 @@ export default function SearchBar({
       {showKeywordPanel && (
         <div
           className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeKeywordPanel();
+            }
+          }}
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]">
+          <div
+            ref={keywordPanelRef}
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+            className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]"
+          >
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">
                 {t("search.keywordPanel.title")}
               </h2>
               <button
                 type="button"
-                onClick={() => {
-                  setTooltip(null);
-                  setShowKeywordPanel(false);
-                }}
+                onClick={closeKeywordPanel}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-slate-200/80 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-violet-300 cursor-pointer"
                 aria-label={t("search.keywordPanel.close")}
                 title={t("search.keywordPanel.close")}
