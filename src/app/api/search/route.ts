@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
+export const preferredRegion = ["hnd1", "kix1"];
 
 export async function GET(req: Request) {
   try {
@@ -59,10 +60,14 @@ export async function GET(req: Request) {
       // DMM API is public over HTTPS; no headers are strictly required.
       // 10s timeout
       signal: timeoutSignal(10000),
-      cache: "force-cache",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)",
+        Referer: "https://www.dmm.co.jp/",
+      },
+      cache: "default",
       next: {
         revalidate: 300,
-        tags: [`${keyword}`],
+        tags: [`search:${keyword}:${offset}`],
       },
     });
 
@@ -80,9 +85,18 @@ export async function GET(req: Request) {
       );
     }
     const data = await res.json();
-    const items = data?.result?.items ?? [];
+    const result = data?.result ?? {};
+    const items = result.items ?? [];
 
-    return NextResponse.json({ items });
+    return NextResponse.json(
+      { items, result },
+      {
+        headers: {
+          "Cache-Control":
+            "public, max-age=300, s-maxage=300, stale-while-revalidate=900",
+        },
+      },
+    );
   } catch (error: unknown) {
     const isTimeout =
       error instanceof Error &&

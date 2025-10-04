@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const config = { regions: ["hnd1"] };
+export const preferredRegion = ["hnd1", "kix1"];
 
 // Strict allowlist to avoid open proxy misuse
 const ALLOW_HOSTS = new Set([

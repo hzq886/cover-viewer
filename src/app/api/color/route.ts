@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
-export const config = { regions: ["hnd1"] };
+export const preferredRegion = ["hnd1", "kix1"];
 
 export async function GET(req: Request) {
   try {
