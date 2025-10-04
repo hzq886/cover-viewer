@@ -4,6 +4,15 @@ import { CookieJar } from "tough-cookie";
 
 export const runtime = "nodejs";
 
+const RESPONSE_HEADERS = {
+  "Cache-Control":
+    "public, max-age=300, s-maxage=300, stale-while-revalidate=1200",
+};
+const ERROR_HEADERS = {
+  "Cache-Control":
+    "public, max-age=60, s-maxage=60, stale-while-revalidate=600",
+};
+
 const MISSAV_BASE_URL = "https://missav.ai/";
 
 async function probeMissav(contentId: string) {
@@ -11,22 +20,23 @@ async function probeMissav(contentId: string) {
   try {
     const jar = new CookieJar();
     // Prime the cookie jar (may still return a challenge, which we ignore).
-    await cloudscraper({
-      uri: MISSAV_BASE_URL,
+    const baseOptions = {
       method: "GET",
       jar,
       resolveWithFullResponse: true,
       simple: false,
       challengesToSolve: 3,
+      timeout: 10000,
+    } as const;
+
+    await cloudscraper({
+      ...baseOptions,
+      uri: MISSAV_BASE_URL,
     });
 
     const response = (await cloudscraper({
+      ...baseOptions,
       uri: targetUrl,
-      method: "GET",
-      jar,
-      resolveWithFullResponse: true,
-      simple: false,
-      challengesToSolve: 3,
     })) as { statusCode?: number };
 
     const status = response.statusCode ?? 0;
@@ -50,9 +60,15 @@ export async function GET(request: Request) {
   const contentId = url.searchParams.get("contentId");
 
   if (!contentId) {
-    return NextResponse.json({ message: "Missing contentId" }, { status: 400 });
+    return NextResponse.json(
+      { message: "Missing contentId" },
+      { status: 400, headers: ERROR_HEADERS },
+    );
   }
 
   const result = await probeMissav(contentId);
-  return NextResponse.json(result);
+  const headers = result.exists ? RESPONSE_HEADERS : ERROR_HEADERS;
+  return NextResponse.json(result, {
+    headers,
+  });
 }

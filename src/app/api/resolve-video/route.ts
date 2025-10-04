@@ -1,6 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { timeoutSignal } from "@/lib/abort";
+
 export const runtime = "nodejs";
+
+const RESPONSE_HEADERS = {
+  "Cache-Control":
+    "public, max-age=600, s-maxage=600, stale-while-revalidate=3600",
+};
+const NOT_FOUND_HEADERS = {
+  "Cache-Control":
+    "public, max-age=120, s-maxage=120, stale-while-revalidate=1200",
+};
+const REQUEST_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
+  Referer: "https://www.dmm.co.jp/",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+};
 
 function toAbsoluteUrl(src: string): string {
   if (!src) return src;
@@ -83,45 +99,79 @@ export async function GET(req: Request) {
 
     // If already an mp4, return as-is
     if (/\.mp4($|\?)/i.test(url)) {
-      return NextResponse.json({ url });
+      return NextResponse.json(
+        { url },
+        {
+          headers: RESPONSE_HEADERS,
+        },
+      );
     }
 
     // Fetch the wrapper page and extract video src
     const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
-        Referer: "https://www.dmm.co.jp/",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      },
+      headers: REQUEST_HEADERS,
+      signal: timeoutSignal(10000),
     });
+    if (!res.ok) {
+      return NextResponse.json(
+        { message: `获取页面失败: ${res.status}` },
+        {
+          status: res.status >= 500 ? 502 : res.status,
+          headers: NOT_FOUND_HEADERS,
+        },
+      );
+    }
     const html = await res.text();
     // Try direct extraction
     let mp4 = extractMp4(html, url);
-    if (mp4) return NextResponse.json({ url: mp4 });
+    if (mp4)
+      return NextResponse.json(
+        { url: mp4 },
+        {
+          headers: RESPONSE_HEADERS,
+        },
+      );
 
     // If there is an iframe, fetch it and parse again
     const iframeMatch = html.match(/<iframe[^>]+src=["']([^"']+)["']/i);
     if (iframeMatch?.[1]) {
       const iframeUrl = toAbsoluteFrom(url, iframeMatch[1]);
       const r2 = await fetch(iframeUrl, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; CoverViewer/1.0; +https://localhost)",
-          Referer: "https://www.dmm.co.jp/",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
+        headers: REQUEST_HEADERS,
+        signal: timeoutSignal(10000),
       });
+      if (!r2.ok) {
+        return NextResponse.json(
+          { message: `获取 iframe 失败: ${r2.status}` },
+          {
+            status: r2.status >= 500 ? 502 : r2.status,
+            headers: NOT_FOUND_HEADERS,
+          },
+        );
+      }
       const html2 = await r2.text();
       mp4 = extractMp4(html2, iframeUrl);
-      if (mp4) return NextResponse.json({ url: mp4 });
+      if (mp4)
+        return NextResponse.json(
+          { url: mp4 },
+          {
+            headers: RESPONSE_HEADERS,
+          },
+        );
     }
 
-    return NextResponse.json({ message: "未能解析视频地址" }, { status: 404 });
+    return NextResponse.json(
+      { message: "未能解析视频地址" },
+      { status: 404, headers: NOT_FOUND_HEADERS },
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "未知错误";
-    return NextResponse.json({ message }, { status: 500 });
+    return NextResponse.json(
+      { message },
+      {
+        status: 500,
+        headers: NOT_FOUND_HEADERS,
+      },
+    );
   }
 }
