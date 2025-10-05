@@ -1,6 +1,5 @@
 "use client";
 
-import { type ActionCodeSettings, sendSignInLinkToEmail } from "firebase/auth";
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -25,13 +24,25 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const url = typeof window !== "undefined" ? window.location.origin : "/";
-      const actionCodeSettings: ActionCodeSettings = {
-        url,
-        handleCodeInApp: true,
-      };
       const auth = getFirebaseAuth();
       auth.languageCode = language;
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      const response = await fetch("/api/auth/send-signin-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          language,
+          redirectUrl: url,
+        }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+        throw new Error(payload?.message || "Failed to send sign-in email.");
+      }
       try {
         window.localStorage.setItem("emailForSignIn", email);
       } catch {}

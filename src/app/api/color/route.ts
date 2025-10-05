@@ -22,8 +22,7 @@ export async function GET(req: Request) {
     // Build headers friendlier to upstreams (e.g., DMM)
     const headers: Record<string, string> = {
       "User-Agent": "Mozilla/5.0 (compatible; CoverViewer/1.0)",
-      Accept:
-        "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
     };
     try {
       const h = new URL(fetchUrl).hostname;

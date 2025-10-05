@@ -30,6 +30,19 @@ type TranslationShape = {
     promptEmail: string;
     emailRequired: string;
   };
+  signInEmail: {
+    subject: string;
+    previewText: string;
+    greeting: string;
+    intro: string;
+    button: string;
+    fallbackIntro: string;
+    expiry: string;
+    ignore: string;
+    closing: string;
+    signature: string;
+    footer: string;
+  };
   login: {
     title: string;
     description: string;
@@ -177,6 +190,21 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       promptEmail: "请输入邮箱以完成登录。",
       emailRequired: "需要提供邮箱才能完成登录。",
     },
+    signInEmail: {
+      subject: "欢迎登入 Lucky JAV",
+      previewText: "使用这封邮件完成 Lucky JAV 的安全登录。",
+      greeting: "您好，",
+      intro:
+        "您刚刚在 Lucky JAV 提交了邮箱登录请求。请点击下方按钮完成身份验证：",
+      button: "立即登录 Lucky JAV",
+      fallbackIntro: "如果按钮无法打开，请将以下链接复制到浏览器地址栏：",
+      expiry:
+        "为了保护您的账号安全，此链接将在 15 分钟后失效，并且仅适用于本次请求。",
+      ignore: "若非您本人操作，请直接忽略此邮件，我们不会继续处理。",
+      closing: "祝您使用愉快，感谢信任 Lucky JAV！",
+      signature: "Lucky JAV 团队 敬上",
+      footer: "此邮件由系统自动发送，请勿直接回复。",
+    },
     myPage: {
       backToHome: "返回首页",
       posterLabel: "收藏海报",
@@ -234,8 +262,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       heading1: "任意关键词随机搜 AV，下一秒遇见女神",
       description:
         "从番号、演员到剧情口味，输入任何灵感；左侧关键词大词典随时点燃新的搜索思路。",
-      emphasis:
-        "搜得不满意？连续点按搜索键，多刷新几次直到撞见最想要的女神。",
+      emphasis: "搜得不满意？连续点按搜索键，多刷新几次直到撞见最想要的女神。",
       features: [
         {
           title: "随机匹配，灵感不停",
@@ -346,6 +373,21 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       promptEmail: "請輸入電子郵件以完成登入。",
       emailRequired: "需要提供電子郵件才能完成登入。",
     },
+    signInEmail: {
+      subject: "歡迎登入 Lucky JAV",
+      previewText: "透過這封信完成 Lucky JAV 的安全登入。",
+      greeting: "您好，",
+      intro:
+        "您剛剛在 Lucky JAV 發起了電子郵件登入請求。請點擊下方按鈕完成身分驗證：",
+      button: "立即登入 Lucky JAV",
+      fallbackIntro: "若按鈕無法開啟，請將下列連結複製到瀏覽器：",
+      expiry:
+        "為了守護您的帳號安全，此連結將在 15 分鐘後失效，僅適用於本次請求。",
+      ignore: "若這不是您本人操作，請忽略此郵件，我們不會採取任何動作。",
+      closing: "祝您使用愉快，感謝您信任 Lucky JAV！",
+      signature: "Lucky JAV 團隊 敬上",
+      footer: "此信件由系統自動寄出，請勿直接回覆。",
+    },
     myPage: {
       backToHome: "返回首頁",
       posterLabel: "收藏海報",
@@ -404,8 +446,7 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       heading1: "輸入任意關鍵字隨機搜 AV，下一秒邂逅女神",
       description:
         "從番號、演員到情境口味，輸入任何靈感；左側關鍵字大詞典讓靈感源源不絕。",
-      emphasis:
-        "結果不對味？連續點擊搜尋鍵再抽幾次，直到抽中最想看的女神。",
+      emphasis: "結果不對味？連續點擊搜尋鍵再抽幾次，直到抽中最想看的女神。",
       features: [
         {
           title: "隨機匹配，靈感不斷",
@@ -516,14 +557,31 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       promptEmail: "ログインを完了するにはメールアドレスを入力してください。",
       emailRequired: "ログインを完了するにはメールアドレスが必要です。",
     },
+    signInEmail: {
+      subject: "Lucky JAVへログイン",
+      previewText:
+        "このメールから Lucky JAV への安全なサインインを完了してください。",
+      greeting: "こんにちは。",
+      intro:
+        "Lucky JAV でメールリンクによるサインインをリクエストされました。下のボタンを押して認証を完了してください。",
+      button: "Lucky JAV に今すぐサインインする",
+      fallbackIntro:
+        "ボタンを開けない場合は、次のリンクをブラウザにコピーしてください。",
+      expiry:
+        "セキュリティ保護のため、このリンクは 15 分後に失効し、今回のリクエストのみに有効です。",
+      ignore:
+        "お心当たりがない場合は、このメールを破棄してください。これ以上の処理は行われません。",
+      closing: "ご利用ありがとうございます。Lucky JAV をお楽しみください。",
+      signature: "Lucky JAV チーム",
+      footer: "このメールは自動送信です。返信には対応できません。",
+    },
     myPage: {
       backToHome: "トップに戻る",
       posterLabel: "コレクション",
       loginRequiredTitle: "ログインするとコレクションを閲覧できます",
       loginRequiredCta: "ログインへ",
       emptyTitle: "まだお気に入りがありません",
-      emptyDescription:
-        "いいねを押すと、ここに自動でコレクションされます。",
+      emptyDescription: "いいねを押すと、ここに自動でコレクションされます。",
       pageIndicator: "{{current}} / {{total}} ページ",
       deleteAria: "ジャケットを削除",
       deleteFailure: "ジャケットの削除に失敗しました",
@@ -574,7 +632,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     hero: {
       badge: "ラッキーAV",
-      heading1: "好きなキーワードで AV をランダム探索、次の瞬間に出会う決めの一本",
+      heading1:
+        "好きなキーワードで AV をランダム探索、次の瞬間に出会う決めの一本",
       description:
         "品番、女優、シチュエーションまで、ひらめいた言葉を入力。左側のキーワード大辞典で新しい切り口もすぐ見つかります。",
       emphasis:
@@ -586,19 +645,23 @@ export const translations: Record<LanguageCode, TranslationShape> = {
         },
         {
           title: "キーワード大辞典",
-          description: "検索ボックス左の辞典から人気タグもレアタグもワンタップで追加。",
+          description:
+            "検索ボックス左の辞典から人気タグもレアタグもワンタップで追加。",
         },
         {
           title: "没入型プレビュー",
-          description: "ジャケット・スチル・サンプル映像を同時に楽しみ、コメントも投稿可能。",
+          description:
+            "ジャケット・スチル・サンプル映像を同時に楽しみ、コメントも投稿可能。",
         },
         {
           title: "ワンクリックでお気に入り",
-          description: "スピード登録ですぐにいいね、そしてマイコレクションへ保存。",
+          description:
+            "スピード登録ですぐにいいね、そしてマイコレクションへ保存。",
         },
         {
           title: "納得するまで再検索",
-          description: "気に入るまで何度でも再抽選、待ち時間ゼロでラインナップを更新。",
+          description:
+            "気に入るまで何度でも再抽選、待ち時間ゼロでラインナップを更新。",
         },
       ],
     },
@@ -690,14 +753,32 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       promptEmail: "Enter your email to finish signing in.",
       emailRequired: "Your email is required to complete sign-in.",
     },
+    signInEmail: {
+      subject: "Welcome back to Lucky JAV",
+      previewText:
+        "Use this message to complete your secure Lucky JAV sign-in.",
+      greeting: "Hello,",
+      intro:
+        "You just asked to sign in to Lucky JAV with this email address. Click the button below to confirm it's you:",
+      button: "Sign in to Lucky JAV",
+      fallbackIntro:
+        "If the button doesn’t work, copy the full link below into your browser:",
+      expiry:
+        "For security, this link expires in 15 minutes and only works for this request.",
+      ignore:
+        "If you didn’t try to sign in, simply ignore this email and no action will be taken.",
+      closing: "Thanks for being with Lucky JAV—enjoy your time!",
+      signature: "Lucky JAV Team",
+      footer:
+        "This is an automated message. Replies to this inbox aren’t monitored.",
+    },
     myPage: {
       backToHome: "Back to home",
       posterLabel: "Posters",
       loginRequiredTitle: "Sign in to view your collection",
       loginRequiredCta: "Go to login",
       emptyTitle: "No favorites yet",
-      emptyDescription:
-        "Like a cover to see it here.",
+      emptyDescription: "Like a cover to see it here.",
       pageIndicator: "Page {{current}} / {{total}}",
       deleteAria: "Remove cover",
       deleteFailure: "Failed to remove cover",
@@ -748,7 +829,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     },
     hero: {
       badge: "Lucky AV",
-      heading1: "Search any keyword and let a surprise AV pick find you in seconds",
+      heading1:
+        "Search any keyword and let a surprise AV pick find you in seconds",
       description:
         "Type whatever sparks your curiosity: IDs, performers, studios, kinks; the discovery engine spins up a tailored lineup. The keyword dictionary on the left keeps fresh ideas flowing.",
       emphasis:

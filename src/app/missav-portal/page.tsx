@@ -107,11 +107,9 @@ export default function MissavPortal() {
                 : portalText.subtitleFallback}
             </p>
             {targetUrl ? (
-              <>
-                <p className="text-sm uppercase tracking-[0.5em] text-amber-200/80">
-                  {portalText.redirecting}
-                </p>
-              </>
+              <p className="text-sm uppercase tracking-[0.5em] text-amber-200/80">
+                {portalText.redirecting}
+              </p>
             ) : (
               <p className="text-sm text-rose-200/90">
                 Missing destination. Please close this tab.

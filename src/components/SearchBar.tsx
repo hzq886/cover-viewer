@@ -474,9 +474,6 @@ export default function SearchBar({
         >
           <div
             ref={keywordPanelRef}
-            onMouseDown={(event) => {
-              event.stopPropagation();
-            }}
             className="relative mx-4 w-full max-w-6xl rounded-3xl border border-white/10 bg-black/70 p-6 text-slate-100 shadow-[0_35px_120px_-45px_rgba(76,29,149,0.85)]"
           >
             <div className="mb-4 flex items-center justify-between gap-3">
