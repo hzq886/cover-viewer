@@ -63,8 +63,25 @@ export async function POST(req: Request) {
       actionSettings,
     );
 
+    let finalLink = link;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+      try {
+        const firebaseUrl = new URL(link);
+        const search = firebaseUrl.searchParams.toString();
+        const base = new URL(
+          process.env.EMAIL_SIGNIN_PATH ?? "/login",
+          siteUrl,
+        );
+        base.search = search;
+        finalLink = base.toString();
+      } catch {
+        // 忽略解析失败，继续使用 Firebase 默认链接
+      }
+    }
+
     const resend = new Resend(resendApiKey);
-    const emailContent = buildSignInEmail(language ?? null, link);
+    const emailContent = buildSignInEmail(language ?? null, finalLink);
     const { error } = await resend.emails.send({
       from: resendFrom,
       to: email,
