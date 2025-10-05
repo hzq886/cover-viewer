@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, useEffect } from "react";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { LanguageProvider } from "@/i18n/I18nProvider";
+import { MetadataSynchronizer } from "@/i18n/MetadataSynchronizer";
 import type { LanguageCode } from "@/i18n/translations";
 import { getFirebaseAnalytics } from "@/lib/firebase";
 
@@ -144,6 +145,7 @@ export default function Providers({
 
   return (
     <LanguageProvider initialLanguage={initialLanguage}>
+      <MetadataSynchronizer />
       <AuthProvider>{children}</AuthProvider>
     </LanguageProvider>
   );
