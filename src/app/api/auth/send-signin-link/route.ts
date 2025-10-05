@@ -89,12 +89,17 @@ export async function POST(req: Request) {
       languageCode: language ?? undefined,
     };
 
+    const refererHeader =
+      process.env.FIREBASE_REST_REFERER ||
+      `https://${firebaseAuthDomain.replace(/\/$/, "")}`;
+
     const firebaseRes = await fetch(
       `${FIREBASE_ENDPOINT}?key=${firebaseApiKey}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(refererHeader ? { Referer: refererHeader } : {}),
         },
         body: JSON.stringify(payload),
       },
