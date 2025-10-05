@@ -9,6 +9,7 @@ import {
   DEFAULT_LANGUAGE,
   resolveFromAcceptLanguage,
 } from "@/i18n/language-utils";
+import type { LanguageCode } from "@/i18n/translations";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,13 +21,48 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Lucky JAV",
-  description: "Discover random JAV with localized interface support.",
-  icons: {
-    icon: "/favicon.png",
+const METADATA_MESSAGES: Record<
+  LanguageCode,
+  { title: string; description: string }
+> = {
+  "zh-CN": {
+    title: "Lucky JAV | 你的线上日本成人影片情报站。管理你的影片并分享你的想法。",
+    description: "你的线上日本成人影片情报站。管理你的影片并分享你的想法。",
+  },
+  "zh-TW": {
+    title: "Lucky JAV | 你的線上日本成人影片情報站。管理你的影片並分享你的想法。",
+    description: "你的線上日本成人影片情報站。管理你的影片並分享你的想法。",
+  },
+  ja: {
+    title:
+      "Lucky JAV | あなたのアダルトビデオ情報源！自分のビデオを管理し、評価を投稿しています。",
+    description:
+      "あなたのアダルトビデオ情報源！自分のビデオを管理し、評価を投稿しています。",
+  },
+  en: {
+    title:
+      "Lucky JAV | Your online informative source for Japanese adult videos; manage your video collection and share your thoughts.",
+    description:
+      "Your online informative source for Japanese adult videos; manage your video collection and share your thoughts.",
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headerStore = await headers();
+  const acceptLanguage = headerStore.get("accept-language");
+  const language =
+    resolveFromAcceptLanguage(acceptLanguage) ?? DEFAULT_LANGUAGE;
+  const { title, description } =
+    METADATA_MESSAGES[language] ?? METADATA_MESSAGES[DEFAULT_LANGUAGE];
+
+  return {
+    title,
+    description,
+    icons: {
+      icon: "/favicon.png",
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
