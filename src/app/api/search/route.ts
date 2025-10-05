@@ -1,10 +1,72 @@
 import { NextResponse } from "next/server";
 
+import { FieldValue } from "firebase-admin/firestore";
+
 import { timeoutSignal } from "@/lib/abort";
+import { getFirebaseAdminFirestore } from "@/lib/firebase-admin";
+import {
+  buildKeywordDocumentId,
+  DAILY_SUBCOLLECTION,
+  DMM_API_DOC,
+  KEYWORD_AGGREGATES_SUBCOLLECTION,
+  METRICS_COLLECTION,
+  SEARCH_KEYWORD_DOC,
+  normalizeKeyword,
+} from "@/lib/keyword-metrics";
 
 export const runtime = "nodejs";
 
+async function recordSearchMetrics(keyword: string) {
+  try {
+    const db = getFirebaseAdminFirestore();
+    const metrics = db.collection(METRICS_COLLECTION);
+    const now = new Date();
+    const dateKey = now.toISOString().slice(0, 10);
+
+    const dailyDocRef = metrics
+      .doc(DMM_API_DOC)
+      .collection(DAILY_SUBCOLLECTION)
+      .doc(dateKey);
+
+    const updates: Promise<unknown>[] = [
+      dailyDocRef.set(
+        {
+          date: dateKey,
+          count: FieldValue.increment(1),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      ),
+    ];
+
+    const keywordDocId = buildKeywordDocumentId(keyword);
+    if (keywordDocId) {
+      const normalized = normalizeKeyword(keyword);
+      updates.push(
+        metrics
+          .doc(SEARCH_KEYWORD_DOC)
+          .collection(KEYWORD_AGGREGATES_SUBCOLLECTION)
+          .doc(keywordDocId)
+          .set(
+            {
+              keyword,
+              normalized,
+              count: FieldValue.increment(1),
+              lastSearchedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true },
+          ),
+      );
+    }
+
+    await Promise.all(updates);
+  } catch (error) {
+    console.error("Failed to record search metrics", error);
+  }
+}
+
 export async function GET(req: Request) {
+  let metricsPromise: Promise<void> | undefined;
   try {
     const { searchParams } = new URL(req.url);
     const keyword = (searchParams.get("keyword") || "").trim();
@@ -20,10 +82,6 @@ export async function GET(req: Request) {
       );
     }
 
-    console.log(
-      `[${new Date().toISOString()}] search keyword: ${keyword} offset=${offset}`,
-    );
-
     const apiId = process.env.DMM_API_ID;
     const affiliateId = process.env.DMM_AFFILIATE_ID;
 
@@ -36,6 +94,8 @@ export async function GET(req: Request) {
         { status: 500 },
       );
     }
+
+    metricsPromise = recordSearchMetrics(keyword);
 
     // Build DMM 商品情報API URL
     const endpoint = new URL("https://api.dmm.com/affiliate/v3/ItemList");
@@ -73,6 +133,9 @@ export async function GET(req: Request) {
     if (!res.ok) {
       const text = await res.text();
       const status = res.status;
+      if (metricsPromise) {
+        await metricsPromise;
+      }
       return NextResponse.json(
         {
           code: "dmm_api_error",
@@ -87,6 +150,10 @@ export async function GET(req: Request) {
     const result = data?.result ?? {};
     const items = result.items ?? [];
 
+    if (metricsPromise) {
+      await metricsPromise;
+    }
+
     return NextResponse.json(
       { items, result },
       {
@@ -97,6 +164,9 @@ export async function GET(req: Request) {
       },
     );
   } catch (error: unknown) {
+    if (metricsPromise) {
+      await metricsPromise;
+    }
     const isTimeout =
       error instanceof Error &&
       (error.name === "TimeoutError" || error.name === "AbortError");

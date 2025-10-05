@@ -9,9 +9,18 @@ import {
   useRef,
   useState,
 } from "react";
+import { doc, increment, serverTimestamp, setDoc } from "firebase/firestore";
 import { GENRE_TRANSLATIONS } from "@/data/genre-translations";
 import { GENRE_GROUPS } from "@/data/genres";
 import { useI18n } from "@/i18n/I18nProvider";
+import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
+import {
+  buildKeywordDocumentId,
+  KEYWORD_AGGREGATES_SUBCOLLECTION,
+  METRICS_COLLECTION,
+  SELECTED_KEYWORD_DOC,
+  normalizeKeyword,
+} from "@/lib/keyword-metrics";
 
 type Props = {
   keyword: string;
@@ -98,6 +107,40 @@ export default function SearchBar({
   className,
 }: Props) {
   const { t, language } = useI18n();
+  const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
+  const recordSelectedKeyword = useCallback(
+    async (rawKeyword: string) => {
+      if (!firebaseReady) return;
+      const keywordForMetrics = rawKeyword.trim();
+      if (!keywordForMetrics) return;
+      const docId = buildKeywordDocumentId(keywordForMetrics);
+      if (!docId) return;
+
+      try {
+        const db = getFirestoreDb();
+        const keywordDocRef = doc(
+          db,
+          METRICS_COLLECTION,
+          SELECTED_KEYWORD_DOC,
+          KEYWORD_AGGREGATES_SUBCOLLECTION,
+          docId,
+        );
+        await setDoc(
+          keywordDocRef,
+          {
+            keyword: keywordForMetrics,
+            normalized: normalizeKeyword(keywordForMetrics),
+            count: increment(1),
+            lastSelectedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+      } catch (error) {
+        console.error("Failed to record selected keyword", error);
+      }
+    },
+    [firebaseReady],
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
   const keywordPanelRef = useRef<HTMLDivElement>(null);
@@ -264,6 +307,7 @@ export default function SearchBar({
     const nextTokens = tokens.includes(word) ? tokens : [...tokens, word];
     const newValue = `${nextTokens.join(" ")} `.replace(/\s+$/, " ");
     setKeyword(newValue);
+    void recordSelectedKeyword(word);
     // 将光标移动到文本末尾，便于继续输入
     requestAnimationFrame(() => {
       const el = inputRef.current;
@@ -408,6 +452,7 @@ export default function SearchBar({
                       onMouseDown={(event) => {
                         event.preventDefault();
                         setKeyword(item);
+                        void recordSelectedKeyword(item);
                         requestAnimationFrame(() => {
                           inputRef.current?.focus();
                           setShowRecent(false);
