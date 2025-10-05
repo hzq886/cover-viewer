@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const firebaseApiKey = requireEnv("NEXT_PUBLIC_FIREBASE_API_KEY");
+    const firebaseApiKey = requireEnv("FIREBASE_REST_API_KEY");
     const firebaseAuthDomain = requireEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
     const resendApiKey = requireEnv("RESEND_API_KEY");
     const resendFrom = requireEnv("RESEND_FROM_EMAIL");
