@@ -1,5 +1,6 @@
 import cloudscraper from "cloudscraper";
 import { NextResponse } from "next/server";
+import type { CookieJar as RequestCookieJar } from "request";
 import { CookieJar } from "tough-cookie";
 
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ const MISSAV_BASE_URL = "https://missav.ai/";
 async function probeMissav(contentId: string) {
   const targetUrl = `${MISSAV_BASE_URL}${encodeURIComponent(contentId)}`;
   try {
-    const jar = new CookieJar();
+    const jar = new CookieJar() as unknown as RequestCookieJar;
     // Prime the cookie jar (may still return a challenge, which we ignore).
     const baseOptions = {
       method: "GET",
