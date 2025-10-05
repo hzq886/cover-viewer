@@ -9,18 +9,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { GENRE_TRANSLATIONS } from "@/data/genre-translations";
 import { GENRE_GROUPS } from "@/data/genres";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
-import {
-  buildKeywordDocumentId,
-  KEYWORD_AGGREGATES_SUBCOLLECTION,
-  METRICS_COLLECTION,
-  SELECTED_KEYWORD_DOC,
-  normalizeKeyword,
-} from "@/lib/keyword-metrics";
+import { hasFirebaseConfig } from "@/lib/firebase";
 
 type Props = {
   keyword: string;
@@ -113,35 +105,17 @@ export default function SearchBar({
       if (!firebaseReady) return;
       const keywordForMetrics = rawKeyword.trim();
       if (!keywordForMetrics) return;
-      const docId = buildKeywordDocumentId(keywordForMetrics);
-      if (!docId) return;
 
       try {
-        const db = getFirestoreDb();
-        const keywordDocRef = doc(
-          db,
-          METRICS_COLLECTION,
-          SELECTED_KEYWORD_DOC,
-          KEYWORD_AGGREGATES_SUBCOLLECTION,
-          docId,
-        );
-        await runTransaction(db, async (tx) => {
-          const snap = await tx.get(keywordDocRef);
-          const existing = snap.exists() ? snap.data() : undefined;
-          const previousCount =
-            existing && typeof existing.count === "number" ? existing.count : 0;
-
-          tx.set(
-            keywordDocRef,
-            {
-              keyword: keywordForMetrics,
-              normalized: normalizeKeyword(keywordForMetrics),
-              count: previousCount + 1,
-              lastSelectedAt: serverTimestamp(),
-            },
-            { merge: true },
-          );
+        const response = await fetch("/api/metrics/selected-keyword", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ keyword: keywordForMetrics }),
         });
+
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
       } catch (error) {
         console.error("Failed to record selected keyword", error);
       }

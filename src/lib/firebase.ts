@@ -1,10 +1,10 @@
 // Firebase initialization for client-side usage
 // Do not import this module from server-side code.
 
+import { type Analytics, getAnalytics, isSupported } from "firebase/analytics";
 import { type FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
 import { type Auth, getAuth } from "firebase/auth";
 import { type Firestore, getFirestore } from "firebase/firestore";
-import { type Analytics, getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

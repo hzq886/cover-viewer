@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-
 import { FieldValue } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
 
 import { timeoutSignal } from "@/lib/abort";
 import { getFirebaseAdminFirestore } from "@/lib/firebase-admin";
@@ -10,8 +9,8 @@ import {
   DMM_API_DOC,
   KEYWORD_AGGREGATES_SUBCOLLECTION,
   METRICS_COLLECTION,
-  SEARCH_KEYWORD_DOC,
   normalizeKeyword,
+  SEARCH_KEYWORD_DOC,
 } from "@/lib/keyword-metrics";
 
 export const runtime = "nodejs";
