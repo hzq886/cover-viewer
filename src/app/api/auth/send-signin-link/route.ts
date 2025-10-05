@@ -1,18 +1,10 @@
+import type { ActionCodeSettings } from "firebase-admin/auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getFirebaseAdminAuth } from "@/lib/firebase-admin";
 import { buildSignInEmail } from "@/lib/signin-email";
 
 export const runtime = "nodejs";
-
-type FirebaseOobResponse = {
-  email?: string;
-  oobCode?: string;
-  oobLink?: string;
-  kind?: string;
-  error?: {
-    message?: string;
-  };
-};
 
 type RequestBody = {
   email?: string;
@@ -22,34 +14,12 @@ type RequestBody = {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const FIREBASE_ENDPOINT =
-  "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode";
-
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
-}
-
-function buildFallbackLink(
-  authDomain: string,
-  apiKey: string,
-  oobCode: string,
-  continueUrl: string,
-  language?: string | null,
-) {
-  const params = new URLSearchParams({
-    mode: "signIn",
-    oobCode,
-    apiKey,
-    continueUrl,
-  });
-  if (language) {
-    params.set("lang", language);
-  }
-  return `https://${authDomain.replace(/\/$/, "")}/__/auth/action?${params.toString()}`;
 }
 
 export async function POST(req: Request) {
@@ -62,12 +32,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const firebaseApiKey = requireEnv("FIREBASE_REST_API_KEY");
-    const firebaseAuthDomain = requireEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
     const resendApiKey = requireEnv("RESEND_API_KEY");
     const resendFrom = requireEnv("RESEND_FROM_EMAIL");
 
-    const origin = req.headers.get("origin") || `https://${firebaseAuthDomain}`;
+    const adminAuth = getFirebaseAdminAuth();
+
+    const origin =
+      req.headers.get("origin") ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://localhost";
     let continueUrl = origin;
     if (redirectUrl) {
       try {
@@ -80,59 +53,15 @@ export async function POST(req: Request) {
       }
     }
 
-    const payload = {
-      requestType: "EMAIL_SIGNIN",
-      email,
-      continueUrl,
-      canHandleCodeInApp: true,
-      returnOobLink: true,
-      languageCode: language ?? undefined,
+    const actionSettings: ActionCodeSettings = {
+      url: continueUrl,
+      handleCodeInApp: true,
     };
 
-    const refererHeader =
-      process.env.FIREBASE_REST_REFERER ||
-      `https://${firebaseAuthDomain.replace(/\/$/, "")}`;
-
-    const firebaseRes = await fetch(
-      `${FIREBASE_ENDPOINT}?key=${firebaseApiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(refererHeader ? { Referer: refererHeader } : {}),
-        },
-        body: JSON.stringify(payload),
-      },
+    const link = await adminAuth.generateSignInWithEmailLink(
+      email,
+      actionSettings,
     );
-
-    if (!firebaseRes.ok) {
-      const errorBody = (await firebaseRes.json().catch(() => ({}))) as {
-        error?: { message?: string };
-      };
-      const message =
-        errorBody.error?.message || "Failed to request sign-in link.";
-      return NextResponse.json({ message }, { status: 502 });
-    }
-
-    const data = (await firebaseRes.json()) as FirebaseOobResponse;
-    const link =
-      data.oobLink ??
-      (data.oobCode
-        ? buildFallbackLink(
-            firebaseAuthDomain,
-            firebaseApiKey,
-            data.oobCode,
-            continueUrl,
-            language,
-          )
-        : null);
-
-    if (!link) {
-      return NextResponse.json(
-        { message: "Failed to generate sign-in link." },
-        { status: 502 },
-      );
-    }
 
     const resend = new Resend(resendApiKey);
     const emailContent = buildSignInEmail(language ?? null, link);
