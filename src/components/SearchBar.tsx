@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { doc, increment, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { GENRE_TRANSLATIONS } from "@/data/genre-translations";
 import { GENRE_GROUPS } from "@/data/genres";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -125,16 +125,23 @@ export default function SearchBar({
           KEYWORD_AGGREGATES_SUBCOLLECTION,
           docId,
         );
-        await setDoc(
-          keywordDocRef,
-          {
-            keyword: keywordForMetrics,
-            normalized: normalizeKeyword(keywordForMetrics),
-            count: increment(1),
-            lastSelectedAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(keywordDocRef);
+          const existing = snap.exists() ? snap.data() : undefined;
+          const previousCount =
+            existing && typeof existing.count === "number" ? existing.count : 0;
+
+          tx.set(
+            keywordDocRef,
+            {
+              keyword: keywordForMetrics,
+              normalized: normalizeKeyword(keywordForMetrics),
+              count: previousCount + 1,
+              lastSelectedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+        });
       } catch (error) {
         console.error("Failed to record selected keyword", error);
       }
