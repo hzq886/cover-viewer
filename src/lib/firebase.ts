@@ -4,6 +4,7 @@
 import { type FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
 import { type Auth, getAuth } from "firebase/auth";
 import { type Firestore, getFirestore } from "firebase/firestore";
+import { type Analytics, getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,10 +14,13 @@ const firebaseConfig = {
   // Optional fields
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 let app: FirebaseApp | undefined;
 let firestore: Firestore | undefined;
+let analytics: Analytics | undefined;
+let analyticsInitPromise: Promise<Analytics | undefined> | undefined;
 
 export function hasFirebaseConfig() {
   return Boolean(
@@ -52,4 +56,26 @@ export function getFirestoreDb(): Firestore {
     firestore = getFirestore(getFirebaseApp());
   }
   return firestore;
+}
+
+export async function getFirebaseAnalytics(): Promise<Analytics | undefined> {
+  if (typeof window === "undefined") {
+    throw new Error("getFirebaseAnalytics must be called in the browser");
+  }
+  if (!firebaseConfig.measurementId) {
+    throw new Error("Missing Firebase measurement ID env var");
+  }
+  if (analytics) {
+    return analytics;
+  }
+  if (!analyticsInitPromise) {
+    analyticsInitPromise = isSupported().then((supported) => {
+      if (!supported) {
+        return undefined;
+      }
+      analytics = getAnalytics(getFirebaseApp());
+      return analytics;
+    });
+  }
+  return analyticsInitPromise;
 }
