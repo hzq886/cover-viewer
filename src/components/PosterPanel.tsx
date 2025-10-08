@@ -156,7 +156,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
       // Fallback for video or mixed transitions: no crossfade
       setPrevImage(null);
       setAnimating(false);
-      setShowNew(false);
+      setShowNew(true);
       lastSlideRef.current = current;
     }, [current]);
 

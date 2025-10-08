@@ -9,10 +9,6 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
-import VideoPanel, {
-  VIDEO_MIN_HEIGHT,
-  VIDEO_MIN_WIDTH,
-} from "@/components/VideoPanel";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useImageColor } from "@/hooks/useImageColor";
@@ -35,6 +31,8 @@ const STAGE_WIDTH_PRESETS: Array<{ min: number; width: number }> = [
   { min: 640, width: 320 },
 ];
 const STAGE_WIDTH_DEFAULT = 280;
+const VIDEO_MIN_WIDTH = 720;
+const VIDEO_MIN_HEIGHT = 480;
 const FEATURE_ACCENT_CLASSES = [
   "bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.35)]",
   "bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.35)]",
@@ -111,7 +109,6 @@ export default function Home() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomIndex, setZoomIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [videoFront, setVideoFront] = useState(false);
   const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>("");
   const resolvingVideoRef = useRef(false);
   const hero = dictionary.hero;
@@ -148,7 +145,6 @@ export default function Home() {
     setActiveIndex(0);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
-    setVideoFront(false);
     if (!currentItem) {
       return;
     }
@@ -238,7 +234,7 @@ export default function Home() {
     }
   }, [resolvedVideoUrl, sampleMovie, videoUrl]);
 
-  const { imageSlides, videoSlide } = useMemo(() => {
+  const { imageSlides, mediaSlides } = useMemo(() => {
     const images: MediaSlide[] = [];
     let video: MediaSlide | null = null;
 
@@ -286,37 +282,33 @@ export default function Home() {
       };
     }
 
-    return { imageSlides: images, videoSlide: video };
+    const combined = video ? [...images, video] : images;
+
+    return { imageSlides: images, mediaSlides: combined };
   }, [basePosterUrl, orderedSamples, sampleMovie, videoUrl]);
 
   const activeSlide = useMemo(
-    () => imageSlides[activeIndex] ?? null,
-    [imageSlides, activeIndex],
+    () => mediaSlides[activeIndex] ?? null,
+    [mediaSlides, activeIndex],
   );
 
   useEffect(() => {
-    if (!videoSlide) {
-      setVideoFront(false);
-    }
-  }, [videoSlide]);
-
-  useEffect(() => {
-    if (videoFront) {
+    if (activeSlide?.type === "video") {
       void ensureVideoSource();
     }
-  }, [videoFront, ensureVideoSource]);
+  }, [activeSlide, ensureVideoSource]);
 
   // 当前展示的媒体地址，用于舞台背景
   const activeDisplayUrl = useMemo(() => {
-    if (videoFront && videoSlide) {
-      return videoSlide.displayUrl;
-    }
     if (!activeSlide) return basePosterUrl;
     if (activeSlide.type === "poster" || activeSlide.type === "image") {
       return activeSlide.displayUrl;
     }
+    if (activeSlide.type === "video") {
+      return activeSlide.displayUrl;
+    }
     return basePosterUrl;
-  }, [activeSlide, basePosterUrl, videoFront, videoSlide]);
+  }, [activeSlide, basePosterUrl]);
 
   // 当前展示图的代理地址
   const proxiedPosterUrl = useMemo(
@@ -373,7 +365,7 @@ export default function Home() {
   }, [viewportWidth]);
 
   const mediaDimensions = useMemo(() => {
-    if (videoFront && videoSlide) {
+    if (activeSlide?.type === "video") {
       const width = Math.max(stage.stageW, VIDEO_MIN_WIDTH);
       const height = Math.max(
         VIDEO_MIN_HEIGHT,
@@ -382,7 +374,7 @@ export default function Home() {
       return { width, height };
     }
     return { width: stage.stageW, height: stage.containerH };
-  }, [stage.containerH, stage.stageW, videoFront, videoSlide]);
+  }, [activeSlide, stage.containerH, stage.stageW]);
 
   const containerDimensions = useMemo(
     () => ({
@@ -398,16 +390,15 @@ export default function Home() {
   );
 
   const mediaStageSizeText = useMemo(() => {
-    if (videoFront && videoSlide) {
+    if (activeSlide?.type === "video") {
       return `${mediaDimensions.width}px × ${mediaDimensions.height}px`;
     }
     return stage.stageSizeText;
   }, [
+    activeSlide,
     mediaDimensions.height,
     mediaDimensions.width,
     stage.stageSizeText,
-    videoFront,
-    videoSlide,
   ]);
 
   // 展示在 InfoPanel 中的图片尺寸文案
@@ -456,13 +447,13 @@ export default function Home() {
   // 避免索引在媒体数量变化后越界
   useEffect(() => {
     setActiveIndex((prev) => {
-      if (imageSlides.length === 0) return 0;
-      const clamped = Math.min(prev, imageSlides.length - 1);
+      if (mediaSlides.length === 0) return 0;
+      const clamped = Math.min(prev, mediaSlides.length - 1);
       return clamped < 0 ? 0 : clamped;
     });
-  }, [imageSlides.length]);
+  }, [mediaSlides.length]);
 
-  const slidesCount = imageSlides.length;
+  const slidesCount = mediaSlides.length;
 
   // 根据媒体是否可展示切换到紧凑布局
   useEffect(() => {
@@ -706,74 +697,31 @@ export default function Home() {
                       transition: "width 0.45s ease, height 0.45s ease",
                     }}
                   >
-                    {videoSlide && (
-                      <div
-                        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out ${
-                          videoFront
-                            ? "z-40"
-                            : "z-20 translate-x-12 translate-y-10 scale-[0.95]"
-                        } ${videoFront ? "" : "cursor-pointer"}`}
-                      >
-                        <VideoPanel
-                          videoUrl={videoUrl}
-                          posterUrl={
-                            basePosterUrl ? proxiedBasePosterUrl : undefined
+                    <div className="relative h-full w-full overflow-hidden rounded-[28px]">
+                      <PosterPanel
+                        ref={carouselRef}
+                        slides={mediaSlides}
+                        width={mediaDimensions.width}
+                        height={mediaDimensions.height}
+                        disableKeyboardNavigation={
+                          activeSlide?.type === "video"
+                        }
+                        initialIndex={activeIndex}
+                        onSlideChange={(slide, index) => {
+                          if (index === activeIndex) {
+                            return;
                           }
-                          width={mediaDimensions.width}
-                          height={mediaDimensions.height}
-                          active={videoFront}
-                          onActivate={() => {
-                            setVideoFront(true);
+                          setActiveIndex(index);
+                          if (slide.type === "video") {
                             void ensureVideoSource();
-                          }}
-                          onDeactivate={() => setVideoFront(false)}
-                        />
-                      </div>
-                    )}
-                    <div
-                      className={`absolute inset-0 flex justify-center transition-all duration-500 ease-out ${
-                        videoSlide ? (videoFront ? "z-30" : "z-50") : "z-50"
-                      }`}
-                    >
-                      <div className="relative h-full w-full overflow-hidden rounded-[28px]">
-                        <div
-                          className={
-                            videoSlide && videoFront
-                              ? "pointer-events-none"
-                              : "pointer-events-auto"
                           }
-                        >
-                          <PosterPanel
-                            ref={carouselRef}
-                            slides={imageSlides}
-                            width={stage.stageW}
-                            height={stage.containerH}
-                            disableKeyboardNavigation={Boolean(
-                              videoSlide && videoFront,
-                            )}
-                            initialIndex={activeIndex}
-                            onSlideChange={(_, index) => {
-                              if (index === activeIndex) {
-                                return;
-                              }
-                              setActiveIndex(index);
-                              setVideoFront(false);
-                            }}
-                            onRequestZoom={(index) => {
-                              setVideoFront(false);
-                              const target = imageIndexToZoom[index] ?? 0;
-                              setZoomIndex(target);
-                              setZoomOpen(true);
-                            }}
-                          />
-                        </div>
-                        {videoSlide && videoFront ? (
-                          <div
-                            aria-hidden="true"
-                            className="pointer-events-auto absolute inset-0 z-30 rounded-[28px] border border-white/15 bg-white/15 backdrop-blur-[5px]"
-                          />
-                        ) : null}
-                      </div>
+                        }}
+                        onRequestZoom={(index) => {
+                          const target = imageIndexToZoom[index] ?? 0;
+                          setZoomIndex(target);
+                          setZoomOpen(true);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
