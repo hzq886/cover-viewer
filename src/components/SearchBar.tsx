@@ -378,7 +378,7 @@ export default function SearchBar({
           )}
           <button
             type="submit"
-            disabled={loading || !keyword.trim()}
+            disabled={loading}
             className={submitButtonClass}
             title={t("search.submitTitle")}
             aria-label={compact ? t("search.submitCompactAria") : undefined}

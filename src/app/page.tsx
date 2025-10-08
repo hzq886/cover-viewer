@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AuthBar from "@/components/AuthBar";
-import CommentPanel from "@/components/CommentPanel";
 import InfoPanel from "@/components/InfoPanel";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
@@ -11,14 +11,10 @@ import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
-import { useImageColor } from "@/hooks/useImageColor";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
 import { useI18n } from "@/i18n/I18nProvider";
-import { adjustLightness } from "@/lib/color";
-import type { DmmNameObj } from "@/types/dmm";
+import type { DmmItem, DmmNameObj } from "@/types/dmm";
 
-// 默认背景色回退值（深蓝色调，用于无主色时）
-const FALLBACK_COLOR = { r: 2, g: 6, b: 23 };
 // 海报书脊占整体宽度的比例
 const POSTER_SPINE_RATIO = 0.02;
 // 舞台目标宽高比（宽:高 = 2:3）
@@ -31,15 +27,6 @@ const STAGE_WIDTH_PRESETS: Array<{ min: number; width: number }> = [
   { min: 640, width: 320 },
 ];
 const STAGE_WIDTH_DEFAULT = 280;
-const VIDEO_MIN_WIDTH = 720;
-const VIDEO_MIN_HEIGHT = 480;
-const FEATURE_ACCENT_CLASSES = [
-  "bg-violet-400 shadow-[0_0_0_6px_rgba(168,85,247,0.35)]",
-  "bg-fuchsia-400 shadow-[0_0_0_6px_rgba(232,121,249,0.35)]",
-  "bg-sky-400 shadow-[0_0_0_6px_rgba(56,189,248,0.35)]",
-  "bg-emerald-400 shadow-[0_0_0_6px_rgba(52,211,153,0.35)]",
-  "bg-amber-400 shadow-[0_0_0_6px_rgba(251,191,36,0.35)]",
-] as const;
 
 // 将远程 URL 转换为代理地址，确保统一走本地 API
 const toProxyUrl = (url?: string | null): string => {
@@ -80,7 +67,7 @@ type SampleThumb = { url: string; portrait: boolean };
 
 // 页面入口组件
 export default function Home() {
-  const { dictionary, t } = useI18n();
+  const { t } = useI18n();
   // 搜索 hook 提供的状态与动作
   const {
     keyword,
@@ -100,7 +87,7 @@ export default function Home() {
   // 媒体展示区域引用，用于阻止冒泡
   const carouselRef = useRef<HTMLDivElement>(null);
   // 布局高度 Hook，提供 header/footer 引用与高度
-  const { headerRef, footerRef } = useLayoutHeights();
+  const { headerRef } = useLayoutHeights();
   // 详情信息面板引用，阻止外层点击切换
   const detailsRef = useRef<HTMLDivElement>(null);
   // Logo 容器引用，阻止外层点击切换
@@ -111,8 +98,8 @@ export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>("");
   const resolvingVideoRef = useRef(false);
-  const hero = dictionary.hero;
-  const heroFeatures = hero.features;
+  const [selectedItem, setSelectedItem] = useState<DmmItem | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const errorMessage = useMemo(() => {
     if (!error) return null;
     const params =
@@ -125,16 +112,77 @@ export default function Home() {
   }, [error, t]);
 
   // 当前选中的搜索结果
-  const pick = currentItem;
+  const resultItems = useMemo(() => {
+    const seen = new Set<string>();
+    const collection: DmmItem[] = [];
+    const register = (item: DmmItem | null) => {
+      if (!item) return;
+      const key =
+        (item.content_id as string | undefined) ||
+        (item.contentid as string | undefined) ||
+        (item.product_id as string | undefined) ||
+        item.title ||
+        "";
+      if (key && seen.has(key)) return;
+      if (key) seen.add(key);
+      collection.push(item);
+    };
+    register(currentItem);
+    if (Array.isArray(remainingItems)) {
+      for (const entry of remainingItems) {
+        register(entry ?? null);
+      }
+    }
+    return collection;
+  }, [currentItem, remainingItems]);
+
+  const feedCards = useMemo(() => {
+    const spine = POSTER_SPINE_RATIO.toFixed(2);
+    return resultItems.map((item, index) => {
+      const poster = extractPosterUrl(item.imageURL ?? null);
+      let coverUrl = "";
+      if (poster) {
+        const proxied = toProxyUrl(poster);
+        coverUrl = `/api/split?url=${encodeURIComponent(proxied)}&side=front&spine=${spine}`;
+      } else {
+        const largeSamples = Array.isArray(item.sampleImageURL?.sample_l?.image)
+          ? item.sampleImageURL?.sample_l?.image
+          : [];
+        const smallSamples = Array.isArray(item.sampleImageURL?.sample_s?.image)
+          ? item.sampleImageURL?.sample_s?.image
+          : [];
+        const firstSample = [...largeSamples, ...smallSamples].find(
+          (value): value is string =>
+            typeof value === "string" && value.length > 0,
+        );
+        coverUrl = firstSample ? toProxyUrl(firstSample) : "";
+      }
+      const identifier =
+        item.content_id ||
+        item.contentid ||
+        item.product_id ||
+        item.service_code ||
+        item.title ||
+        `item-${index}`;
+      return {
+        id: identifier,
+        item,
+        coverUrl,
+        title: item.title || "",
+        maker: joinNames(item.iteminfo?.maker),
+      };
+    });
+  }, [resultItems]);
 
   // 当前作品对应的基础海报 URL
   const basePosterUrl = useMemo(
-    () => extractPosterUrl(pick?.imageURL ?? null),
-    [pick],
+    () => extractPosterUrl(selectedItem?.imageURL ?? null),
+    [selectedItem],
   );
   const posterSmallUrl = useMemo(
-    () => (pick?.imageURL?.small ? String(pick.imageURL.small) : ""),
-    [pick],
+    () =>
+      selectedItem?.imageURL?.small ? String(selectedItem.imageURL.small) : "",
+    [selectedItem],
   );
   const proxiedPosterSmallUrl = useMemo(
     () => toProxyUrl(posterSmallUrl),
@@ -145,18 +193,23 @@ export default function Home() {
     setActiveIndex(0);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
-    if (!currentItem) {
+    if (!selectedItem) {
       return;
     }
+  }, [selectedItem]);
+  useEffect(() => {
+    if (currentItem || currentItem === null) {
+      setSelectedItem(null);
+      setDetailOpen(false);
+    }
   }, [currentItem]);
-
   const sampleImages: string[] = useMemo(() => {
     const images =
-      pick?.sampleImageURL?.sample_l?.image ||
-      pick?.sampleImageURL?.sample_s?.image ||
+      selectedItem?.sampleImageURL?.sample_l?.image ||
+      selectedItem?.sampleImageURL?.sample_s?.image ||
       [];
     return Array.isArray(images) ? images : [];
-  }, [pick]);
+  }, [selectedItem]);
 
   const [orderedSamples, setOrderedSamples] = useState<SampleThumb[]>([]);
   useEffect(() => {
@@ -204,11 +257,11 @@ export default function Home() {
 
   const sampleMovie: string = useMemo(
     () =>
-      pick?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
-      pick?.sampleMovieURL?.size_720_480 ||
-      pick?.sample_movie_url?.size_720_480 ||
+      selectedItem?.sampleMovieURL?.sampleMovieURL?.size_720_480 ||
+      selectedItem?.sampleMovieURL?.size_720_480 ||
+      selectedItem?.sample_movie_url?.size_720_480 ||
       "",
-    [pick],
+    [selectedItem],
   );
 
   const videoUrl = resolvedVideoUrl || sampleMovie;
@@ -298,43 +351,6 @@ export default function Home() {
     }
   }, [activeSlide, ensureVideoSource]);
 
-  // 当前展示的媒体地址，用于舞台背景
-  const activeDisplayUrl = useMemo(() => {
-    if (!activeSlide) return basePosterUrl;
-    if (activeSlide.type === "poster" || activeSlide.type === "image") {
-      return activeSlide.displayUrl;
-    }
-    if (activeSlide.type === "video") {
-      return activeSlide.displayUrl;
-    }
-    return basePosterUrl;
-  }, [activeSlide, basePosterUrl]);
-
-  // 当前展示图的代理地址
-  const proxiedPosterUrl = useMemo(
-    () => toProxyUrl(activeDisplayUrl),
-    [activeDisplayUrl],
-  );
-  // 基础海报的代理地址
-  const proxiedBasePosterUrl = useMemo(
-    () => toProxyUrl(basePosterUrl),
-    [basePosterUrl],
-  );
-  // 主图的主色与原始尺寸信息
-  const { dominant, naturalSize } = useImageColor(
-    basePosterUrl,
-    proxiedBasePosterUrl,
-  );
-
-  // 选中样图的尺寸信息，用于展示面板
-  const activeImageOriginal =
-    activeSlide?.type === "image" ? activeSlide.url : "";
-  const activeImageProxy =
-    activeSlide?.type === "image" ? activeSlide.displayUrl : "";
-  const { naturalSize: selectedNatural } = useImageColor(
-    activeImageOriginal || null,
-    activeImageOriginal ? activeImageProxy : undefined,
-  );
   // 监听窗口尺寸变化，更新视口宽度
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
@@ -342,15 +358,6 @@ export default function Home() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // 背景基色，优先使用主色，否则使用回退值
-  const baseRgb = dominant || FALLBACK_COLOR;
-  // 背景渐变的高亮色
-  const accent = adjustLightness(baseRgb, 0.12);
-  // 背景渐变的阴影色
-  const subtle = adjustLightness(baseRgb, -0.08);
-  // 色彩渐变背景样式字符串
-  const radial = `radial-gradient(1200px 800px at 80% -10%, rgba(${accent.r},${accent.g},${accent.b},0.45), transparent), radial-gradient(900px 600px at 10% 110%, rgba(${subtle.r},${subtle.g},${subtle.b},0.55), transparent)`;
 
   // 舞台相关尺寸，按照断点预设值计算
   const stage = useMemo(() => {
@@ -364,17 +371,10 @@ export default function Home() {
     };
   }, [viewportWidth]);
 
-  const mediaDimensions = useMemo(() => {
-    if (activeSlide?.type === "video") {
-      const width = Math.max(stage.stageW, VIDEO_MIN_WIDTH);
-      const height = Math.max(
-        VIDEO_MIN_HEIGHT,
-        Math.round((width * VIDEO_MIN_HEIGHT) / VIDEO_MIN_WIDTH),
-      );
-      return { width, height };
-    }
-    return { width: stage.stageW, height: stage.containerH };
-  }, [activeSlide, stage.containerH, stage.stageW]);
+  const mediaDimensions = useMemo(
+    () => ({ width: stage.stageW, height: stage.containerH }),
+    [stage.containerH, stage.stageW],
+  );
 
   const containerDimensions = useMemo(
     () => ({
@@ -388,36 +388,6 @@ export default function Home() {
       stage.stageW,
     ],
   );
-
-  const mediaStageSizeText = useMemo(() => {
-    if (activeSlide?.type === "video") {
-      return `${mediaDimensions.width}px × ${mediaDimensions.height}px`;
-    }
-    return stage.stageSizeText;
-  }, [
-    activeSlide,
-    mediaDimensions.height,
-    mediaDimensions.width,
-    stage.stageSizeText,
-  ]);
-
-  // 展示在 InfoPanel 中的图片尺寸文案
-  const imageSizeText = useMemo(() => {
-    if (!activeSlide) return undefined;
-    if (activeSlide.type === "poster") {
-      if (!naturalSize) return undefined;
-      const widthRatio =
-        activeSlide.side === "back"
-          ? 0.5 - POSTER_SPINE_RATIO / 2
-          : 0.5 + POSTER_SPINE_RATIO / 2;
-      const widthPx = Math.floor((naturalSize.w || 0) * widthRatio);
-      return `${widthPx || 0}px × ${naturalSize.h || 0}px`;
-    }
-    if (activeSlide.type === "image" && selectedNatural) {
-      return `${selectedNatural.w}px × ${selectedNatural.h}px`;
-    }
-    return undefined;
-  }, [activeSlide, naturalSize, selectedNatural]);
 
   // 来源于 DMM 样图字段的原始地址列表
   const { zoomSlides, imageIndexToZoom, zoomToImage } = useMemo(() => {
@@ -453,12 +423,12 @@ export default function Home() {
     });
   }, [mediaSlides.length]);
 
-  const slidesCount = mediaSlides.length;
+  const resultsCount = resultItems.length;
 
   // 根据媒体是否可展示切换到紧凑布局
   useEffect(() => {
-    setCompact(slidesCount > 0);
-  }, [slidesCount]);
+    setCompact(resultsCount > 0);
+  }, [resultsCount]);
 
   useEffect(() => {
     setZoomIndex((prev) => {
@@ -484,6 +454,16 @@ export default function Home() {
     await submit();
   }, [submit]);
 
+  const handleOpenDetail = useCallback((item: DmmItem) => {
+    setSelectedItem(item);
+    setDetailOpen(true);
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setDetailOpen(false);
+    setSelectedItem(null);
+  }, []);
+
   // 重置页面状态并返回初始界面
   const handleResetHome = useCallback(() => {
     reset();
@@ -494,62 +474,47 @@ export default function Home() {
     setZoomOpen(false);
     setResolvedVideoUrl("");
     resolvingVideoRef.current = false;
+    setSelectedItem(null);
+    setDetailOpen(false);
   }, [reset]);
+
+  useEffect(() => {
+    if (!detailOpen) return;
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleCloseDetail();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [detailOpen, handleCloseDetail]);
 
   // Header 导航的布局样式
   const navBase = compact
     ? "flex w-full items-center justify-start gap-4 md:gap-6 transition"
     : "flex w-full flex-col items-center justify-center gap-6 transition";
 
-  const {
-    contentId,
-    title,
-    affiliate,
-    actressNames,
-    directorNames,
-    makerName,
-    releaseDate,
-  } = useMemo(() => {
-    const iteminfo = pick?.iteminfo;
-    return {
-      contentId: pick?.content_id || pick?.contentid || "",
-      title: pick?.title || "",
-      affiliate: pick?.affiliateURL || pick?.URL || "",
-      actressNames: joinNames(iteminfo?.actress),
-      directorNames: joinNames(iteminfo?.director),
-      makerName: joinNames(iteminfo?.maker) || pick?.maker?.name || "",
-      releaseDate: pick?.date || pick?.release_date || "",
-    };
-  }, [pick]);
+  const { contentId, title, affiliate, actressNames, makerName, releaseDate } =
+    useMemo(() => {
+      const iteminfo = selectedItem?.iteminfo;
+      return {
+        contentId:
+          selectedItem?.content_id ||
+          selectedItem?.contentid ||
+          selectedItem?.product_id ||
+          "",
+        title: selectedItem?.title || "",
+        affiliate: selectedItem?.affiliateURL || selectedItem?.URL || "",
+        actressNames: joinNames(iteminfo?.actress),
+        makerName:
+          joinNames(iteminfo?.maker) || selectedItem?.maker?.name || "",
+        releaseDate: selectedItem?.date || selectedItem?.release_date || "",
+      };
+    }, [selectedItem]);
 
   return (
-    <div
-      className="relative min-h-svh w-full overflow-hidden text-slate-100"
-      onClickCapture={(event) => {
-        // 当前点击的目标节点
-        const target = event.target as Node;
-        if (headerRef.current?.contains(target)) return;
-        if (logoRef.current?.contains(target)) return;
-        if (footerRef.current?.contains(target)) return;
-        if (detailsRef.current?.contains(target)) return;
-        if (carouselRef.current?.contains(target)) return;
-        if (zoomOpen) return;
-      }}
-    >
-      <div
-        className="absolute inset-0 -z-20"
-        style={{
-          background: radial,
-          backgroundColor: `rgb(${baseRgb.r}, ${baseRgb.g}, ${baseRgb.b})`,
-        }}
-      />
-      {proxiedPosterUrl && (
-        <div
-          className="absolute inset-0 -z-10 bg-center bg-cover blur-3xl scale-110 opacity-50"
-          style={{ backgroundImage: `url(${proxiedPosterUrl})` }}
-        />
-      )}
-
+    <div className="relative min-h-svh w-full overflow-x-hidden overflow-y-auto bg-slate-950 text-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div
         className={`relative mx-auto max-w-7xl px-6 ${compact ? "py-5" : "py-10"}`}
       >
@@ -596,57 +561,6 @@ export default function Home() {
           </nav>
         </header>
 
-        {!compact && !loading && (
-          <section className="mt-6 w-full">
-            <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-slate-950/80 via-indigo-900/40 to-fuchsia-900/30 px-6 py-8 shadow-[0_40px_120px_-45px_rgba(15,23,42,0.95)] backdrop-blur-xl md:px-10 md:py-10">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_55%)]" />
-              <div className="pointer-events-none absolute -top-24 left-[-15%] h-72 w-72 rounded-full bg-violet-500/35 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-32 right-[-10%] h-80 w-80 rounded-full bg-fuchsia-500/25 blur-3xl" />
-              <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center">
-                <div className="flex-1">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.35em] text-violet-100 ring-1 ring-inset ring-white/25">
-                    {hero.badge}
-                  </span>
-                  <h1 className="mt-5 text-2xl font-semibold leading-tight text-white md:text-4xl">
-                    {hero.heading1}
-                  </h1>
-                  <p className="mt-4 text-sm leading-relaxed text-slate-200/85 md:text-base">
-                    {hero.description}
-                  </p>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-violet-200/80">
-                    {hero.emphasis}
-                  </p>
-                </div>
-                <div className="grid flex-1 grid-cols-1 gap-4 text-sm text-slate-100 md:grid-cols-2">
-                  {heroFeatures.map((feature, index) => {
-                    const accent =
-                      FEATURE_ACCENT_CLASSES[
-                        index % FEATURE_ACCENT_CLASSES.length
-                      ];
-                    const dotClass = `mt-[6px] h-2.5 w-2.5 flex-shrink-0 rounded-full ${accent}`;
-                    return (
-                      <div
-                        key={`${feature.title}-${index}`}
-                        className="group flex items-start gap-3 rounded-2xl bg-white/5 p-5 ring-1 ring-inset ring-white/15 backdrop-blur-sm transition will-change-transform hover:-translate-y-1 hover:bg-white/10"
-                      >
-                        <span className={dotClass} />
-                        <div>
-                          <p className="font-medium text-white/90">
-                            {feature.title}
-                          </p>
-                          <p className="mt-2 text-xs text-slate-300/85">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
         <main className={`${compact ? "mt-3 md:mt-4" : "mt-12 md:mt-16"}`}>
           {loading && (
             <div className="flex items-center justify-center h-[60svh]">
@@ -662,7 +576,15 @@ export default function Home() {
             </div>
           )}
 
-          {!loading && !error && hasSearched && slidesCount === 0 && (
+          {!loading && !error && !hasSearched && resultsCount === 0 && (
+            <div className="flex items-center justify-center h-[40svh]">
+              <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-center text-sm text-slate-200/80 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.9)]">
+                开始输入关键字，探索最新的封面与样图。
+              </div>
+            </div>
+          )}
+
+          {!loading && !error && hasSearched && resultsCount === 0 && (
             <div className="flex items-center justify-center h-[50svh]">
               <div className="rounded-xl bg-white/5 text-slate-200 border border-white/15 px-4 py-3">
                 {t("page.noResults")}
@@ -670,34 +592,87 @@ export default function Home() {
             </div>
           )}
 
-          {!loading && !error && slidesCount > 0 && (
-            <div className="relative flex flex-col items-stretch">
-              <div className="grid w-full max-w-7xl gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,340px)_minmax(0,1fr)] md:gap-8 md:items-start lg:grid-cols-[minmax(0,340px)_minmax(0,380px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,360px)_minmax(0,420px)_minmax(0,1fr)]">
-                <InfoPanel
-                  ref={detailsRef}
-                  contentId={contentId}
-                  title={title}
-                  affiliate={affiliate}
-                  actressNames={actressNames}
-                  makerName={makerName}
-                  directorNames={directorNames}
-                  releaseDate={releaseDate}
-                  keyword={keyword}
-                  stageSizeText={mediaStageSizeText}
-                  imageSizeText={imageSizeText}
-                  remainingCount={remainingItems.length}
-                />
-
-                <div className="relative order-2 md:order-none md:col-start-2 flex justify-center md:justify-center">
-                  <div
-                    className="relative flex items-center justify-center overflow-visible"
-                    style={{
-                      width: `${containerDimensions.width}px`,
-                      height: `${containerDimensions.height}px`,
-                      transition: "width 0.45s ease, height 0.45s ease",
-                    }}
+          {!loading && !error && resultsCount > 0 && (
+            <div className="relative flex flex-col">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {feedCards.map((card, index) => (
+                  <button
+                    key={`${card.id}-${index}`}
+                    type="button"
+                    onClick={() => handleOpenDetail(card.item)}
+                    className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10"
                   >
-                    <div className="relative h-full w-full overflow-hidden rounded-[28px]">
+                    <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
+                      {card.coverUrl ? (
+                        <Image
+                          src={card.coverUrl}
+                          alt={card.title || "封面预览"}
+                          fill
+                          unoptimized
+                          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 30vw, 220px"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
+                          暂无封面
+                        </div>
+                      )}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+                    </div>
+                    <div className="flex flex-col gap-2 px-4 py-4">
+                      <span className="line-clamp-2 text-sm font-semibold leading-snug text-white/90">
+                        {card.title || "未命名作品"}
+                      </span>
+                      {card.maker ? (
+                        <span className="text-xs text-slate-300/75">
+                          {card.maker}
+                        </span>
+                      ) : null}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {detailOpen && selectedItem ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 px-4 py-10 backdrop-blur-sm">
+          <div className="relative w-full max-w-6xl">
+            <button
+              type="button"
+              onClick={handleCloseDetail}
+              className="absolute -top-10 right-0 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-slate-200 transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              aria-label="关闭"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <title>关闭</title>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <div className="grid gap-6 rounded-[32px] border border-white/15 bg-slate-950/80 p-6 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.9)] backdrop-blur-2xl md:grid-cols-[minmax(0,1.15fr)_minmax(300px,360px)] md:p-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,400px)]">
+              <div className="flex justify-center">
+                <div
+                  className="relative flex items-center justify-center overflow-visible"
+                  style={{
+                    width: `${containerDimensions.width}px`,
+                    height: `${containerDimensions.height}px`,
+                    transition: "width 0.45s ease, height 0.45s ease",
+                  }}
+                >
+                  <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-black/35">
+                    {mediaSlides.length > 0 ? (
                       <PosterPanel
                         ref={carouselRef}
                         slides={mediaSlides}
@@ -722,33 +697,32 @@ export default function Home() {
                           setZoomOpen(true);
                         }}
                       />
-                    </div>
-                  </div>
-                </div>
-                <div className="order-3 mt-8 flex justify-center md:order-none md:col-start-3 md:mt-0 md:w-full md:justify-end md:justify-self-end">
-                  <div className="sticky top-24 flex w-full max-w-[22rem] items-start md:max-w-[312px] lg:max-w-[360px] xl:max-w-[360px]">
-                    <CommentPanel
-                      height={stage.containerH}
-                      size={Math.min(
-                        128,
-                        Math.max(
-                          68,
-                          Math.floor(
-                            Math.min(stage.stageW, stage.containerH) * 0.18,
-                          ),
-                        ),
-                      )}
-                      contentId={contentId}
-                      posterProxyUrl={proxiedPosterSmallUrl || undefined}
-                      affiliateUrl={affiliate || undefined}
-                    />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
+                        暂无可展示的媒体
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+              <div className="flex w-full">
+                <InfoPanel
+                  ref={detailsRef}
+                  contentId={contentId}
+                  title={title}
+                  affiliate={affiliate}
+                  actressNames={actressNames}
+                  makerName={makerName}
+                  releaseDate={releaseDate}
+                  posterProxyUrl={proxiedPosterSmallUrl || undefined}
+                  affiliateUrl={affiliate || undefined}
+                  commentAreaHeight={stage.containerH}
+                />
+              </div>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        </div>
+      ) : null}
 
       <ZoomModal
         open={zoomOpen}

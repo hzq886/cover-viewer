@@ -74,12 +74,12 @@ export async function GET(req: Request) {
       ? Math.max(1, Number.parseInt(offsetParam, 10) || 1)
       : 1;
 
-    if (!keyword) {
-      return NextResponse.json(
-        { code: "missing_keyword", message: "Missing keyword parameter" },
-        { status: 400 },
-      );
-    }
+    // if (!keyword) {
+    //   return NextResponse.json(
+    //     { code: "missing_keyword", message: "Missing keyword parameter" },
+    //     { status: 400 },
+    //   );
+    // }
 
     const apiId = process.env.DMM_API_ID;
     const affiliateId = process.env.DMM_AFFILIATE_ID;

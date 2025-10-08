@@ -269,9 +269,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
       <div ref={rootRef} className="relative w-full">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: hover handlers manage control visibility */}
         <div
-          className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 ${
-            current?.type !== "video" ? "p-0" : "p-4"
-          } shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors hover:border-violet-200/60 ${
+          className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-0 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors hover:border-violet-200/60 ${
             canZoom ? "cursor-zoom-in" : "cursor-default"
           }`}
           style={{
