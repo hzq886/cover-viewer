@@ -42,6 +42,7 @@ type Props = {
   posterProxyUrl?: string;
   affiliateUrl?: string;
   commentAreaHeight?: number;
+  className?: string;
 };
 
 type Comment = {
@@ -135,6 +136,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     posterProxyUrl,
     affiliateUrl,
     commentAreaHeight,
+    className,
   },
   ref,
 ) {
@@ -168,6 +170,12 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     if (!commentAreaHeight) return undefined;
     return { minHeight: `${commentAreaHeight}px` };
   }, [commentAreaHeight]);
+  const containerClass = [
+    "flex h-full w-full flex-col bg-slate-950/85 p-6 text-white backdrop-blur-xl md:p-8",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset local state whenever the active content changes
   useEffect(() => {
@@ -479,11 +487,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
   const heartFontSize = 52;
 
   return (
-    <aside
-      ref={ref}
-      className="flex w-full max-w-[22rem] flex-col rounded-[28px] border border-white/15 bg-black/35 p-5 text-white shadow-[0_30px_80px_-30px_rgba(0,0,0,0.65)] backdrop-blur-xl md:max-w-none md:h-full"
-      style={cardStyle}
-    >
+    <aside ref={ref} className={containerClass} style={cardStyle}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 space-y-1">
           {actressNames ? (

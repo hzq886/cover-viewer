@@ -75,14 +75,11 @@ type TranslationShape = {
     posterAlt: string;
   };
   search: {
-    placeholder: {
-      default: string;
-      compact: string;
-    };
+    placeholder: string;
     clear: string;
     submit: string;
     submitTitle: string;
-    submitCompactAria: string;
+    submitAria: string;
     deleteRecent: string;
     noRecent: string;
     keywordPanel: {
@@ -238,14 +235,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "返回首页",
     },
     search: {
-      placeholder: {
-        default: "输入任意关键词(多个关键词用空格隔开)",
-        compact: "继续检索关键词",
-      },
+      placeholder: "输入任意关键词(多个关键词用空格隔开)",
       clear: "清除搜索内容",
       submit: "搜索",
       submitTitle: "搜索",
-      submitCompactAria: "执行搜索",
+      submitAria: "执行搜索",
       deleteRecent: "删除 '{{value}}'",
       noRecent: "暂无搜索历史",
       keywordPanel: {
@@ -422,14 +416,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "返回首頁",
     },
     search: {
-      placeholder: {
-        default: "輸入任意關鍵字（多個關鍵字以空格分隔）",
-        compact: "繼續搜尋其他關鍵字",
-      },
+      placeholder: "輸入任意關鍵字（多個關鍵字以空格分隔）",
       clear: "清除搜尋內容",
       submit: "搜尋",
       submitTitle: "搜尋",
-      submitCompactAria: "執行搜尋",
+      submitAria: "執行搜尋",
       deleteRecent: "刪除『{{value}}』",
       noRecent: "尚無搜尋歷史",
       keywordPanel: {
@@ -611,14 +602,11 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "トップへ戻る",
     },
     search: {
-      placeholder: {
-        default: "キーワードを入力してください（複数はスペース区切り）",
-        compact: "別のキーワードで再検索",
-      },
+      placeholder: "キーワードを入力してください（複数はスペース区切り）",
       clear: "検索語をクリア",
       submit: "検索",
       submitTitle: "検索",
-      submitCompactAria: "検索を実行",
+      submitAria: "検索を実行",
       deleteRecent: "『{{value}}』を削除",
       noRecent: "検索履歴はありません",
       keywordPanel: {
@@ -808,14 +796,12 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       backToHome: "Back to home",
     },
     search: {
-      placeholder: {
-        default: "Enter any keyword (use spaces to separate multiple keywords)",
-        compact: "Search with another keyword",
-      },
+      placeholder:
+        "Enter any keyword (use spaces to separate multiple keywords)",
       clear: "Clear search input",
       submit: "Search",
       submitTitle: "Search",
-      submitCompactAria: "Run search",
+      submitAria: "Run search",
       deleteRecent: "Remove '{{value}}'",
       noRecent: "No recent searches yet",
       keywordPanel: {

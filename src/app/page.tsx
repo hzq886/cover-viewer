@@ -80,8 +80,6 @@ export default function Home() {
     submit,
     reset,
   } = useDmmSearch();
-  // 是否处于紧凑布局（显示结果后自动启用）
-  const [compact, setCompact] = useState(false);
   // 当前窗口宽度，驱动舞台的断点切换
   const [viewportWidth, setViewportWidth] = useState(0);
   // 媒体展示区域引用，用于阻止冒泡
@@ -425,11 +423,6 @@ export default function Home() {
 
   const resultsCount = resultItems.length;
 
-  // 根据媒体是否可展示切换到紧凑布局
-  useEffect(() => {
-    setCompact(resultsCount > 0);
-  }, [resultsCount]);
-
   useEffect(() => {
     setZoomIndex((prev) => {
       if (zoomSlides.length === 0) return 0;
@@ -467,7 +460,6 @@ export default function Home() {
   // 重置页面状态并返回初始界面
   const handleResetHome = useCallback(() => {
     reset();
-    setCompact(false);
     setOrderedSamples([]);
     setActiveIndex(0);
     setZoomIndex(0);
@@ -491,9 +483,8 @@ export default function Home() {
   }, [detailOpen, handleCloseDetail]);
 
   // Header 导航的布局样式
-  const navBase = compact
-    ? "flex w-full items-center justify-start gap-4 md:gap-6 transition"
-    : "flex w-full flex-col items-center justify-center gap-6 transition";
+  const navBase =
+    "flex w-full items-center justify-start gap-4 md:gap-6 transition";
 
   const { contentId, title, affiliate, actressNames, makerName, releaseDate } =
     useMemo(() => {
@@ -515,43 +506,31 @@ export default function Home() {
 
   return (
     <div className="relative min-h-svh w-full overflow-x-hidden overflow-y-auto bg-slate-950 text-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div
-        className={`relative mx-auto max-w-7xl px-6 ${compact ? "py-5" : "py-10"}`}
-      >
+      <div className="relative mx-auto max-w-7xl px-6 py-5">
         <header
           ref={headerRef}
-          className={`relative z-[80] flex w-full ${compact ? "justify-start" : "justify-center"}`}
+          className="relative z-[80] flex w-full justify-start"
         >
           <nav className={navBase}>
             <div
               ref={logoRef}
-              className={
-                compact
-                  ? "flex items-center justify-start"
-                  : "flex w-full items-center justify-center"
-              }
+              className="flex items-center justify-start"
             >
               <Logo
                 onHome={handleResetHome}
-                className={`opacity-95 hover:opacity-100 transition-transform ${compact ? "scale-90" : "scale-100"}`}
+                className="scale-90 opacity-95 transition-transform hover:opacity-100"
               />
             </div>
-            <div className={compact ? "flex-1 min-w-[260px]" : "w-full"}>
+            <div className="flex-1 min-w-[260px]">
               <SearchBar
                 keyword={keyword}
                 setKeyword={setKeyword}
                 loading={loading}
                 onSubmit={handleSearch}
-                compact={compact}
-                className={compact ? "" : "mx-auto"}
               />
             </div>
             <div
-              className={
-                compact
-                  ? "flex min-w-[120px] items-center justify-end"
-                  : "mt-4 flex w-full items-center justify-center md:mt-0 md:justify-end"
-              }
+              className="flex min-w-[120px] items-center justify-end"
             >
               <div className="flex items-center gap-3">
                 <LanguageSwitcher />
@@ -561,39 +540,31 @@ export default function Home() {
           </nav>
         </header>
 
-        <main className={`${compact ? "mt-3 md:mt-4" : "mt-12 md:mt-16"}`}>
-          {loading && (
-            <div className="flex items-center justify-center h-[60svh]">
-              <div className="h-24 w-24 rounded-full border border-white/15 bg-white/10 shadow-[0_0_60px_-20px_rgba(148,163,184,0.6)] animate-pulse" />
-            </div>
-          )}
-
-          {!loading && error && (
-            <div className="flex items-center justify-center h-[50svh]">
-              <div className="rounded-xl bg-red-600/10 text-red-200 border border-red-400/30 px-4 py-3">
-                {errorMessage}
+        <main className="mt-3 md:mt-4">
+          <div className="relative flex min-h-[40svh] flex-col">
+            {loading ? (
+              <div className="flex h-[60svh] items-center justify-center">
+                <div className="h-24 w-24 animate-pulse rounded-full border border-white/15 bg-white/10 shadow-[0_0_60px_-20px_rgba(148,163,184,0.6)]" />
               </div>
-            </div>
-          )}
-
-          {!loading && !error && !hasSearched && resultsCount === 0 && (
-            <div className="flex items-center justify-center h-[40svh]">
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-center text-sm text-slate-200/80 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.9)]">
-                开始输入关键字，探索最新的封面与样图。
+            ) : error ? (
+              <div className="flex h-[50svh] items-center justify-center">
+                <div className="rounded-xl border border-red-400/30 bg-red-600/10 px-4 py-3 text-red-200">
+                  {errorMessage}
+                </div>
               </div>
-            </div>
-          )}
-
-          {!loading && !error && hasSearched && resultsCount === 0 && (
-            <div className="flex items-center justify-center h-[50svh]">
-              <div className="rounded-xl bg-white/5 text-slate-200 border border-white/15 px-4 py-3">
-                {t("page.noResults")}
+            ) : !hasSearched && resultsCount === 0 ? (
+              <div className="flex h-[40svh] items-center justify-center">
+                <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-center text-sm text-slate-200/80 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.9)]">
+                  开始输入关键字，探索最新的封面与样图。
+                </div>
               </div>
-            </div>
-          )}
-
-          {!loading && !error && resultsCount > 0 && (
-            <div className="relative flex flex-col">
+            ) : hasSearched && resultsCount === 0 ? (
+              <div className="flex h-[50svh] items-center justify-center">
+                <div className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-slate-200">
+                  {t("page.noResults")}
+                </div>
+              </div>
+            ) : resultsCount > 0 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {feedCards.map((card, index) => (
                   <button
@@ -632,14 +603,14 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : null}
+          </div>
         </main>
       </div>
 
       {detailOpen && selectedItem ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 px-4 py-10 backdrop-blur-sm">
-          <div className="relative w-full max-w-6xl">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 px-4 py-10 backdrop-blur-sm">
+          <div className="relative w-[80vw] max-w-5xl">
             <button
               type="button"
               onClick={handleCloseDetail}
@@ -661,51 +632,49 @@ export default function Home() {
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
-            <div className="grid gap-6 rounded-[32px] border border-white/15 bg-slate-950/80 p-6 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.9)] backdrop-blur-2xl md:grid-cols-[minmax(0,1.15fr)_minmax(300px,360px)] md:p-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,400px)]">
-              <div className="flex justify-center">
+            <div className="overflow-hidden rounded-[36px] border border-white/12 bg-black/55 shadow-[0_45px_140px_-60px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(260px,1fr)] lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,1fr)]">
                 <div
-                  className="relative flex items-center justify-center overflow-visible"
+                  className="relative mx-auto flex items-center justify-center bg-slate-950/92 md:border-r md:border-white/12"
                   style={{
                     width: `${containerDimensions.width}px`,
                     height: `${containerDimensions.height}px`,
+                    maxWidth: "100%",
+                    maxHeight: "100%",
                     transition: "width 0.45s ease, height 0.45s ease",
                   }}
                 >
-                  <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-black/35">
-                    {mediaSlides.length > 0 ? (
-                      <PosterPanel
-                        ref={carouselRef}
-                        slides={mediaSlides}
-                        width={mediaDimensions.width}
-                        height={mediaDimensions.height}
-                        disableKeyboardNavigation={
-                          activeSlide?.type === "video"
-                        }
-                        initialIndex={activeIndex}
-                        onSlideChange={(slide, index) => {
-                          if (index === activeIndex) {
-                            return;
+                  <div className="relative flex h-full w-full items-center justify-center">
+                    <div className="relative h-full w-full overflow-hidden bg-transparent">
+                      {mediaSlides.length > 0 ? (
+                        <PosterPanel
+                          ref={carouselRef}
+                          slides={mediaSlides}
+                          width={mediaDimensions.width}
+                          height={mediaDimensions.height}
+                          disableKeyboardNavigation={
+                            activeSlide?.type === "video"
                           }
-                          setActiveIndex(index);
-                          if (slide.type === "video") {
-                            void ensureVideoSource();
-                          }
-                        }}
-                        onRequestZoom={(index) => {
-                          const target = imageIndexToZoom[index] ?? 0;
-                          setZoomIndex(target);
-                          setZoomOpen(true);
-                        }}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
-                        暂无可展示的媒体
-                      </div>
-                    )}
+                          initialIndex={activeIndex}
+                          onSlideChange={(slide, index) => {
+                            if (index === activeIndex) {
+                              return;
+                            }
+                            setActiveIndex(index);
+                            if (slide.type === "video") {
+                              void ensureVideoSource();
+                            }
+                          }}
+                          onRequestZoom={(index) => {
+                            const target = imageIndexToZoom[index] ?? 0;
+                            setZoomIndex(target);
+                            setZoomOpen(true);
+                          }}
+                        />
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex w-full">
                 <InfoPanel
                   ref={detailsRef}
                   contentId={contentId}
@@ -717,6 +686,7 @@ export default function Home() {
                   posterProxyUrl={proxiedPosterSmallUrl || undefined}
                   affiliateUrl={affiliate || undefined}
                   commentAreaHeight={stage.containerH}
+                  className="border-t border-white/10 bg-slate-950/92 text-slate-100 md:border-t-0 md:border-l md:border-white/12"
                 />
               </div>
             </div>

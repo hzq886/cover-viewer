@@ -19,7 +19,6 @@ type Props = {
   setKeyword: (v: string) => void;
   loading?: boolean;
   onSubmit: () => void;
-  compact?: boolean;
   className?: string;
 };
 
@@ -95,7 +94,6 @@ export default function SearchBar({
   setKeyword,
   loading,
   onSubmit,
-  compact,
   className,
 }: Props) {
   const { t, language } = useI18n();
@@ -179,13 +177,7 @@ export default function SearchBar({
     setTooltip(null);
   }, []);
 
-  const placeholder = useMemo(
-    () =>
-      compact
-        ? t("search.placeholder.compact")
-        : t("search.placeholder.default"),
-    [compact, t],
-  );
+  const placeholder = useMemo(() => t("search.placeholder"), [t]);
 
   const hasHydratedRef = useRef(false);
 
@@ -274,14 +266,10 @@ export default function SearchBar({
   const containerRounded = showRecent
     ? "rounded-[32px] rounded-b-none border-b-0"
     : "rounded-[32px]";
-  const widthClass = compact ? "max-w-2xl" : "max-w-3xl";
-  const submitButtonClass = compact
-    ? `flex h-10 w-10 items-center justify-center rounded-full text-violet-200/90 transition hover:bg-violet-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent ${
-        loading ? "cursor-wait" : "cursor-pointer"
-      }`
-    : `flex h-11 min-w-[3rem] items-center justify-center rounded-full bg-gradient-to-r from-violet-500/90 via-fuchsia-500/90 to-violet-600/90 px-4 text-sm font-medium text-white shadow-[0_12px_28px_-16px_rgba(168,85,247,0.9)] transition hover:from-violet-400 hover:via-fuchsia-400 hover:to-violet-500 active:from-violet-500 active:via-fuchsia-500 active:to-violet-600 disabled:cursor-not-allowed disabled:from-white/10 disabled:via-white/10 disabled:to-white/10 disabled:text-white/50 disabled:shadow-none ${
-        compact ? "w-12 px-0" : "w-24"
-      } ${loading ? "cursor-wait" : "cursor-pointer"}`;
+  const widthClass = "max-w-2xl";
+  const submitButtonClass = `flex h-10 w-10 items-center justify-center rounded-full text-violet-200/90 transition hover:bg-violet-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent ${
+    loading ? "cursor-wait" : "cursor-pointer"
+  }`;
 
   const appendKeywordToken = (word: string) => {
     const tokens = keyword.split(/\s+/).filter(Boolean);
@@ -381,7 +369,7 @@ export default function SearchBar({
             disabled={loading}
             className={submitButtonClass}
             title={t("search.submitTitle")}
-            aria-label={compact ? t("search.submitCompactAria") : undefined}
+            aria-label={t("search.submitAria")}
           >
             {loading ? (
               <span className="relative flex h-5 w-5 items-center justify-center text-white">
@@ -394,10 +382,8 @@ export default function SearchBar({
                   }}
                 />
               </span>
-            ) : compact ? (
-              <MdiMagnify className="h-5 w-5" />
             ) : (
-              t("search.submit")
+              <MdiMagnify className="h-5 w-5" />
             )}
           </button>
         </div>

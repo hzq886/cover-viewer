@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { TranslationDictionary } from "@/i18n/translations";
 import type { DmmItem } from "@/types/dmm";
 
-const DEFAULT_KEYWORD = "新作";
+const DEFAULT_KEYWORD = "";
 
 type ErrorKey = keyof TranslationDictionary["errors"];
 
@@ -139,10 +139,11 @@ export function useDmmSearch() {
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
+    setKeyword(DEFAULT_KEYWORD);
+    setHasSearched(true);
+    setError(null);
     void (async () => {
-      setKeyword(DEFAULT_KEYWORD);
       const success = await requestBatch(DEFAULT_KEYWORD, 1);
-      setHasSearched(success);
       if (!success) {
         setLastKeyword("");
       }

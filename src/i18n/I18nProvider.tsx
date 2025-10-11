@@ -65,7 +65,7 @@ function detectInitialLanguage(preferred: LanguageCode): LanguageCode {
   return preferred;
 }
 
-// 支持通过路径形式（如 "search.placeholder.default"）获取嵌套的翻译文案
+// 支持通过路径形式（如 "search.placeholder"）获取嵌套的翻译文案
 function getTranslationValue(lang: LanguageCode, key: string): unknown {
   const segments = key.split(".");
   let current: unknown = translations[lang];

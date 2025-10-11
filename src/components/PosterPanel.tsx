@@ -260,7 +260,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
           unoptimized
           draggable={false}
           sizes="(max-width: 1024px) 90vw, 70vw"
-          className="object-contain select-none"
+          className="object-cover select-none"
         />
       );
     };
@@ -309,7 +309,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                     unoptimized
                     draggable={false}
                     sizes="(max-width: 1024px) 90vw, 70vw"
-                    className={`object-contain select-none filter transition-all duration-500 ease-out ${
+                    className={`object-cover select-none filter transition-all duration-500 ease-out ${
                       showNew
                         ? "opacity-0 scale-92 blur-sm brightness-90"
                         : "opacity-100 scale-100 blur-0 brightness-100"
@@ -324,7 +324,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   unoptimized
                   draggable={false}
                   sizes="(max-width: 1024px) 90vw, 70vw"
-                  className={`object-contain select-none filter transition-all duration-500 ease-out ${
+                  className={`object-cover select-none filter transition-all duration-500 ease-out ${
                     showNew
                       ? "opacity-100 scale-100 blur-0 brightness-100"
                       : "opacity-0 scale-110 blur-sm brightness-110"
