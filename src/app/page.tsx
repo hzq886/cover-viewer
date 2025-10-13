@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AuthBar from "@/components/AuthBar";
 import InfoPanel from "@/components/InfoPanel";
+import ImageFeed, { type FeedCard } from "@/components/ImageFeed";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
@@ -62,6 +62,16 @@ const joinNames = (value: unknown): string => {
   return "";
 };
 
+const getLegacyField = (
+  item: DmmItem | null | undefined,
+  key: string,
+): string | undefined => {
+  if (!item) return undefined;
+  const record = item as Record<string, unknown>;
+  const value = record[key];
+  return typeof value === "string" ? value : undefined;
+};
+
 // 样图缩略信息的数据结构
 type SampleThumb = { url: string; portrait: boolean };
 
@@ -116,9 +126,10 @@ export default function Home() {
     const register = (item: DmmItem | null) => {
       if (!item) return;
       const key =
-        (item.content_id as string | undefined) ||
-        (item.contentid as string | undefined) ||
-        (item.product_id as string | undefined) ||
+        item.content_id ||
+        item.contentid ||
+        getLegacyField(item, "product_id") ||
+        getLegacyField(item, "service_code") ||
         item.title ||
         "";
       if (key && seen.has(key)) return;
@@ -134,7 +145,7 @@ export default function Home() {
     return collection;
   }, [currentItem, remainingItems]);
 
-  const feedCards = useMemo(() => {
+  const feedCards = useMemo<FeedCard[]>(() => {
     const spine = POSTER_SPINE_RATIO.toFixed(2);
     return resultItems.map((item, index) => {
       const poster = extractPosterUrl(item.imageURL ?? null);
@@ -158,8 +169,8 @@ export default function Home() {
       const identifier =
         item.content_id ||
         item.contentid ||
-        item.product_id ||
-        item.service_code ||
+        getLegacyField(item, "product_id") ||
+        getLegacyField(item, "service_code") ||
         item.title ||
         `item-${index}`;
       return {
@@ -168,7 +179,7 @@ export default function Home() {
         coverUrl,
         title: item.title || "",
         maker: joinNames(item.iteminfo?.maker),
-      };
+      } satisfies FeedCard;
     });
   }, [resultItems]);
 
@@ -493,7 +504,7 @@ export default function Home() {
         contentId:
           selectedItem?.content_id ||
           selectedItem?.contentid ||
-          selectedItem?.product_id ||
+          getLegacyField(selectedItem, "product_id") ||
           "",
         title: selectedItem?.title || "",
         affiliate: selectedItem?.affiliateURL || selectedItem?.URL || "",
@@ -542,68 +553,17 @@ export default function Home() {
 
         <main className="mt-3 md:mt-4">
           <div className="relative flex min-h-[40svh] flex-col">
-            {loading ? (
-              <div className="flex h-[60svh] items-center justify-center">
-                <div className="h-24 w-24 animate-pulse rounded-full border border-white/15 bg-white/10 shadow-[0_0_60px_-20px_rgba(148,163,184,0.6)]" />
-              </div>
-            ) : error ? (
-              <div className="flex h-[50svh] items-center justify-center">
-                <div className="rounded-xl border border-red-400/30 bg-red-600/10 px-4 py-3 text-red-200">
-                  {errorMessage}
-                </div>
-              </div>
-            ) : !hasSearched && resultsCount === 0 ? (
-              <div className="flex h-[40svh] items-center justify-center">
-                <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-center text-sm text-slate-200/80 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.9)]">
-                  开始输入关键字，探索最新的封面与样图。
-                </div>
-              </div>
-            ) : hasSearched && resultsCount === 0 ? (
-              <div className="flex h-[50svh] items-center justify-center">
-                <div className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-slate-200">
-                  {t("page.noResults")}
-                </div>
-              </div>
-            ) : resultsCount > 0 ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {feedCards.map((card, index) => (
-                  <button
-                    key={`${card.id}-${index}`}
-                    type="button"
-                    onClick={() => handleOpenDetail(card.item)}
-                    className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10"
-                  >
-                    <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
-                      {card.coverUrl ? (
-                        <Image
-                          src={card.coverUrl}
-                          alt={card.title || "封面预览"}
-                          fill
-                          unoptimized
-                          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 30vw, 220px"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
-                          暂无封面
-                        </div>
-                      )}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
-                    </div>
-                    <div className="flex flex-col gap-2 px-4 py-4">
-                      <span className="line-clamp-2 text-sm font-semibold leading-snug text-white/90">
-                        {card.title || "未命名作品"}
-                      </span>
-                      {card.maker ? (
-                        <span className="text-xs text-slate-300/75">
-                          {card.maker}
-                        </span>
-                      ) : null}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <ImageFeed
+              loading={loading}
+              hasError={Boolean(error)}
+              errorMessage={errorMessage ?? t("errors.unknown")}
+              hasSearched={hasSearched}
+              resultsCount={resultsCount}
+              feedCards={feedCards}
+              onOpenDetail={handleOpenDetail}
+              startHint="开始输入关键字，探索最新的封面与样图。"
+              emptyLabel={t("page.noResults")}
+            />
           </div>
         </main>
       </div>
