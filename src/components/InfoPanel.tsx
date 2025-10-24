@@ -24,10 +24,7 @@ import React, {
   useState,
 } from "react";
 import { useAuth } from "@/auth/AuthProvider";
-import {
-  MaterialSymbolsLightFavorite,
-  MaterialSymbolsLightFavoriteOutline,
-} from "@/components/icons/FavoriteIcon";
+import { MaterialSymbolsThumbUpOutline } from "@/components/icons/FavoriteIcon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { getFirestoreDb, hasFirebaseConfig } from "@/lib/firebase";
 import { getMetadata, getStorageRef, uploadBytes } from "@/lib/storage";
@@ -137,7 +134,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
   ref,
 ) {
   const { dictionary } = useI18n();
-  const infoText = dictionary.infoPanel;
   const commentText = dictionary.comment;
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -145,7 +141,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [popKey, setPopKey] = useState(0);
   const [comments, setComments] = useState<Comment[]>(DEFAULT_COMMENTS);
   const [pending, setPending] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -174,7 +169,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     setComments(DEFAULT_COMMENTS);
     setLikeCount(0);
     setPending("");
-    setPopKey(0);
   }, [contentId]);
 
   useEffect(() => {
@@ -366,9 +360,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
 
     const nextLiked = !liked;
     setLiked(nextLiked);
-    if (nextLiked) {
-      setPopKey((key) => key + 1);
-    }
     setLikeLoading(true);
 
     try {
@@ -474,71 +465,60 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     };
   }, [actressNames]);
 
-  const heartFontSize = 52;
+  const likeCountDisplay = useMemo(() => {
+    const safeCount = Number.isFinite(likeCount) ? Math.max(0, likeCount) : 0;
+    if (typeof Intl !== "undefined" && Intl.NumberFormat) {
+      return new Intl.NumberFormat(undefined, {
+        maximumFractionDigits: 0,
+      }).format(safeCount);
+    }
+    return `${safeCount}`;
+  }, [likeCount]);
+  const likeButtonDisabled = likeLoading || authLoading || !contentId;
 
   return (
     <aside ref={ref} className={containerClass} style={cardStyle}>
       <header className="info-panel__header">
-        <div className="info-panel__title">
-          {actressNames ? (
-            <div className="info-panel__actors" style={actressFadeStyle}>
-              {actressNames}
-            </div>
-          ) : null}
-          {title ? (
-            <h2 className="info-panel__name">
-              {affiliate ? (
-                <a href={affiliate} target="_blank" rel="noopener noreferrer">
-                  {title}
-                </a>
-              ) : (
-                title
-              )}
-            </h2>
-          ) : null}
-        </div>
-        <div className="info-panel__actions">
-          <button
-            type="button"
-            aria-label={liked ? commentText.unlikeAria : commentText.likeAria}
-            aria-pressed={liked}
-            onClick={() => {
-              void handleToggleLike();
-            }}
-            className="info-panel__like"
-            style={{ fontSize: `${heartFontSize}px` }}
-            disabled={likeLoading || authLoading}
-          >
-            <span
-              className={`info-panel__like-icon info-panel__like-icon--outline ${
-                liked ? "info-panel__like-icon--hidden" : ""
-              }`}
-            >
-              <MaterialSymbolsLightFavoriteOutline />
-            </span>
-            <span
-              key={popKey}
-              className={`info-panel__like-icon info-panel__like-icon--solid ${
-                liked ? "info-panel__like-icon--visible" : ""
-              }`}
-            >
-              <MaterialSymbolsLightFavorite />
-            </span>
-          </button>
-          <span className="info-panel__like-count">{likeCount}</span>
-        </div>
+        {title ? (
+          <h2 className="info-panel__name">
+            {affiliate ? (
+              <a href={affiliate} target="_blank" rel="noopener noreferrer">
+                {title}
+              </a>
+            ) : (
+              title
+            )}
+          </h2>
+        ) : null}
+        {actressNames ? (
+          <div className="info-panel__actors" style={actressFadeStyle}>
+            {actressNames}
+          </div>
+        ) : null}
+        {contentId ? (
+          <div className="info-panel__code" title={contentId}>
+            {contentId}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          aria-label={liked ? commentText.unlikeAria : commentText.likeAria}
+          aria-pressed={liked}
+          onClick={() => {
+            void handleToggleLike();
+          }}
+          className={`info-panel__like-pill${
+            liked ? " info-panel__like-pill--active" : ""
+          }`}
+          disabled={likeButtonDisabled}
+        >
+          <MaterialSymbolsThumbUpOutline
+            className="info-panel__thumb"
+            aria-hidden="true"
+          />
+          <span className="info-panel__like-count">{likeCountDisplay}</span>
+        </button>
       </header>
-
-      <section className="info-panel__meta">
-        <dl>
-          {contentId ? (
-            <div className="info-panel__meta-row">
-              <dt>{infoText.contentId}</dt>
-              <dd>{contentId}</dd>
-            </div>
-          ) : null}
-        </dl>
-      </section>
 
       <section className="info-panel__comments">
         <div className="info-panel__comment-list">
