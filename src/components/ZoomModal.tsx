@@ -242,7 +242,7 @@ export default function ZoomModal({
 
   return (
     <div
-      className="fixed inset-0 z-99 flex items-center justify-center bg-black/80 backdrop-blur-xl"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl"
       style={overlayStyle}
     >
       <button
@@ -325,24 +325,9 @@ export default function ZoomModal({
             event.stopPropagation();
             handleClose();
           }}
-          className="absolute left-6 top-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white/90 backdrop-blur-md transition hover:bg-black/70 cursor-pointer"
+          className="viewer-modal__close viewer-modal__close--zoom"
           aria-label={videoText.close}
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <title>{videoText.close}</title>
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        />
 
         <div className="pointer-events-none absolute right-6 top-6 z-40 rounded-full bg-black/60 px-4 py-1 text-sm font-medium text-white/90 backdrop-blur-md">
           {index + 1}/{total}

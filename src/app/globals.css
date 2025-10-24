@@ -254,7 +254,7 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .poster-panel__arrow {
@@ -284,6 +284,7 @@ body::-webkit-scrollbar {
   background: rgba(0, 0, 0, 0.45);
   border-radius: 12px;
   padding: 4px 8px;
+  pointer-events: none;
 }
 
 .poster-panel__dots {
@@ -294,9 +295,11 @@ body::-webkit-scrollbar {
   transform: translateX(-50%);
   display: flex;
   gap: 8px;
+  pointer-events: none;
 }
 
 .poster-panel__dot {
+  pointer-events: auto;
   width: 8px;
   height: 8px;
   border-radius: 4px;
@@ -542,7 +545,7 @@ body::-webkit-scrollbar {
 .viewer-modal__close {
   position: fixed;
   top: clamp(16px, 4vh, 32px);
-  right: clamp(16px, 4vw, 32px);
+  left: clamp(16px, 4vw, 32px);
   border: 0;
   background: linear-gradient(160deg, rgba(17, 24, 39, 0.9), rgba(3, 7, 18, 0.75));
   color: rgba(248, 250, 252, 0.92);
@@ -562,7 +565,7 @@ body::-webkit-scrollbar {
     transform 0.2s ease,
     box-shadow 0.2s ease,
     opacity 0.2s ease;
-  z-index: 140;
+  z-index: 220;
 }
 
 .viewer-modal__close:hover {
@@ -648,6 +651,10 @@ body::-webkit-scrollbar {
 
 .viewer-modal__info::-webkit-scrollbar {
   display: none;
+}
+
+.viewer-modal__close--zoom {
+  z-index: 240;
 }
 
 @media (max-width: 960px) {
