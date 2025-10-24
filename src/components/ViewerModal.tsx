@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 type ViewerModalProps = {
   open: boolean;
@@ -31,9 +31,7 @@ function ViewerModal({ open, onClose, poster, info }: ViewerModalProps) {
             </div>
           ) : null}
           {info ? (
-            <div className="viewer-modal__panel viewer-modal__info">
-              {info}
-            </div>
+            <div className="viewer-modal__panel viewer-modal__info">{info}</div>
           ) : null}
         </div>
       </div>

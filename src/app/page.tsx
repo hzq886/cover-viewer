@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AuthBar from "@/components/AuthBar";
-import InfoPanel from "@/components/InfoPanel";
 import ImageFeed, { type FeedCard } from "@/components/ImageFeed";
+import InfoPanel from "@/components/InfoPanel";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
@@ -510,10 +510,7 @@ export default function Home() {
           className="relative z-[80] flex w-full justify-start"
         >
           <nav className={navBase}>
-            <div
-              ref={logoRef}
-              className="flex items-center justify-start"
-            >
+            <div ref={logoRef} className="flex items-center justify-start">
               <Logo
                 onHome={handleResetHome}
                 className="scale-90 opacity-95 transition-transform hover:opacity-100"
@@ -527,9 +524,7 @@ export default function Home() {
                 onSubmit={handleSearch}
               />
             </div>
-            <div
-              className="flex min-w-[120px] items-center justify-end"
-            >
+            <div className="flex min-w-[120px] items-center justify-end">
               <div className="flex items-center gap-3">
                 <LanguageSwitcher />
                 <AuthBar />

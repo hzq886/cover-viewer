@@ -170,9 +170,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     if (!commentAreaHeight) return undefined;
     return { minHeight: `${commentAreaHeight}px` };
   }, [commentAreaHeight]);
-  const containerClass = ["info-panel", className]
-    .filter(Boolean)
-    .join(" ");
+  const containerClass = ["info-panel", className].filter(Boolean).join(" ");
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset local state whenever the active content changes
   useEffect(() => {
@@ -495,11 +493,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
           {title ? (
             <h2 className="info-panel__name">
               {affiliate ? (
-                <a
-                  href={affiliate}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={affiliate} target="_blank" rel="noopener noreferrer">
                   {title}
                 </a>
               ) : (
@@ -564,7 +558,9 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
       <section className="info-panel__comments">
         <div className="info-panel__comment-list">
           {comments.length === 0 ? (
-            <p className="info-panel__comment-empty">{commentText.noComments}</p>
+            <p className="info-panel__comment-empty">
+              {commentText.noComments}
+            </p>
           ) : (
             comments.map((comment) => (
               <article key={comment.id} className="info-panel__comment">

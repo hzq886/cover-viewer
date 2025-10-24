@@ -15,9 +15,7 @@ export function MetadataSynchronizer() {
     }
 
     document.title = title;
-    const descriptionTag = document.querySelector(
-      'meta[name="description"]',
-    );
+    const descriptionTag = document.querySelector('meta[name="description"]');
     if (descriptionTag) {
       descriptionTag.setAttribute("content", description);
     } else {

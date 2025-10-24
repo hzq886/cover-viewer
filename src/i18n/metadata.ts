@@ -6,11 +6,13 @@ export const METADATA_MESSAGES: Record<
   { title: string; description: string }
 > = {
   "zh-CN": {
-    title: "Lucky JAV | 你的线上日本成人影片情报站。管理你的影片并分享你的想法。",
+    title:
+      "Lucky JAV | 你的线上日本成人影片情报站。管理你的影片并分享你的想法。",
     description: "你的线上日本成人影片情报站。管理你的影片并分享你的想法。",
   },
   "zh-TW": {
-    title: "Lucky JAV | 你的線上日本成人影片情報站。管理你的影片並分享你的想法。",
+    title:
+      "Lucky JAV | 你的線上日本成人影片情報站。管理你的影片並分享你的想法。",
     description: "你的線上日本成人影片情報站。管理你的影片並分享你的想法。",
   },
   ja: {
