@@ -453,17 +453,26 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
       [contentId, firebaseReady, pending],
     );
 
+  const normalizedActress = useMemo(
+    () => (actressNames ? actressNames.trim() : ""),
+    [actressNames],
+  );
+  const actressLength = useMemo(
+    () => normalizedActress.replace(/\s+/g, "").length,
+    [normalizedActress],
+  );
+  const shouldFadeActress = actressLength > 20;
+  const displayedActressNames = useMemo(() => {
+    if (!actressNames) return "";
+    if (!shouldFadeActress) return actressNames;
+    return `${actressNames.slice(0, 20)}...`;
+  }, [actressNames, shouldFadeActress]);
   const actressFadeStyle: CSSProperties | undefined = useMemo(() => {
-    if (!actressNames) return undefined;
-    const visibleLength = actressNames.replace(/\s+/g, "").length;
-    if (visibleLength <= 8) return undefined;
-    return {
-      WebkitMaskImage:
-        "linear-gradient(90deg, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)",
-      maskImage:
-        "linear-gradient(90deg, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)",
-    };
-  }, [actressNames]);
+    if (!shouldFadeActress) return undefined;
+    const gradient =
+      "linear-gradient(90deg, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)";
+    return { WebkitMaskImage: gradient, maskImage: gradient };
+  }, [shouldFadeActress]);
 
   const likeCountDisplay = useMemo(() => {
     const safeCount = Number.isFinite(likeCount) ? Math.max(0, likeCount) : 0;
@@ -491,8 +500,12 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
           </h2>
         ) : null}
         {actressNames ? (
-          <div className="info-panel__actors" style={actressFadeStyle}>
-            {actressNames}
+          <div
+            className="info-panel__actors"
+            style={actressFadeStyle}
+            title={shouldFadeActress ? actressNames : undefined}
+          >
+            {displayedActressNames}
           </div>
         ) : null}
         {contentId ? (
