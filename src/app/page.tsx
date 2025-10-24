@@ -91,8 +91,9 @@ export default function Home() {
     submit,
     reset,
   } = useDmmSearch();
-  // 当前窗口宽度，驱动舞台的断点切换
+  // 当前窗口尺寸，驱动舞台的断点切换
   const [viewportWidth, setViewportWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
   // 媒体展示区域引用，用于阻止冒泡
   const carouselRef = useRef<HTMLDivElement>(null);
   // 布局高度 Hook，提供 header/footer 引用与高度
@@ -362,9 +363,12 @@ export default function Home() {
     }
   }, [activeSlide, ensureVideoSource]);
 
-  // 监听窗口尺寸变化，更新视口宽度
+  // 监听窗口尺寸变化，更新视口尺寸
   useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+    };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -373,13 +377,40 @@ export default function Home() {
   // 舞台相关尺寸，按照断点预设值计算
   const stage = useMemo(() => {
     const preset = STAGE_WIDTH_PRESETS.find(({ min }) => viewportWidth >= min);
-    const stageW = preset ? preset.width : STAGE_WIDTH_DEFAULT;
-    const containerH = Math.round(stageW / TARGET_ASPECT_RATIO);
+    const baseWidth = preset ? preset.width : STAGE_WIDTH_DEFAULT;
+    const horizontalMargin = viewportWidth >= 960 ? 96 : 48;
+    const verticalMargin = 64;
+    const infoWidth =
+      viewportWidth >= 960
+        ? Math.min(
+            Math.max(Math.round(viewportWidth * 0.26), 220),
+            360,
+          )
+        : 0;
+    const fallbackHeight = Math.round(baseWidth / TARGET_ASPECT_RATIO);
+    const availableHeight = viewportHeight
+      ? Math.max(fallbackHeight, viewportHeight - verticalMargin)
+      : fallbackHeight;
+    const widthFromHeight = Math.round(availableHeight * TARGET_ASPECT_RATIO);
+    const availableWidth = viewportWidth
+      ? Math.max(
+          STAGE_WIDTH_DEFAULT,
+          viewportWidth - horizontalMargin - infoWidth,
+        )
+      : widthFromHeight;
+    const stageW = Math.max(
+      STAGE_WIDTH_DEFAULT,
+      Math.min(widthFromHeight, availableWidth),
+    );
+    const containerH = Math.min(
+      availableHeight,
+      Math.round(stageW / TARGET_ASPECT_RATIO),
+    );
     return {
       containerH,
       stageW,
     };
-  }, [viewportWidth]);
+  }, [viewportHeight, viewportWidth]);
 
   const mediaDimensions = useMemo(
     () => ({ width: stage.stageW, height: stage.containerH }),

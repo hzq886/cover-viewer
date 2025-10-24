@@ -22,7 +22,6 @@ function ViewerModal({ open, onClose, poster, info }: ViewerModalProps) {
           onClick={onClose}
           aria-label="关闭"
         >
-          ×
         </button>
         <div className="viewer-modal__body">
           {poster ? (
