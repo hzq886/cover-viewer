@@ -152,11 +152,10 @@ export default function VideoPanel({
   );
 
   useEffect(() => {
-    if (isInline) return;
     if (!panelActive) return;
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [panelActive, handleKey, isInline]);
+  }, [panelActive, handleKey]);
 
   useEffect(() => {
     const api = playerRef.current;
