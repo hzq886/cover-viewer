@@ -11,6 +11,7 @@ import React, {
   useState,
 } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
+import VideoPanel from "./VideoPanel";
 
 export type MediaSlide =
   | {
@@ -62,7 +63,6 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
     const { dictionary, t } = useI18n();
     const posterText = dictionary.posterPanel;
     const [index, setIndex] = useState(initialIndex);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
 
     useImperativeHandle(ref, () => rootRef.current as HTMLDivElement);
@@ -160,30 +160,6 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
       lastSlideRef.current = current;
     }, [current]);
 
-    useEffect(() => {
-      const el = videoRef.current;
-      if (!current || current.type !== "video") {
-        if (el) {
-          el.pause();
-          el.currentTime = 0;
-        }
-        return;
-      }
-      if (!el) return;
-      const play = () => {
-        try {
-          const maybePromise = el.play();
-          if (maybePromise && typeof maybePromise.then === "function") {
-            maybePromise.catch(() => {});
-          }
-        } catch {
-          // ignore autoplay failure
-        }
-      };
-      el.currentTime = 0;
-      play();
-    }, [current]);
-
     const goTo = useCallback(
       (next: number) => {
         if (!total) return;
@@ -237,17 +213,11 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
     const renderMedia = () => {
       if (current.type === "video") {
         return (
-          <video
-            key={`video-${current.url}`}
-            ref={(el) => {
-              videoRef.current = el;
-            }}
-            src={current.displayUrl}
-            className="poster-panel__video"
-            controls
-            muted
-            playsInline
-            autoPlay
+          <VideoPanel
+            layout="inline"
+            videoUrl={current.displayUrl}
+            width={width}
+            height={height}
           />
         );
       }
@@ -353,7 +323,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
         <div className="poster-panel__counter">
           {index + 1}/{total}
         </div>
-        {total > 1 ? (
+        {total > 1 && current.type !== "video" ? (
           <div className="poster-panel__dots">
             {slides.map((slide, slideIndex) => {
               const active = slideIndex === index;

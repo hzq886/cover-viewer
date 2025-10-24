@@ -4,7 +4,13 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import type { APITypes, PlyrOptions } from "plyr-react";
 import "plyr-react/plyr.css";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+} from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const Plyr = dynamic(() => import("plyr-react").then((mod) => mod.default), {
@@ -26,11 +32,12 @@ type PlyrLike = {
 type Props = {
   videoUrl: string;
   posterUrl?: string;
-  width: number;
-  height: number;
-  active: boolean;
-  onActivate: () => void;
+  width?: number;
+  height?: number;
+  active?: boolean;
+  onActivate?: () => void;
   onDeactivate?: () => void;
+  layout?: "panel" | "inline";
 };
 
 const normalizeVideoSrc = (url: string) =>
@@ -57,21 +64,24 @@ export default function VideoPanel({
   posterUrl,
   width,
   height,
-  active,
+  active = false,
   onActivate,
   onDeactivate,
+  layout = "panel",
 }: Props) {
   const { dictionary } = useI18n();
   const videoText = dictionary.video;
   const playTitle = dictionary.infoPanel.play;
   const playerRef = useRef<APITypes | null>(null);
-  const activeRef = useRef(active);
+  const isInline = layout === "inline";
+  const panelActive = isInline ? true : active;
+  const activeRef = useRef(panelActive);
   const initializedRef = useRef(false);
   const lastVideoUrlRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    activeRef.current = active;
-  }, [active]);
+    activeRef.current = panelActive;
+  }, [panelActive]);
 
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
@@ -142,16 +152,18 @@ export default function VideoPanel({
   );
 
   useEffect(() => {
-    if (!active) return;
+    if (isInline) return;
+    if (!panelActive) return;
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [active, handleKey]);
+  }, [panelActive, handleKey, isInline]);
 
   useEffect(() => {
     const api = playerRef.current;
     const instance = api?.plyr;
+    const shouldActivate = isInline || panelActive;
 
-    if (!active) {
+    if (!shouldActivate) {
       initializedRef.current = false;
       lastVideoUrlRef.current = undefined;
       if (instance && typeof instance.pause === "function") {
@@ -193,7 +205,7 @@ export default function VideoPanel({
     return () => {
       cancelled = true;
     };
-  }, [active, videoUrl]);
+  }, [panelActive, videoUrl, isInline]);
 
   const proxiedUrl = useMemo(() => normalizeVideoSrc(videoUrl), [videoUrl]);
 
@@ -238,30 +250,47 @@ export default function VideoPanel({
     [],
   );
 
-  const effectiveWidth = active ? Math.max(width, VIDEO_MIN_WIDTH) : width;
-  const activeHeight = Math.round(effectiveWidth * VIDEO_ASPECT_RATIO);
-  const effectiveHeight = active
-    ? Math.max(VIDEO_MIN_HEIGHT, activeHeight)
-    : height;
+  if (isInline) {
+    const inlineStyle: CSSProperties = {
+      width: width ? `${width}px` : "100%",
+      height: height ? `${height}px` : "100%",
+    };
+    return (
+      <div className="inline-video-player h-full w-full" style={inlineStyle}>
+        {source ? <Plyr ref={playerRef} source={source} options={options} /> : null}
+      </div>
+    );
+  }
 
-  const cardStyle: React.CSSProperties = {
+  const baseWidth = width ?? VIDEO_MIN_WIDTH;
+  const baseHeight =
+    height ?? Math.round(baseWidth * VIDEO_ASPECT_RATIO);
+  const effectiveWidth = panelActive
+    ? Math.max(baseWidth, VIDEO_MIN_WIDTH)
+    : baseWidth;
+  const activeHeight = Math.round(effectiveWidth * VIDEO_ASPECT_RATIO);
+  const effectiveHeight = panelActive
+    ? Math.max(VIDEO_MIN_HEIGHT, activeHeight)
+    : baseHeight;
+
+  const cardStyle: CSSProperties = {
     width: `${effectiveWidth}px`,
     height: `${effectiveHeight}px`,
     maxWidth: "100%",
     transition: "width 0.45s ease, height 0.45s ease",
   };
 
-  if (active) {
+  if (panelActive) {
     cardStyle.minWidth = `${VIDEO_MIN_WIDTH}px`;
     cardStyle.minHeight = `${VIDEO_MIN_HEIGHT}px`;
     cardStyle.aspectRatio = `${VIDEO_MIN_WIDTH} / ${VIDEO_MIN_HEIGHT}`;
   }
 
-  if (!active) {
+  if (!panelActive) {
     return (
       <button
         type="button"
-        onClick={onActivate}
+        onClick={() => onActivate?.()}
         className="relative flex w-full select-none flex-col items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-6 text-slate-200 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition hover:border-violet-200/60 hover:bg-black/45 cursor-pointer"
         style={cardStyle}
         aria-label={videoText.activateAria}
