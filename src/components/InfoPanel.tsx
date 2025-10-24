@@ -37,8 +37,6 @@ type Props = {
   title?: string;
   affiliate?: string;
   actressNames?: string;
-  makerName?: string;
-  releaseDate?: string;
   posterProxyUrl?: string;
   affiliateUrl?: string;
   commentAreaHeight?: number;
@@ -131,8 +129,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     title,
     affiliate,
     actressNames,
-    makerName,
-    releaseDate,
     posterProxyUrl,
     affiliateUrl,
     commentAreaHeight,
@@ -478,7 +474,6 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     };
   }, [actressNames]);
 
-  const dateOnly = (releaseDate || "").slice(0, 10);
   const heartFontSize = 52;
 
   return (
@@ -536,20 +531,10 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
 
       <section className="info-panel__meta">
         <dl>
-          <div className="info-panel__meta-row">
-            <dt>{infoText.releaseDate}</dt>
-            <dd>{dateOnly || "--"}</dd>
-          </div>
           {contentId ? (
             <div className="info-panel__meta-row">
               <dt>{infoText.contentId}</dt>
               <dd>{contentId}</dd>
-            </div>
-          ) : null}
-          {makerName ? (
-            <div className="info-panel__meta-row">
-              <dt>{infoText.maker}</dt>
-              <dd>{makerName}</dd>
             </div>
           ) : null}
         </dl>

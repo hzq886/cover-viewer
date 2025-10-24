@@ -180,6 +180,7 @@ export default function Home() {
         coverUrl,
         title: item.title || "",
         maker: joinNames(item.iteminfo?.maker),
+        releaseDate: item.date || item.release_date || "",
       } satisfies FeedCard;
     });
   }, [resultItems]);
@@ -484,7 +485,7 @@ export default function Home() {
   const navBase =
     "flex w-full items-center justify-start gap-4 md:gap-6 transition";
 
-  const { contentId, title, affiliate, actressNames, makerName, releaseDate } =
+  const { contentId, title, affiliate, actressNames } =
     useMemo(() => {
       const iteminfo = selectedItem?.iteminfo;
       return {
@@ -496,9 +497,6 @@ export default function Home() {
         title: selectedItem?.title || "",
         affiliate: selectedItem?.affiliateURL || selectedItem?.URL || "",
         actressNames: joinNames(iteminfo?.actress),
-        makerName:
-          joinNames(iteminfo?.maker) || selectedItem?.maker?.name || "",
-        releaseDate: selectedItem?.date || selectedItem?.release_date || "",
       };
     }, [selectedItem]);
 
@@ -587,8 +585,6 @@ export default function Home() {
               title={title}
               affiliate={affiliate}
               actressNames={actressNames}
-              makerName={makerName}
-              releaseDate={releaseDate}
               posterProxyUrl={proxiedPosterSmallUrl || undefined}
               affiliateUrl={affiliate || undefined}
               commentAreaHeight={stage.containerH}

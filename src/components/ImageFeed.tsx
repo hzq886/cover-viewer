@@ -9,6 +9,7 @@ export type FeedCard = {
   coverUrl: string;
   title: string;
   maker: string;
+  releaseDate?: string;
 };
 
 type Props = {
@@ -78,40 +79,50 @@ function ImageFeed({
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {feedCards.map((card, index) => (
-        <button
-          key={`${card.id}-${index}`}
-          type="button"
-          onClick={() => onOpenDetail(card.item)}
-          className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10"
-        >
-          <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
-            {card.coverUrl ? (
-              <Image
-                src={card.coverUrl}
-                alt={card.title || "封面预览"}
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 80vw, (max-width: 1024px) 30vw, 220px"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
-                暂无封面
-              </div>
-            )}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
-          </div>
-          <div className="flex flex-col gap-2 px-4 py-4">
-            <span className="line-clamp-2 text-sm font-semibold leading-snug text-white/90">
-              {card.title || "未命名作品"}
-            </span>
-            {card.maker ? (
-              <span className="text-xs text-slate-300/75">{card.maker}</span>
-            ) : null}
-          </div>
-        </button>
-      ))}
+      {feedCards.map((card, index) => {
+        const releaseLabel = card.releaseDate
+          ? card.releaseDate.slice(0, 10)
+          : "";
+        return (
+          <button
+            key={`${card.id}-${index}`}
+            type="button"
+            onClick={() => onOpenDetail(card.item)}
+            className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10"
+          >
+            <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
+              {card.coverUrl ? (
+                <Image
+                  src={card.coverUrl}
+                  alt={card.title || "封面预览"}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 640px) 80vw, (max-width: 1024px) 30vw, 220px"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
+                  暂无封面
+                </div>
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
+            <div className="flex flex-col gap-2 px-4 py-4">
+              <span className="line-clamp-2 text-sm font-semibold leading-snug text-white/90">
+                {card.title || "未命名作品"}
+              </span>
+              {card.maker ? (
+                <span className="text-xs text-slate-300/75">{card.maker}</span>
+              ) : null}
+              {releaseLabel ? (
+                <span className="text-[11px] text-slate-300/60">
+                  {releaseLabel}
+                </span>
+              ) : null}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
