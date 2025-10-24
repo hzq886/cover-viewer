@@ -9,6 +9,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Logo from "@/components/Logo";
 import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
+import ViewerModal from "@/components/ViewerModal";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
@@ -376,26 +377,12 @@ export default function Home() {
     return {
       containerH,
       stageW,
-      stageSizeText: `${stageW}px × ${containerH}px`,
     };
   }, [viewportWidth]);
 
   const mediaDimensions = useMemo(
     () => ({ width: stage.stageW, height: stage.containerH }),
     [stage.containerH, stage.stageW],
-  );
-
-  const containerDimensions = useMemo(
-    () => ({
-      width: Math.max(mediaDimensions.width, stage.stageW),
-      height: Math.max(mediaDimensions.height, stage.containerH),
-    }),
-    [
-      mediaDimensions.height,
-      mediaDimensions.width,
-      stage.containerH,
-      stage.stageW,
-    ],
   );
 
   // 来源于 DMM 样图字段的原始地址列表
@@ -568,91 +555,52 @@ export default function Home() {
         </main>
       </div>
 
-      {detailOpen && selectedItem ? (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 px-4 py-10 backdrop-blur-sm">
-          <div className="relative w-[80vw] max-w-5xl">
-            <button
-              type="button"
-              onClick={handleCloseDetail}
-              className="absolute -top-10 right-0 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-slate-200 transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-              aria-label="关闭"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>关闭</title>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-            <div className="overflow-hidden rounded-[36px] border border-white/12 bg-black/55 shadow-[0_45px_140px_-60px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
-              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(260px,1fr)] lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,1fr)]">
-                <div
-                  className="relative mx-auto flex items-center justify-center bg-slate-950/92 md:border-r md:border-white/12"
-                  style={{
-                    width: `${containerDimensions.width}px`,
-                    height: `${containerDimensions.height}px`,
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    transition: "width 0.45s ease, height 0.45s ease",
-                  }}
-                >
-                  <div className="relative flex h-full w-full items-center justify-center">
-                    <div className="relative h-full w-full overflow-hidden bg-transparent">
-                      {mediaSlides.length > 0 ? (
-                        <PosterPanel
-                          ref={carouselRef}
-                          slides={mediaSlides}
-                          width={mediaDimensions.width}
-                          height={mediaDimensions.height}
-                          disableKeyboardNavigation={
-                            activeSlide?.type === "video"
-                          }
-                          initialIndex={activeIndex}
-                          onSlideChange={(slide, index) => {
-                            if (index === activeIndex) {
-                              return;
-                            }
-                            setActiveIndex(index);
-                            if (slide.type === "video") {
-                              void ensureVideoSource();
-                            }
-                          }}
-                          onRequestZoom={(index) => {
-                            const target = imageIndexToZoom[index] ?? 0;
-                            setZoomIndex(target);
-                            setZoomOpen(true);
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-                <InfoPanel
-                  ref={detailsRef}
-                  contentId={contentId}
-                  title={title}
-                  affiliate={affiliate}
-                  actressNames={actressNames}
-                  makerName={makerName}
-                  releaseDate={releaseDate}
-                  posterProxyUrl={proxiedPosterSmallUrl || undefined}
-                  affiliateUrl={affiliate || undefined}
-                  commentAreaHeight={stage.containerH}
-                  className="border-t border-white/10 bg-slate-950/92 text-slate-100 md:border-t-0 md:border-l md:border-white/12"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ViewerModal
+        open={detailOpen && Boolean(selectedItem)}
+        onClose={handleCloseDetail}
+        poster={
+          selectedItem && mediaSlides.length > 0 ? (
+            <PosterPanel
+              ref={carouselRef}
+              slides={mediaSlides}
+              width={mediaDimensions.width}
+              height={mediaDimensions.height}
+              disableKeyboardNavigation={activeSlide?.type === "video"}
+              initialIndex={activeIndex}
+              onSlideChange={(slide, index) => {
+                if (index === activeIndex) {
+                  return;
+                }
+                setActiveIndex(index);
+                if (slide.type === "video") {
+                  void ensureVideoSource();
+                }
+              }}
+              onRequestZoom={(index) => {
+                const target = imageIndexToZoom[index] ?? 0;
+                setZoomIndex(target);
+                setZoomOpen(true);
+              }}
+            />
+          ) : null
+        }
+        info={
+          selectedItem ? (
+            <InfoPanel
+              ref={detailsRef}
+              contentId={contentId}
+              title={title}
+              affiliate={affiliate}
+              actressNames={actressNames}
+              makerName={makerName}
+              releaseDate={releaseDate}
+              posterProxyUrl={proxiedPosterSmallUrl || undefined}
+              affiliateUrl={affiliate || undefined}
+              commentAreaHeight={stage.containerH}
+            />
+          ) : null
+        }
+      />
 
       <ZoomModal
         open={zoomOpen}

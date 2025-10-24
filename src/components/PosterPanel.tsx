@@ -243,7 +243,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
               videoRef.current = el;
             }}
             src={current.displayUrl}
-            className="h-full w-full object-contain"
+            className="poster-panel__video"
             controls
             muted
             playsInline
@@ -260,188 +260,122 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
           unoptimized
           draggable={false}
           sizes="(max-width: 1024px) 90vw, 70vw"
-          className="object-cover select-none"
+          className="poster-panel__static"
         />
       );
     };
 
     return (
-      <div ref={rootRef} className="relative w-full">
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: hover handlers manage control visibility */}
-        <div
-          className={`relative flex items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/35 p-0 shadow-[0_40px_120px_-45px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-colors hover:border-violet-200/60 ${
-            canZoom ? "cursor-zoom-in" : "cursor-default"
-          }`}
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-            maxWidth: "100%",
-          }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onFocusCapture={handleFocusCapture}
-          onBlurCapture={handleBlurCapture}
-        >
-          {canZoom ? (
-            <button
-              type="button"
-              aria-label={posterText.openFullscreenAria}
-              className="absolute inset-0 z-20 cursor-zoom-in bg-transparent"
-              onClick={openCurrent}
-            >
-              <span className="sr-only">{posterText.openFullscreen}</span>
-            </button>
-          ) : null}
-          <div className="absolute inset-0 z-0">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-60" />
-          </div>
-          <div className="relative z-10 flex h-full w-full items-center justify-center">
-            {current.type === "video" ? (
-              renderMedia()
-            ) : (
-              <div className="relative h-full w-full">
-                {prevImage && animating && prevImage.type !== "video" ? (
-                  <Image
-                    key={`prev-${prevImage.url}`}
-                    src={prevImage.displayUrl}
-                    alt={posterText.previousAlt}
-                    fill
-                    unoptimized
-                    draggable={false}
-                    sizes="(max-width: 1024px) 90vw, 70vw"
-                    className={`object-cover select-none filter transition-all duration-500 ease-out ${
-                      showNew
-                        ? "opacity-0 scale-92 blur-sm brightness-90"
-                        : "opacity-100 scale-100 blur-0 brightness-100"
-                    }`}
-                  />
-                ) : null}
+      <div
+        ref={rootRef}
+        className="poster-panel"
+        style={{ width, height }}
+        data-active={isActive ? "true" : "false"}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocusCapture={handleFocusCapture}
+        onBlurCapture={handleBlurCapture}
+      >
+        {canZoom ? (
+          <button
+            type="button"
+            className="poster-panel__zoom"
+            aria-label={posterText.openFullscreenAria}
+            onClick={openCurrent}
+          >
+            <span className="sr-only">{posterText.openFullscreen}</span>
+          </button>
+        ) : null}
+        <div className="poster-panel__media">
+          {current.type === "video" ? (
+            renderMedia()
+          ) : (
+            <div className="poster-panel__image">
+              {prevImage && animating && prevImage.type !== "video" ? (
                 <Image
-                  key={`img-${current.url}`}
-                  src={current.displayUrl}
-                  alt={posterText.currentAlt}
+                  key={`prev-${prevImage.url}`}
+                  src={prevImage.displayUrl}
+                  alt={posterText.previousAlt}
                   fill
                   unoptimized
                   draggable={false}
-                  sizes="(max-width: 1024px) 90vw, 70vw"
-                  className={`object-cover select-none filter transition-all duration-500 ease-out ${
-                    showNew
-                      ? "opacity-100 scale-100 blur-0 brightness-100"
-                      : "opacity-0 scale-110 blur-sm brightness-110"
+                  sizes="100vw"
+                  className={`poster-panel__image-layer ${
+                    showNew ? "poster-panel__image-layer--outgoing" : ""
                   }`}
                 />
-              </div>
-            )}
-          </div>
-
-          {total > 1 && (
-            <div
-              className={`pointer-events-none absolute inset-0 z-30 flex items-center justify-between px-3 transition-opacity duration-300 ${
-                isActive ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <button
-                type="button"
-                className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                  index === 0
-                    ? "cursor-not-allowed bg-black/25 opacity-50"
-                    : "cursor-pointer bg-black/45 hover:bg-black/60"
+              ) : null}
+              <Image
+                key={`img-${current.url}`}
+                src={current.displayUrl}
+                alt={posterText.currentAlt}
+                fill
+                unoptimized
+                draggable={false}
+                sizes="100vw"
+                className={`poster-panel__image-layer ${
+                  showNew ? "poster-panel__image-layer--incoming" : ""
                 }`}
-                disabled={index === 0}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (index === 0) return;
-                  step(-1);
-                }}
-                aria-label={posterText.previous}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <title>{posterText.previous}</title>
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/90 backdrop-blur-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                  index >= total - 1
-                    ? "cursor-not-allowed bg-black/25 opacity-50"
-                    : "cursor-pointer bg-black/45 hover:bg-black/60"
-                }`}
-                disabled={index >= total - 1}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (index >= total - 1) return;
-                  step(1);
-                }}
-                aria-label={posterText.next}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <title>{posterText.next}</title>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          <div
-            className={`pointer-events-none absolute top-4 right-4 z-30 rounded-full bg-black/55 px-4 py-1 text-sm font-medium text-white/90 backdrop-blur-md transition-opacity duration-300 ${
-              isActive ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            {index + 1}/{total}
-          </div>
-
-          {total > 1 && (
-            <div className="pointer-events-none absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2">
-              <div className="relative flex gap-2 rounded-full px-3 py-1.5 pointer-events-auto">
-                <span
-                  className={`pointer-events-none absolute inset-0 rounded-full border border-white/15 bg-black/45 backdrop-blur-md shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)] transition-opacity duration-200 ${
-                    isActive ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-                {slides.map((slide, slideIndex) => {
-                  const isActive = slideIndex === index;
-                  return (
-                    <button
-                      key={`${slide.type}-${slide.url}-${slideIndex}`}
-                      type="button"
-                      className={`relative z-10 h-2.5 w-2.5 rounded-full transition cursor-pointer focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none ${
-                        isActive
-                          ? "bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.35)]"
-                          : "bg-white/30 hover:bg-white/50"
-                      }`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        goTo(slideIndex);
-                      }}
-                      aria-label={t("posterPanel.goTo", {
-                        index: slideIndex + 1,
-                      })}
-                    />
-                  );
-                })}
-              </div>
+              />
             </div>
           )}
         </div>
+        {total > 1 ? (
+          <div className="poster-panel__nav">
+            <button
+              type="button"
+              className="poster-panel__arrow"
+              disabled={index === 0}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (index === 0) return;
+                step(-1);
+              }}
+              aria-label={posterText.previous}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="poster-panel__arrow"
+              disabled={index >= total - 1}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (index >= total - 1) return;
+                step(1);
+              }}
+              aria-label={posterText.next}
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
+        <div className="poster-panel__counter">
+          {index + 1}/{total}
+        </div>
+        {total > 1 ? (
+          <div className="poster-panel__dots">
+            {slides.map((slide, slideIndex) => {
+              const active = slideIndex === index;
+              return (
+                <button
+                  key={`${slide.type}-${slide.url}-${slideIndex}`}
+                  type="button"
+                  className={`poster-panel__dot ${
+                    active ? "poster-panel__dot--active" : ""
+                  }`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    goTo(slideIndex);
+                  }}
+                  aria-label={t("posterPanel.goTo", {
+                    index: slideIndex + 1,
+                  })}
+                />
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     );
   },

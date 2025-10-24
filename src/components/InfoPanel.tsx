@@ -170,10 +170,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
     if (!commentAreaHeight) return undefined;
     return { minHeight: `${commentAreaHeight}px` };
   }, [commentAreaHeight]);
-  const containerClass = [
-    "flex h-full w-full flex-col bg-slate-950/85 p-6 text-white backdrop-blur-xl md:p-8",
-    className,
-  ]
+  const containerClass = ["info-panel", className]
     .filter(Boolean)
     .join(" ");
 
@@ -488,24 +485,20 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
 
   return (
     <aside ref={ref} className={containerClass} style={cardStyle}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 space-y-1">
+      <header className="info-panel__header">
+        <div className="info-panel__title">
           {actressNames ? (
-            <div
-              className="text-sm font-medium text-slate-100/85"
-              style={actressFadeStyle}
-            >
+            <div className="info-panel__actors" style={actressFadeStyle}>
               {actressNames}
             </div>
           ) : null}
           {title ? (
-            <h2 className="text-2xl font-semibold leading-snug text-white">
+            <h2 className="info-panel__name">
               {affiliate ? (
                 <a
                   href={affiliate}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-violet-200"
                 >
                   {title}
                 </a>
@@ -515,7 +508,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
             </h2>
           ) : null}
         </div>
-        <div className="flex flex-col items-center gap-1">
+        <div className="info-panel__actions">
           <button
             type="button"
             aria-label={liked ? commentText.unlikeAria : commentText.likeAria}
@@ -523,119 +516,89 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
             onClick={() => {
               void handleToggleLike();
             }}
-            className={`relative flex items-center justify-center rounded-full p-1 outline-none transition-transform duration-200 ease-out focus-visible:ring-2 focus-visible:ring-rose-300/60 ${likeLoading ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:scale-105"}`}
+            className="info-panel__like"
             style={{ fontSize: `${heartFontSize}px` }}
             disabled={likeLoading || authLoading}
           >
             <span
-              className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out ${
-                liked ? "scale-75 opacity-0" : "scale-100 opacity-100"
+              className={`info-panel__like-icon info-panel__like-icon--outline ${
+                liked ? "info-panel__like-icon--hidden" : ""
               }`}
             >
-              <MaterialSymbolsLightFavoriteOutline className="text-white drop-shadow-[0_10px_26px_rgba(255,255,255,0.28)]" />
+              <MaterialSymbolsLightFavoriteOutline />
             </span>
             <span
               key={popKey}
-              className={`relative flex items-center justify-center transition-all duration-300 ease-out ${
-                liked
-                  ? "scale-100 opacity-100 animate-heart-pop"
-                  : "scale-50 opacity-0"
+              className={`info-panel__like-icon info-panel__like-icon--solid ${
+                liked ? "info-panel__like-icon--visible" : ""
               }`}
             >
-              <MaterialSymbolsLightFavorite className="text-red-500 drop-shadow-[0_14px_34px_rgba(239,68,68,0.55)]" />
-              {liked && (
-                <span className="pointer-events-none absolute inset-0 rounded-full border-2 border-red-300/60 shadow-[0_0_0_8px_rgba(239,68,68,0.1)] animate-heart-ring" />
-              )}
+              <MaterialSymbolsLightFavorite />
             </span>
           </button>
-          <span className="text-lg font-semibold text-rose-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]">
-            {likeCount}
-          </span>
+          <span className="info-panel__like-count">{likeCount}</span>
         </div>
-      </div>
+      </header>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs uppercase tracking-wide text-slate-300/80">
-        <div>
-          <span className="text-[11px] text-slate-300/70">
-            {infoText.releaseDate}
-          </span>
-          <div className="mt-1 text-sm font-medium text-white/90">
-            {dateOnly || "--"}
+      <section className="info-panel__meta">
+        <dl>
+          <div className="info-panel__meta-row">
+            <dt>{infoText.releaseDate}</dt>
+            <dd>{dateOnly || "--"}</dd>
           </div>
-        </div>
-        <div className="text-right">
           {contentId ? (
-            <div>
-              <span className="text-[11px] text-slate-300/70">
-                {infoText.contentId}
-              </span>
-              <div className="mt-1 text-sm font-medium text-white/90">
-                {contentId}
-              </div>
+            <div className="info-panel__meta-row">
+              <dt>{infoText.contentId}</dt>
+              <dd>{contentId}</dd>
             </div>
           ) : null}
           {makerName ? (
-            <div className="mt-3">
-              <span className="text-[11px] text-slate-300/70">
-                {infoText.maker}
-              </span>
-              <div className="mt-1 text-sm font-medium text-white/90">
-                {makerName}
-              </div>
+            <div className="info-panel__meta-row">
+              <dt>{infoText.maker}</dt>
+              <dd>{makerName}</dd>
             </div>
           ) : null}
-        </div>
-      </div>
+        </dl>
+      </section>
 
-      <div className="mt-6 flex-1 overflow-hidden rounded-[22px] border border-white/12 bg-black/25 p-4 min-h-[18rem]">
-        <div
-          className="flex h-full flex-col gap-3 overflow-y-auto pr-1 text-sm text-slate-100/90 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ msOverflowStyle: "none" }}
-        >
+      <section className="info-panel__comments">
+        <div className="info-panel__comment-list">
           {comments.length === 0 ? (
-            <p className="text-slate-200/60">{commentText.noComments}</p>
+            <p className="info-panel__comment-empty">{commentText.noComments}</p>
           ) : (
             comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 shadow-[0_6px_14px_-10px_rgba(0,0,0,0.8)]"
-              >
-                <div>{comment.text}</div>
+              <article key={comment.id} className="info-panel__comment">
+                <p>{comment.text}</p>
                 {comment.createdAt && timeFormatter ? (
-                  <div className="mt-1 text-[11px] text-slate-200/50">
+                  <time className="info-panel__comment-time">
                     {timeFormatter.format(comment.createdAt)}
-                  </div>
+                  </time>
                 ) : null}
-              </div>
+              </article>
             ))
           )}
         </div>
-      </div>
+      </section>
 
-      <form
-        className="mt-5 rounded-[20px] border border-white/10 bg-white/5 p-3 shadow-inner"
-        onSubmit={handleCommentSubmit}
-      >
+      <form className="info-panel__form" onSubmit={handleCommentSubmit}>
         <label className="sr-only" htmlFor="comment-input">
           {commentText.addLabel}
         </label>
-        <div className="flex items-center gap-2">
-          <input
-            id="comment-input"
-            type="text"
-            value={pending}
-            onChange={(event) => setPending(event.target.value)}
-            placeholder={placeholder}
-            className="h-10 flex-1 rounded-xl border border-white/10 bg-black/50 px-3 text-sm text-white placeholder:text-slate-300/50 outline-none ring-2 ring-transparent transition focus:border-white/30 focus:ring-rose-300/40"
-          />
-          <button
-            type="submit"
-            className="h-10 min-w-[68px] rounded-xl bg-rose-500 px-4 text-sm font-semibold text-white transition hover:bg-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200/70 disabled:cursor-not-allowed disabled:bg-rose-500/50"
-            disabled={submitting || !pending.trim()}
-          >
-            {submitting ? commentText.submitting : commentText.submit}
-          </button>
-        </div>
+        <input
+          id="comment-input"
+          type="text"
+          value={pending}
+          onChange={(event) => setPending(event.target.value)}
+          placeholder={placeholder}
+          className="info-panel__input"
+        />
+        <button
+          type="submit"
+          className="info-panel__submit"
+          disabled={submitting || !pending.trim()}
+        >
+          {submitting ? commentText.submitting : commentText.submit}
+        </button>
       </form>
     </aside>
   );
