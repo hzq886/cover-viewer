@@ -14,6 +14,7 @@ nvm install node
 nvm use node
 
 npm install
+npm install -g pnpm
 
 echo "Setup complete. You can now run:"
 echo "  npm run type-check"

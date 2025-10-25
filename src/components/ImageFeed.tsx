@@ -88,7 +88,7 @@ function ImageFeed({
             key={`${card.id}-${index}`}
             type="button"
             onClick={() => onOpenDetail(card.item)}
-            className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10"
+            className="group relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-white/5 text-left shadow-[0_32px_90px_-40px_rgba(15,23,42,0.85)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/40 hover:bg-white/10 cursor-pointer"
           >
             <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
               {card.coverUrl ? (

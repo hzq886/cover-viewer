@@ -4,8 +4,14 @@ import { timeoutSignal } from "@/lib/abort";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const offsetParam = searchParams.get("offset");
+    const offset = offsetParam
+      ? Math.max(1, Number.parseInt(offsetParam, 10) || 1)
+      : 1;
+
     const apiId = process.env.DMM_API_ID;
     const affiliateId = process.env.DMM_AFFILIATE_ID;
 
@@ -28,6 +34,7 @@ export async function GET() {
       floor: "videoa",
       hits: "100",
       sort: "rank",
+      offset: String(offset),
       output: "json",
     };
     Object.entries(params).forEach(([key, value]) => {
@@ -43,7 +50,7 @@ export async function GET() {
       cache: "default",
       next: {
         revalidate: 300,
-        tags: ["home:initial"],
+        tags: ["home:initial", `home:offset:${offset}`],
       },
     });
 

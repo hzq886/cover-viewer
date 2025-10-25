@@ -105,12 +105,18 @@ export default function Home() {
     hasSearched,
     submit,
     reset,
+    hasMore: searchHasMore,
+    loadMore: loadMoreSearch,
+    loadingMore: loadingMoreSearch,
   } = useDmmSearch();
   const {
     items: initialItems,
     loading: initialLoading,
     error: initialError,
     reload: reloadInitial,
+    hasMore: initialHasMore,
+    loadMore: loadMoreInitial,
+    loadingMore: loadingMoreInitial,
   } = useDmmInitialFeed();
   // 当前窗口尺寸，驱动舞台的断点切换
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -145,7 +151,6 @@ export default function Home() {
     return message;
   }, [activeError, t]);
   const feedLoading = hasSearched ? loading : initialLoading;
-  const hasFeedError = Boolean(activeError);
 
   // 当前选中的搜索结果
   const searchItems = useMemo(() => {
@@ -179,6 +184,21 @@ export default function Home() {
     () => (hasSearched ? searchItems : initialFeedItems),
     [hasSearched, searchItems, initialFeedItems],
   );
+
+  const activeHasMore = hasSearched ? searchHasMore : initialHasMore;
+  const activeLoadMore = hasSearched ? loadMoreSearch : loadMoreInitial;
+  const activeLoadingMore = hasSearched
+    ? loadingMoreSearch
+    : loadingMoreInitial;
+  const hasFeedError =
+    Boolean(activeError) && itemsForFeed.length === 0;
+  const hasLoadMoreError =
+    Boolean(activeError) && itemsForFeed.length > 0 && !feedLoading;
+  const loadMoreErrorMessage = hasLoadMoreError ? errorMessage : null;
+  const showLoadMoreButton =
+    itemsForFeed.length > 0 &&
+    (activeHasMore || activeLoadingMore) &&
+    !feedLoading;
 
   const feedCards = useMemo<FeedCard[]>(() => {
     const spine = POSTER_SPINE_RATIO.toFixed(2);
@@ -503,6 +523,13 @@ export default function Home() {
     await submit();
   }, [submit]);
 
+  const handleLoadMore = useCallback(async () => {
+    if (!activeHasMore || activeLoadingMore) {
+      return;
+    }
+    await activeLoadMore();
+  }, [activeHasMore, activeLoadMore, activeLoadingMore]);
+
   const handleOpenDetail = useCallback((item: DmmItem) => {
     setSelectedItem(item);
     setDetailOpen(true);
@@ -602,6 +629,30 @@ export default function Home() {
               startHint="开始输入关键字，探索最新的封面与样图。"
               emptyLabel={t("page.noResults")}
             />
+            {showLoadMoreButton ? (
+              <div className="mt-10 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={!activeHasMore || activeLoadingMore || feedLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-8 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-slate-100 transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                >
+                  {activeLoadingMore ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 animate-ping rounded-full bg-white/80" />
+                      <span className="tracking-[0.35em]">LOADING</span>
+                    </span>
+                  ) : (
+                    "NEXT PAGE"
+                  )}
+                </button>
+              </div>
+            ) : null}
+            {loadMoreErrorMessage ? (
+              <div className="mt-4 text-center text-sm text-red-300/80">
+                {loadMoreErrorMessage}
+              </div>
+            ) : null}
           </div>
         </main>
       </div>
