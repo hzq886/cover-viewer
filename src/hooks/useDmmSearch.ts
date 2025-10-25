@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { TranslationDictionary } from "@/i18n/translations";
 import type { DmmItem } from "@/types/dmm";
 
-const DEFAULT_KEYWORD = "";
-
 type ErrorKey = keyof TranslationDictionary["errors"];
 
-type SearchError = {
+export type SearchError = {
   code: ErrorKey;
   status?: number;
 };
@@ -32,7 +30,6 @@ export function useDmmSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [lastKeyword, setLastKeyword] = useState<string>("");
   const [offset, setOffset] = useState<number>(1);
-  const [initialized, setInitialized] = useState(false);
 
   const mapError = useCallback(
     (payload: unknown, httpStatus?: number): SearchError => {
@@ -133,22 +130,7 @@ export function useDmmSearch() {
     setLoading(false);
     setLastKeyword("");
     setOffset(1);
-    setInitialized(false);
   }, []);
-
-  useEffect(() => {
-    if (initialized) return;
-    setInitialized(true);
-    setKeyword(DEFAULT_KEYWORD);
-    setHasSearched(true);
-    setError(null);
-    void (async () => {
-      const success = await requestBatch(DEFAULT_KEYWORD, 1);
-      if (!success) {
-        setLastKeyword("");
-      }
-    })();
-  }, [initialized, requestBatch]);
 
   return {
     keyword,

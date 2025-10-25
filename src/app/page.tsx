@@ -12,6 +12,7 @@ import SearchBar from "@/components/SearchBar";
 import ViewerModal from "@/components/ViewerModal";
 import ZoomModal from "@/components/ZoomModal";
 import { useDmmSearch } from "@/hooks/useDmmSearch";
+import { useDmmInitialFeed } from "@/hooks/useDmmInitialFeed";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { DmmItem, DmmNameObj } from "@/types/dmm";
@@ -73,6 +74,21 @@ const getLegacyField = (
   return typeof value === "string" ? value : undefined;
 };
 
+const deriveIdentifier = (
+  item: DmmItem | null | undefined,
+  fallback: string,
+): string => {
+  if (!item) return fallback;
+  return (
+    item.content_id ||
+    item.contentid ||
+    getLegacyField(item, "product_id") ||
+    getLegacyField(item, "service_code") ||
+    item.title ||
+    fallback
+  );
+};
+
 // 样图缩略信息的数据结构
 type SampleThumb = { url: string; portrait: boolean };
 
@@ -91,6 +107,12 @@ export default function Home() {
     submit,
     reset,
   } = useDmmSearch();
+  const {
+    items: initialItems,
+    loading: initialLoading,
+    error: initialError,
+    reload: reloadInitial,
+  } = useDmmInitialFeed();
   // 当前窗口尺寸，驱动舞台的断点切换
   const [viewportWidth, setViewportWidth] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -110,46 +132,67 @@ export default function Home() {
   const resolvingVideoRef = useRef(false);
   const [selectedItem, setSelectedItem] = useState<DmmItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const activeError = hasSearched ? error : initialError;
   const errorMessage = useMemo(() => {
-    if (!error) return null;
+    if (!activeError) return null;
     const params =
-      typeof error.status === "number" ? { status: error.status } : undefined;
-    const message = t(`errors.${error.code}`, params);
-    if (!message || message === `errors.${error.code}`) {
+      typeof activeError.status === "number"
+        ? { status: activeError.status }
+        : undefined;
+    const message = t(`errors.${activeError.code}`, params);
+    if (!message || message === `errors.${activeError.code}`) {
       return t("errors.unknown");
     }
     return message;
-  }, [error, t]);
+  }, [activeError, t]);
+  const feedLoading = hasSearched ? loading : initialLoading;
+  const hasFeedError = Boolean(activeError);
 
   // 当前选中的搜索结果
-  const resultItems = useMemo(() => {
+  const searchItems = useMemo(() => {
     const seen = new Set<string>();
     const collection: DmmItem[] = [];
-    const register = (item: DmmItem | null) => {
+    const register = (
+      item: DmmItem | null | undefined,
+      fallback: string,
+    ) => {
       if (!item) return;
-      const key =
-        item.content_id ||
-        item.contentid ||
-        getLegacyField(item, "product_id") ||
-        getLegacyField(item, "service_code") ||
-        item.title ||
-        "";
+      const key = deriveIdentifier(item, fallback);
       if (key && seen.has(key)) return;
       if (key) seen.add(key);
       collection.push(item);
     };
-    register(currentItem);
+    register(currentItem, "current");
     if (Array.isArray(remainingItems)) {
-      for (const entry of remainingItems) {
-        register(entry ?? null);
-      }
+      remainingItems.forEach((entry, index) =>
+        register(entry ?? null, `remaining-${index}`),
+      );
     }
     return collection;
   }, [currentItem, remainingItems]);
 
+  const initialFeedItems = useMemo(() => {
+    const seen = new Set<string>();
+    const collection: DmmItem[] = [];
+    initialItems.forEach((item, index) => {
+      const key = deriveIdentifier(item, `initial-${index}`);
+      if (seen.has(key)) {
+        return;
+      }
+      seen.add(key);
+      collection.push(item);
+    });
+    return collection;
+  }, [initialItems]);
+
+  const itemsForFeed = useMemo(
+    () => (hasSearched ? searchItems : initialFeedItems),
+    [hasSearched, searchItems, initialFeedItems],
+  );
+
   const feedCards = useMemo<FeedCard[]>(() => {
     const spine = POSTER_SPINE_RATIO.toFixed(2);
-    return resultItems.map((item, index) => {
+    return itemsForFeed.map((item, index) => {
       const poster = extractPosterUrl(item.imageURL ?? null);
       let coverUrl = "";
       if (poster) {
@@ -168,13 +211,7 @@ export default function Home() {
         );
         coverUrl = firstSample ? toProxyUrl(firstSample) : "";
       }
-      const identifier =
-        item.content_id ||
-        item.contentid ||
-        getLegacyField(item, "product_id") ||
-        getLegacyField(item, "service_code") ||
-        item.title ||
-        `item-${index}`;
+      const identifier = deriveIdentifier(item, `item-${index}`);
       return {
         id: identifier,
         item,
@@ -184,7 +221,7 @@ export default function Home() {
         releaseDate: item.date || item.release_date || "",
       } satisfies FeedCard;
     });
-  }, [resultItems]);
+  }, [itemsForFeed]);
 
   // 当前作品对应的基础海报 URL
   const basePosterUrl = useMemo(
@@ -451,7 +488,7 @@ export default function Home() {
     });
   }, [mediaSlides.length]);
 
-  const resultsCount = resultItems.length;
+  const resultsCount = itemsForFeed.length;
 
   useEffect(() => {
     setZoomIndex((prev) => {
@@ -490,6 +527,7 @@ export default function Home() {
   // 重置页面状态并返回初始界面
   const handleResetHome = useCallback(() => {
     reset();
+    void reloadInitial();
     setOrderedSamples([]);
     setActiveIndex(0);
     setZoomIndex(0);
@@ -498,7 +536,7 @@ export default function Home() {
     resolvingVideoRef.current = false;
     setSelectedItem(null);
     setDetailOpen(false);
-  }, [reset]);
+  }, [reloadInitial, reset]);
 
   useEffect(() => {
     if (!detailOpen) return;
@@ -565,8 +603,8 @@ export default function Home() {
         <main className="mt-3 md:mt-4">
           <div className="relative flex min-h-[40svh] flex-col">
             <ImageFeed
-              loading={loading}
-              hasError={Boolean(error)}
+              loading={feedLoading}
+              hasError={hasFeedError}
               errorMessage={errorMessage ?? t("errors.unknown")}
               hasSearched={hasSearched}
               resultsCount={resultsCount}
