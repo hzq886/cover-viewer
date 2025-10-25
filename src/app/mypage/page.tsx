@@ -283,14 +283,10 @@ export default function MyPage() {
             targetUrl?: string;
           };
           if (data.exists) {
-            const urlParam = data.targetUrl
-              ? `&url=${encodeURIComponent(data.targetUrl)}`
-              : "";
-            window.open(
-              `/missav-portal?contentId=${encodeURIComponent(id)}${urlParam}`,
-              "_blank",
-              "noopener,noreferrer",
-            );
+            const targetUrl =
+              data.targetUrl ??
+              `https://missav.ai/${encodeURIComponent(id)}`;
+            window.open(targetUrl, "_blank", "noopener,noreferrer");
             return;
           }
         }

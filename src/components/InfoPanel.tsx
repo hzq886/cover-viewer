@@ -135,6 +135,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
 ) {
   const { dictionary } = useI18n();
   const commentText = dictionary.comment;
+  const myPageText = dictionary.myPage;
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
@@ -145,6 +146,7 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
   const [pending, setPending] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [openingContent, setOpeningContent] = useState(false);
 
   const timeFormatter = useMemo(
     () =>
@@ -485,6 +487,37 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
   }, [likeCount]);
   const likeButtonDisabled = likeLoading || authLoading || !contentId;
 
+  const handleOpenContent = useCallback(async () => {
+    if (!contentId || openingContent) return;
+    setOpeningContent(true);
+    try {
+      const response = await fetch(
+        `/api/missav-status?contentId=${encodeURIComponent(contentId)}`,
+        {
+          cache: "no-store",
+        },
+      );
+      if (response.ok) {
+        const data = (await response.json()) as {
+          exists?: boolean;
+          targetUrl?: string;
+        };
+        if (data.exists) {
+          const targetUrl =
+            data.targetUrl ?? `https://missav.ai/${encodeURIComponent(contentId)}`;
+          window.open(targetUrl, "_blank", "noopener,noreferrer");
+          return;
+        }
+      }
+    } catch {
+      // Swallow network errors and fall back to alert
+    } finally {
+      setOpeningContent(false);
+    }
+    const fallbackMessage = myPageText?.videoNotFound ?? "Video not found.";
+    window.alert(fallbackMessage);
+  }, [contentId, myPageText?.videoNotFound, openingContent]);
+
   return (
     <aside ref={ref} className={containerClass} style={cardStyle}>
       <header className="info-panel__header">
@@ -509,9 +542,19 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
           </div>
         ) : null}
         {contentId ? (
-          <div className="info-panel__code" title={contentId}>
-            {contentId}
-          </div>
+          <button
+            type="button"
+            className="info-panel__code"
+            title={contentId}
+            onClick={() => {
+              void handleOpenContent();
+            }}
+            disabled={openingContent}
+          >
+            {openingContent && myPageText?.checkingVideo
+              ? myPageText.checkingVideo
+              : contentId}
+          </button>
         ) : null}
         <button
           type="button"

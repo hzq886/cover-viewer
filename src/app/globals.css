@@ -379,12 +379,38 @@ body::-webkit-scrollbar {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
+  gap: 6px;
   border-radius: 999px;
   border: 1px solid rgba(226, 232, 240, 0.18);
   background: rgba(15, 16, 21, 0.55);
   font-size: 12px;
   font-weight: 600;
   color: rgba(226, 232, 240, 0.85);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  appearance: none;
+}
+
+.info-panel__code:hover:not(:disabled) {
+  background: rgba(15, 16, 21, 0.75);
+  border-color: rgba(226, 232, 240, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.info-panel__code:focus-visible {
+  outline: 2px solid rgba(244, 114, 182, 0.65);
+  outline-offset: 2px;
+}
+
+.info-panel__code:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
 }
 
 .info-panel__like-pill {
