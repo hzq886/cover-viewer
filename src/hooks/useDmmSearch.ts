@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import type { TranslationDictionary } from "@/i18n/translations";
 import type { DmmItem } from "@/types/dmm";
 
+const DEFAULT_SEARCH_KEYWORD = "巨乳";
+
 type ErrorKey = keyof TranslationDictionary["errors"];
 
 export type SearchError = {
@@ -11,25 +13,12 @@ export type SearchError = {
   status?: number;
 };
 
-function pickRandomItem(list: DmmItem[]) {
-  if (!Array.isArray(list) || list.length === 0) {
-    return { picked: null, remaining: [] as DmmItem[] };
-  }
-  const next = [...list];
-  const index = Math.floor(Math.random() * next.length);
-  const [picked] = next.splice(index, 1);
-  return { picked: picked ?? null, remaining: next };
-}
-
 export function useDmmSearch() {
   const [keyword, setKeyword] = useState("");
-  const [remainingItems, setRemainingItems] = useState<DmmItem[]>([]);
-  const [currentItem, setCurrentItem] = useState<DmmItem | null>(null);
+  const [results, setResults] = useState<DmmItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<SearchError | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [lastKeyword, setLastKeyword] = useState<string>("");
-  const [offset, setOffset] = useState<number>(1);
 
   const mapError = useCallback(
     (payload: unknown, httpStatus?: number): SearchError => {
@@ -59,35 +48,27 @@ export function useDmmSearch() {
   );
 
   const requestBatch = useCallback(
-    async (targetKeyword: string, targetOffset: number) => {
+    async (targetKeyword: string) => {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/search?keyword=${encodeURIComponent(targetKeyword)}&offset=${targetOffset}`,
+          `/api/search?keyword=${encodeURIComponent(targetKeyword)}&offset=1`,
         );
         const data = await res.json();
         if (!res.ok) {
           const mapped = mapError(data, res.status);
           setError(mapped);
-          setCurrentItem(null);
-          setRemainingItems([]);
+          setResults([]);
           return false;
         }
 
         const incoming = Array.isArray(data?.items) ? data.items : [];
-        const { picked, remaining } = pickRandomItem(incoming);
-        setCurrentItem(picked);
-        setRemainingItems(remaining);
-        setLastKeyword(targetKeyword);
-        setOffset(
-          incoming.length > 0 ? targetOffset : Math.max(1, targetOffset - 100),
-        );
+        setResults(incoming);
         setError(null);
-        return !!picked;
+        return incoming.length > 0;
       } catch (error: unknown) {
         setError(mapError(error));
-        setCurrentItem(null);
-        setRemainingItems([]);
+        setResults([]);
         return false;
       } finally {
         setLoading(false);
@@ -98,6 +79,11 @@ export function useDmmSearch() {
 
   const submit = useCallback(async () => {
     const q = keyword.trim();
+    const finalKeyword = q || DEFAULT_SEARCH_KEYWORD;
+
+    if (!q) {
+      setKeyword(finalKeyword);
+    }
 
     setHasSearched(true);
     setError(null);
@@ -106,37 +92,21 @@ export function useDmmSearch() {
       return false;
     }
 
-    if (q !== lastKeyword) {
-      return requestBatch(q, 1);
-    }
-
-    if (remainingItems.length > 0) {
-      const { picked, remaining } = pickRandomItem(remainingItems);
-      setCurrentItem(picked);
-      setRemainingItems(remaining);
-      return !!picked;
-    }
-
-    const nextOffset = offset + 100;
-    return requestBatch(q, nextOffset);
-  }, [keyword, lastKeyword, remainingItems, offset, requestBatch, loading]);
+    return requestBatch(finalKeyword);
+  }, [keyword, loading, requestBatch]);
 
   const reset = useCallback(() => {
     setKeyword("");
-    setRemainingItems([]);
-    setCurrentItem(null);
+    setResults([]);
     setError(null);
     setHasSearched(false);
     setLoading(false);
-    setLastKeyword("");
-    setOffset(1);
   }, []);
 
   return {
     keyword,
     setKeyword,
-    currentItem,
-    remainingItems,
+    results,
     loading,
     error,
     hasSearched,

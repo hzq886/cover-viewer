@@ -99,8 +99,7 @@ export default function Home() {
   const {
     keyword,
     setKeyword,
-    currentItem,
-    remainingItems,
+    results,
     loading,
     error,
     hasSearched,
@@ -152,24 +151,15 @@ export default function Home() {
   const searchItems = useMemo(() => {
     const seen = new Set<string>();
     const collection: DmmItem[] = [];
-    const register = (
-      item: DmmItem | null | undefined,
-      fallback: string,
-    ) => {
+    results.forEach((item, index) => {
       if (!item) return;
-      const key = deriveIdentifier(item, fallback);
-      if (key && seen.has(key)) return;
-      if (key) seen.add(key);
+      const key = deriveIdentifier(item, `result-${index}`);
+      if (seen.has(key)) return;
+      seen.add(key);
       collection.push(item);
-    };
-    register(currentItem, "current");
-    if (Array.isArray(remainingItems)) {
-      remainingItems.forEach((entry, index) =>
-        register(entry ?? null, `remaining-${index}`),
-      );
-    }
+    });
     return collection;
-  }, [currentItem, remainingItems]);
+  }, [results]);
 
   const initialFeedItems = useMemo(() => {
     const seen = new Set<string>();
@@ -247,11 +237,10 @@ export default function Home() {
     }
   }, [selectedItem]);
   useEffect(() => {
-    if (currentItem || currentItem === null) {
-      setSelectedItem(null);
-      setDetailOpen(false);
-    }
-  }, [currentItem]);
+    if (!hasSearched) return;
+    setSelectedItem(null);
+    setDetailOpen(false);
+  }, [results, hasSearched]);
   const sampleImages: string[] = useMemo(() => {
     const images =
       selectedItem?.sampleImageURL?.sample_l?.image ||
