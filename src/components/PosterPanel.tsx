@@ -327,12 +327,15 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
           <div className="poster-panel__dots">
             {slides.map((slide, slideIndex) => {
               const active = slideIndex === index;
+              const isVideo = slide.type === "video";
               return (
                 <button
                   key={`${slide.type}-${slide.url}-${slideIndex}`}
                   type="button"
                   className={`poster-panel__dot ${
                     active ? "poster-panel__dot--active" : ""
+                  } ${
+                    isVideo ? "poster-panel__dot--video" : ""
                   }`}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -341,7 +344,13 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   aria-label={t("posterPanel.goTo", {
                     index: slideIndex + 1,
                   })}
-                />
+                >
+                  {isVideo ? (
+                    <span aria-hidden className="poster-panel__dot-icon">
+                      ▶
+                    </span>
+                  ) : null}
+                </button>
               );
             })}
           </div>

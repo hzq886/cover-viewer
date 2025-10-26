@@ -313,6 +313,28 @@ body::-webkit-scrollbar {
   background: #ffffff;
 }
 
+.poster-panel__dot--video {
+  width: 14px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.poster-panel__dot--video.poster-panel__dot--active {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.poster-panel__dot-icon {
+  transform: translateX(1px);
+  font-size: inherit;
+}
+
 .poster-panel__nav,
 .poster-panel__counter,
 .poster-panel__dots {
