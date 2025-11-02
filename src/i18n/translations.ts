@@ -152,18 +152,18 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       emailRequired: "需要提供邮箱才能完成登录。",
     },
     signInEmail: {
-      subject: "欢迎登入 Lucky JAV",
-      previewText: "使用这封邮件完成 Lucky JAV 的安全登录。",
+      subject: "欢迎登入 Jav hub",
+      previewText: "使用这封邮件完成 Jav hub 的安全登录。",
       greeting: "您好，",
       intro:
-        "您刚刚在 Lucky JAV 提交了邮箱登录请求。请点击下方按钮完成身份验证：",
-      button: "立即登录 Lucky JAV",
+        "您刚刚在 Jav hub 提交了邮箱登录请求。请点击下方按钮完成身份验证：",
+      button: "立即登录 Jav hub",
       fallbackIntro: "如果按钮无法打开，请将以下链接复制到浏览器地址栏：",
       expiry:
         "为了保护您的账号安全，此链接将在 15 分钟后失效，并且仅适用于本次请求。",
       ignore: "若非您本人操作，请直接忽略此邮件，我们不会继续处理。",
-      closing: "祝您使用愉快，感谢信任 Lucky JAV！",
-      signature: "Lucky JAV 团队 敬上",
+      closing: "祝您使用愉快，感谢信任 Jav hub！",
+      signature: "Jav hub 团队 敬上",
       footer: "此邮件由系统自动发送，请勿直接回复。",
     },
     myPage: {
@@ -282,18 +282,18 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       emailRequired: "需要提供電子郵件才能完成登入。",
     },
     signInEmail: {
-      subject: "歡迎登入 Lucky JAV",
-      previewText: "透過這封信完成 Lucky JAV 的安全登入。",
+      subject: "歡迎登入 Jav hub",
+      previewText: "透過這封信完成 Jav hub 的安全登入。",
       greeting: "您好，",
       intro:
-        "您剛剛在 Lucky JAV 發起了電子郵件登入請求。請點擊下方按鈕完成身分驗證：",
-      button: "立即登入 Lucky JAV",
+        "您剛剛在 Jav hub 發起了電子郵件登入請求。請點擊下方按鈕完成身分驗證：",
+      button: "立即登入 Jav hub",
       fallbackIntro: "若按鈕無法開啟，請將下列連結複製到瀏覽器：",
       expiry:
         "為了守護您的帳號安全，此連結將在 15 分鐘後失效，僅適用於本次請求。",
       ignore: "若這不是您本人操作，請忽略此郵件，我們不會採取任何動作。",
-      closing: "祝您使用愉快，感謝您信任 Lucky JAV！",
-      signature: "Lucky JAV 團隊 敬上",
+      closing: "祝您使用愉快，感謝您信任 Jav hub！",
+      signature: "Jav hub 團隊 敬上",
       footer: "此信件由系統自動寄出，請勿直接回覆。",
     },
     myPage: {
@@ -413,21 +413,21 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       emailRequired: "ログインを完了するにはメールアドレスが必要です。",
     },
     signInEmail: {
-      subject: "Lucky JAVへログイン",
+      subject: "Jav hubへログイン",
       previewText:
-        "このメールから Lucky JAV への安全なサインインを完了してください。",
+        "このメールから Jav hub への安全なサインインを完了してください。",
       greeting: "こんにちは。",
       intro:
-        "Lucky JAV でメールリンクによるサインインをリクエストされました。下のボタンを押して認証を完了してください。",
-      button: "Lucky JAV に今すぐサインインする",
+        "Jav hub でメールリンクによるサインインをリクエストされました。下のボタンを押して認証を完了してください。",
+      button: "Jav hub に今すぐサインインする",
       fallbackIntro:
         "ボタンを開けない場合は、次のリンクをブラウザにコピーしてください。",
       expiry:
         "セキュリティ保護のため、このリンクは 15 分後に失効し、今回のリクエストのみに有効です。",
       ignore:
         "お心当たりがない場合は、このメールを破棄してください。これ以上の処理は行われません。",
-      closing: "ご利用ありがとうございます。Lucky JAV をお楽しみください。",
-      signature: "Lucky JAV チーム",
+      closing: "ご利用ありがとうございます。Jav hub をお楽しみください。",
+      signature: "Jav hub チーム",
       footer: "このメールは自動送信です。返信には対応できません。",
     },
     myPage: {
@@ -550,21 +550,21 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       emailRequired: "Your email is required to complete sign-in.",
     },
     signInEmail: {
-      subject: "Welcome back to Lucky JAV",
+      subject: "Welcome back to Jav hub",
       previewText:
-        "Use this message to complete your secure Lucky JAV sign-in.",
+        "Use this message to complete your secure Jav hub sign-in.",
       greeting: "Hello,",
       intro:
-        "You just asked to sign in to Lucky JAV with this email address. Click the button below to confirm it's you:",
-      button: "Sign in to Lucky JAV",
+        "You just asked to sign in to Jav hub with this email address. Click the button below to confirm it's you:",
+      button: "Sign in to Jav hub",
       fallbackIntro:
         "If the button doesn’t work, copy the full link below into your browser:",
       expiry:
         "For security, this link expires in 15 minutes and only works for this request.",
       ignore:
         "If you didn’t try to sign in, simply ignore this email and no action will be taken.",
-      closing: "Thanks for being with Lucky JAV—enjoy your time!",
-      signature: "Lucky JAV Team",
+      closing: "Thanks for being with Jav hub—enjoy your time!",
+      signature: "Jav hub Team",
       footer:
         "This is an automated message. Replies to this inbox aren’t monitored.",
     },

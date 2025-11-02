@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     icons: {
-      icon: "/favicon.png",
+      icon: "/favicon.ico",
     },
   };
 }
