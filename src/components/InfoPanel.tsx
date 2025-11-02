@@ -504,7 +504,8 @@ const InfoPanel = React.forwardRef<HTMLDivElement, Props>(function InfoPanel(
         };
         if (data.exists) {
           const targetUrl =
-            data.targetUrl ?? `https://missav.ai/${encodeURIComponent(contentId)}`;
+            data.targetUrl ??
+            `https://missav.ai/${encodeURIComponent(contentId)}`;
           window.open(targetUrl, "_blank", "noopener,noreferrer");
           return;
         }

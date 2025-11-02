@@ -5,11 +5,11 @@ import Image from "next/image";
 import type { APITypes, PlyrOptions } from "plyr-react";
 import "plyr-react/plyr.css";
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useMemo,
   useRef,
-  type CSSProperties,
 } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -256,14 +256,15 @@ export default function VideoPanel({
     };
     return (
       <div className="inline-video-player h-full w-full" style={inlineStyle}>
-        {source ? <Plyr ref={playerRef} source={source} options={options} /> : null}
+        {source ? (
+          <Plyr ref={playerRef} source={source} options={options} />
+        ) : null}
       </div>
     );
   }
 
   const baseWidth = width ?? VIDEO_MIN_WIDTH;
-  const baseHeight =
-    height ?? Math.round(baseWidth * VIDEO_ASPECT_RATIO);
+  const baseHeight = height ?? Math.round(baseWidth * VIDEO_ASPECT_RATIO);
   const effectiveWidth = panelActive
     ? Math.max(baseWidth, VIDEO_MIN_WIDTH)
     : baseWidth;

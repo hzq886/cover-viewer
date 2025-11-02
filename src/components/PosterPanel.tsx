@@ -74,7 +74,6 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
     const [animating, setAnimating] = useState(false);
     // Start true to avoid initial mount flicker
     const [showNew, setShowNew] = useState(true);
-    const [isActive, setIsActive] = useState(false);
     const syncingRef = useRef(false);
     const lastInitialRef = useRef(initialIndex);
     const canZoom = current?.type !== "video";
@@ -82,19 +81,6 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
       if (!canZoom || !onRequestZoom) return;
       onRequestZoom(index, current);
     }, [canZoom, current, index, onRequestZoom]);
-
-    const handleMouseEnter = useCallback(() => setIsActive(true), []);
-    const handleMouseLeave = useCallback(() => setIsActive(false), []);
-    const handleFocusCapture = useCallback(() => setIsActive(true), []);
-    const handleBlurCapture = useCallback(
-      (event: React.FocusEvent<HTMLDivElement>) => {
-        const next = event.relatedTarget as Node | null;
-        if (!next || !event.currentTarget.contains(next)) {
-          setIsActive(false);
-        }
-      },
-      [],
-    );
 
     useEffect(() => {
       if (!total) return;
@@ -236,16 +222,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
     };
 
     return (
-      <div
-        ref={rootRef}
-        className="poster-panel"
-        style={{ width, height }}
-        data-active={isActive ? "true" : "false"}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onFocusCapture={handleFocusCapture}
-        onBlurCapture={handleBlurCapture}
-      >
+      <div ref={rootRef} className="poster-panel" style={{ width, height }}>
         {canZoom ? (
           <button
             type="button"
@@ -334,9 +311,7 @@ const PosterPanel = React.forwardRef<HTMLDivElement, Props>(
                   type="button"
                   className={`poster-panel__dot ${
                     active ? "poster-panel__dot--active" : ""
-                  } ${
-                    isVideo ? "poster-panel__dot--video" : ""
-                  }`}
+                  } ${isVideo ? "poster-panel__dot--video" : ""}`}
                   onClick={(event) => {
                     event.stopPropagation();
                     goTo(slideIndex);

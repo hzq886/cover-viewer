@@ -14,15 +14,21 @@ function ViewerModal({ open, onClose, poster, info }: ViewerModalProps) {
 
   return (
     <div className="viewer-modal" role="dialog" aria-modal="true">
-      <div className="viewer-modal__backdrop" onClick={onClose} />
+      <button
+        type="button"
+        className="viewer-modal__backdrop"
+        onClick={onClose}
+        aria-label="关闭"
+      >
+        <span className="sr-only">Close</span>
+      </button>
       <div className="viewer-modal__content">
         <button
           type="button"
           className="viewer-modal__close"
           onClick={onClose}
           aria-label="关闭"
-        >
-        </button>
+        ></button>
         <div className="viewer-modal__body">
           {poster ? (
             <div className="viewer-modal__panel viewer-modal__poster">

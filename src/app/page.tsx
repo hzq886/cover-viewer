@@ -11,8 +11,8 @@ import PosterPanel, { type MediaSlide } from "@/components/PosterPanel";
 import SearchBar from "@/components/SearchBar";
 import ViewerModal from "@/components/ViewerModal";
 import ZoomModal from "@/components/ZoomModal";
-import { useDmmSearch } from "@/hooks/useDmmSearch";
 import { useDmmInitialFeed } from "@/hooks/useDmmInitialFeed";
+import { type SearchError, useDmmSearch } from "@/hooks/useDmmSearch";
 import { useLayoutHeights } from "@/hooks/useLayoutHeights";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { DmmItem, DmmNameObj } from "@/types/dmm";
@@ -89,8 +89,33 @@ const deriveIdentifier = (
   );
 };
 
+const dedupeItems = (
+  items: Array<DmmItem | null | undefined>,
+  prefix: string,
+): DmmItem[] => {
+  const seen = new Set<string>();
+  const collection: DmmItem[] = [];
+  items.forEach((item, index) => {
+    if (!item) return;
+    const key = deriveIdentifier(item, `${prefix}-${index}`);
+    if (seen.has(key)) return;
+    seen.add(key);
+    collection.push(item);
+  });
+  return collection;
+};
+
 // 样图缩略信息的数据结构
 type SampleThumb = { url: string; portrait: boolean };
+
+type FeedRuntimeState = {
+  items: DmmItem[];
+  loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
+  loadMore: () => Promise<boolean>;
+  error: SearchError | null;
+};
 
 // 页面入口组件
 export default function Home() {
@@ -125,10 +150,6 @@ export default function Home() {
   const carouselRef = useRef<HTMLDivElement>(null);
   // 布局高度 Hook，提供 header/footer 引用与高度
   const { headerRef } = useLayoutHeights();
-  // 详情信息面板引用，阻止外层点击切换
-  const detailsRef = useRef<HTMLDivElement>(null);
-  // Logo 容器引用，阻止外层点击切换
-  const logoRef = useRef<HTMLDivElement>(null);
   // 媒体放大模态框控制
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomIndex, setZoomIndex] = useState(0);
@@ -137,7 +158,45 @@ export default function Home() {
   const resolvingVideoRef = useRef(false);
   const [selectedItem, setSelectedItem] = useState<DmmItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const activeError = hasSearched ? error : initialError;
+
+  const isSearchMode = hasSearched;
+  const searchItems = useMemo(() => dedupeItems(results, "search"), [results]);
+  const initialFeedItems = useMemo(
+    () => dedupeItems(initialItems, "initial"),
+    [initialItems],
+  );
+
+  const {
+    items: activeItems,
+    loading: activeLoading,
+    loadingMore: activeLoadingMore,
+    hasMore: activeHasMore,
+    loadMore: activeLoadMore,
+    error: activeError,
+  }: FeedRuntimeState = isSearchMode
+    ? {
+        items: searchItems,
+        loading,
+        loadingMore: loadingMoreSearch,
+        hasMore: searchHasMore,
+        loadMore: loadMoreSearch,
+        error,
+      }
+    : {
+        items: initialFeedItems,
+        loading: initialLoading,
+        loadingMore: loadingMoreInitial,
+        hasMore: initialHasMore,
+        loadMore: loadMoreInitial,
+        error: initialError,
+      };
+
+  const resetMediaState = useCallback(() => {
+    setActiveIndex(0);
+    setResolvedVideoUrl("");
+    resolvingVideoRef.current = false;
+  }, []);
+
   const errorMessage = useMemo(() => {
     if (!activeError) return null;
     const params =
@@ -150,59 +209,20 @@ export default function Home() {
     }
     return message;
   }, [activeError, t]);
-  const feedLoading = hasSearched ? loading : initialLoading;
 
-  // 当前选中的搜索结果
-  const searchItems = useMemo(() => {
-    const seen = new Set<string>();
-    const collection: DmmItem[] = [];
-    results.forEach((item, index) => {
-      if (!item) return;
-      const key = deriveIdentifier(item, `result-${index}`);
-      if (seen.has(key)) return;
-      seen.add(key);
-      collection.push(item);
-    });
-    return collection;
-  }, [results]);
-
-  const initialFeedItems = useMemo(() => {
-    const seen = new Set<string>();
-    const collection: DmmItem[] = [];
-    initialItems.forEach((item, index) => {
-      const key = deriveIdentifier(item, `initial-${index}`);
-      if (seen.has(key)) {
-        return;
-      }
-      seen.add(key);
-      collection.push(item);
-    });
-    return collection;
-  }, [initialItems]);
-
-  const itemsForFeed = useMemo(
-    () => (hasSearched ? searchItems : initialFeedItems),
-    [hasSearched, searchItems, initialFeedItems],
-  );
-
-  const activeHasMore = hasSearched ? searchHasMore : initialHasMore;
-  const activeLoadMore = hasSearched ? loadMoreSearch : loadMoreInitial;
-  const activeLoadingMore = hasSearched
-    ? loadingMoreSearch
-    : loadingMoreInitial;
-  const hasFeedError =
-    Boolean(activeError) && itemsForFeed.length === 0;
+  const feedLoading = activeLoading;
+  const hasFeedError = Boolean(activeError) && activeItems.length === 0;
   const hasLoadMoreError =
-    Boolean(activeError) && itemsForFeed.length > 0 && !feedLoading;
+    Boolean(activeError) && activeItems.length > 0 && !feedLoading;
   const loadMoreErrorMessage = hasLoadMoreError ? errorMessage : null;
   const showLoadMoreButton =
-    itemsForFeed.length > 0 &&
+    activeItems.length > 0 &&
     (activeHasMore || activeLoadingMore) &&
     !feedLoading;
 
   const feedCards = useMemo<FeedCard[]>(() => {
     const spine = POSTER_SPINE_RATIO.toFixed(2);
-    return itemsForFeed.map((item, index) => {
+    return activeItems.map((item, index) => {
       const poster = extractPosterUrl(item.imageURL ?? null);
       let coverUrl = "";
       if (poster) {
@@ -231,7 +251,7 @@ export default function Home() {
         releaseDate: item.date || item.release_date || "",
       } satisfies FeedCard;
     });
-  }, [itemsForFeed]);
+  }, [activeItems]);
 
   // 当前作品对应的基础海报 URL
   const basePosterUrl = useMemo(
@@ -247,20 +267,16 @@ export default function Home() {
     () => toProxyUrl(posterSmallUrl),
     [posterSmallUrl],
   );
-  // 作品切换时重置媒体状态
   useEffect(() => {
-    setActiveIndex(0);
-    setResolvedVideoUrl("");
-    resolvingVideoRef.current = false;
-    if (!selectedItem) {
-      return;
+    if (!isSearchMode) return;
+    const totalResults = results.length;
+    if (totalResults >= 0) {
+      resetMediaState();
+      setSelectedItem(null);
+      setDetailOpen(false);
+      setOrderedSamples([]);
     }
-  }, [selectedItem]);
-  useEffect(() => {
-    if (!hasSearched) return;
-    setSelectedItem(null);
-    setDetailOpen(false);
-  }, [results, hasSearched]);
+  }, [isSearchMode, resetMediaState, results]);
   const sampleImages: string[] = useMemo(() => {
     const images =
       selectedItem?.sampleImageURL?.sample_l?.image ||
@@ -428,10 +444,7 @@ export default function Home() {
     const verticalMargin = 64;
     const infoWidth =
       viewportWidth >= 960
-        ? Math.min(
-            Math.max(Math.round(viewportWidth * 0.26), 220),
-            360,
-          )
+        ? Math.min(Math.max(Math.round(viewportWidth * 0.26), 220), 360)
         : 0;
     const fallbackHeight = Math.round(baseWidth / TARGET_ASPECT_RATIO);
     const availableHeight = viewportHeight
@@ -497,7 +510,7 @@ export default function Home() {
     });
   }, [mediaSlides.length]);
 
-  const resultsCount = itemsForFeed.length;
+  const resultsCount = activeItems.length;
 
   useEffect(() => {
     setZoomIndex((prev) => {
@@ -530,29 +543,33 @@ export default function Home() {
     await activeLoadMore();
   }, [activeHasMore, activeLoadMore, activeLoadingMore]);
 
-  const handleOpenDetail = useCallback((item: DmmItem) => {
-    setSelectedItem(item);
-    setDetailOpen(true);
-  }, []);
+  const handleOpenDetail = useCallback(
+    (item: DmmItem) => {
+      resetMediaState();
+      setSelectedItem(item);
+      setDetailOpen(true);
+    },
+    [resetMediaState],
+  );
 
   const handleCloseDetail = useCallback(() => {
+    resetMediaState();
     setDetailOpen(false);
     setSelectedItem(null);
-  }, []);
+    setOrderedSamples([]);
+  }, [resetMediaState]);
 
   // 重置页面状态并返回初始界面
   const handleResetHome = useCallback(() => {
     reset();
     void reloadInitial();
     setOrderedSamples([]);
-    setActiveIndex(0);
+    resetMediaState();
     setZoomIndex(0);
     setZoomOpen(false);
-    setResolvedVideoUrl("");
-    resolvingVideoRef.current = false;
     setSelectedItem(null);
     setDetailOpen(false);
-  }, [reloadInitial, reset]);
+  }, [reloadInitial, reset, resetMediaState]);
 
   useEffect(() => {
     if (!detailOpen) return;
@@ -570,20 +587,19 @@ export default function Home() {
   const navBase =
     "flex w-full items-center justify-start gap-4 md:gap-6 transition";
 
-  const { contentId, title, affiliate, actressNames } =
-    useMemo(() => {
-      const iteminfo = selectedItem?.iteminfo;
-      return {
-        contentId:
-          selectedItem?.content_id ||
-          selectedItem?.contentid ||
-          getLegacyField(selectedItem, "product_id") ||
-          "",
-        title: selectedItem?.title || "",
-        affiliate: selectedItem?.affiliateURL || selectedItem?.URL || "",
-        actressNames: joinNames(iteminfo?.actress),
-      };
-    }, [selectedItem]);
+  const { contentId, title, affiliate, actressNames } = useMemo(() => {
+    const iteminfo = selectedItem?.iteminfo;
+    return {
+      contentId:
+        selectedItem?.content_id ||
+        selectedItem?.contentid ||
+        getLegacyField(selectedItem, "product_id") ||
+        "",
+      title: selectedItem?.title || "",
+      affiliate: selectedItem?.affiliateURL || selectedItem?.URL || "",
+      actressNames: joinNames(iteminfo?.actress),
+    };
+  }, [selectedItem]);
 
   return (
     <div className="relative min-h-svh w-full overflow-x-hidden overflow-y-auto bg-slate-950 text-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -593,7 +609,7 @@ export default function Home() {
           className="relative z-[80] flex w-full justify-start"
         >
           <nav className={navBase}>
-            <div ref={logoRef} className="flex items-center justify-start">
+            <div className="flex items-center justify-start">
               <Logo
                 onHome={handleResetHome}
                 className="scale-90 opacity-95 transition-transform hover:opacity-100"
@@ -689,7 +705,6 @@ export default function Home() {
         info={
           selectedItem ? (
             <InfoPanel
-              ref={detailsRef}
               contentId={contentId}
               title={title}
               affiliate={affiliate}

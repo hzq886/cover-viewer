@@ -284,8 +284,7 @@ export default function MyPage() {
           };
           if (data.exists) {
             const targetUrl =
-              data.targetUrl ??
-              `https://missav.ai/${encodeURIComponent(id)}`;
+              data.targetUrl ?? `https://missav.ai/${encodeURIComponent(id)}`;
             window.open(targetUrl, "_blank", "noopener,noreferrer");
             return;
           }

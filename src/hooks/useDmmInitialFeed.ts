@@ -53,20 +53,24 @@ export function useDmmInitialFeed() {
   }, []);
 
   const computeNextOffset = useCallback(
-    (result: unknown, currentOffset: number, batchLength: number): number | null => {
+    (
+      result: unknown,
+      currentOffset: number,
+      batchLength: number,
+    ): number | null => {
       if (!batchLength) {
         return null;
       }
       const record = (result as Record<string, unknown>) || {};
-      const firstPosition =
-        parseNumber(record.first_position) ?? currentOffset;
+      const firstPosition = parseNumber(record.first_position) ?? currentOffset;
       const resultCount = parseNumber(record.result_count) ?? batchLength;
       const totalCount = parseNumber(record.total_count);
       const next = firstPosition + resultCount;
       if (totalCount !== null && next > totalCount) {
         return null;
       }
-      const hasMoreByBatch = resultCount >= BATCH_SIZE || batchLength >= BATCH_SIZE;
+      const hasMoreByBatch =
+        resultCount >= BATCH_SIZE || batchLength >= BATCH_SIZE;
       if (totalCount === null && !hasMoreByBatch) {
         return null;
       }

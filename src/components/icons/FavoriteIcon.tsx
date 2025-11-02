@@ -2,13 +2,13 @@
 
 import type { SVGProps } from "react";
 
-type HeartIconProps = SVGProps<SVGSVGElement> & { title?: string };
+type SvgWithTitleProps = SVGProps<SVGSVGElement> & { title?: string };
 
 // Outline heart icon (Material Symbols Light Favorite Outline)
 export function MaterialSymbolsLightFavoriteOutline({
   title,
   ...props
-}: HeartIconProps) {
+}: SvgWithTitleProps) {
   const resolvedTitle =
     typeof title === "string" && title.trim().length > 0
       ? title
@@ -36,7 +36,7 @@ export function MaterialSymbolsLightFavoriteOutline({
 export function MaterialSymbolsLightFavorite({
   title,
   ...props
-}: HeartIconProps) {
+}: SvgWithTitleProps) {
   const resolvedTitle =
     typeof title === "string" && title.trim().length > 0
       ? title
@@ -60,17 +60,24 @@ export function MaterialSymbolsLightFavorite({
   );
 }
 
-export function MaterialSymbolsThumbUpOutline(
-  props: SVGProps<SVGSVGElement>,
-) {
+export function MaterialSymbolsThumbUpOutline({
+  title,
+  ...props
+}: SvgWithTitleProps) {
+  const resolvedTitle =
+    typeof title === "string" && title.trim().length > 0
+      ? title
+      : "Thumb up outline icon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="1em"
       height="1em"
       viewBox="0 0 24 24"
+      role="img"
       {...props}
     >
+      <title>{resolvedTitle}</title>
       {/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}
       <path
         fill="currentColor"
