@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { timeoutSignal } from "@/lib/abort";
+import { incrementDmmDailyApiCount } from "@/lib/dmm-metrics";
 
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
+  let metricsPromise: Promise<void> | undefined;
   try {
     const { searchParams } = new URL(req.url);
     const offsetParam = searchParams.get("offset");
@@ -24,6 +26,8 @@ export async function GET(req: Request) {
         { status: 500 },
       );
     }
+
+    metricsPromise = incrementDmmDailyApiCount();
 
     const endpoint = new URL("https://api.dmm.com/affiliate/v3/ItemList");
     const params: Record<string, string> = {
@@ -57,6 +61,9 @@ export async function GET(req: Request) {
     if (!res.ok) {
       const text = await res.text();
       const status = res.status;
+      if (metricsPromise) {
+        await metricsPromise;
+      }
       return NextResponse.json(
         {
           code: "dmm_api_error",
@@ -72,6 +79,10 @@ export async function GET(req: Request) {
     const result = data?.result ?? {};
     const items = result.items ?? [];
 
+    if (metricsPromise) {
+      await metricsPromise;
+    }
+
     return NextResponse.json(
       { items, result },
       {
@@ -82,6 +93,9 @@ export async function GET(req: Request) {
       },
     );
   } catch (error: unknown) {
+    if (metricsPromise) {
+      await metricsPromise;
+    }
     const isTimeout =
       error instanceof Error &&
       (error.name === "TimeoutError" || error.name === "AbortError");

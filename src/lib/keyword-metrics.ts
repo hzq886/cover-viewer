@@ -11,7 +11,8 @@ export function buildKeywordDocumentId(rawKeyword: string): string {
   if (!normalized) {
     return INVALID_KEYWORD_ID;
   }
-  return encodeURIComponent(normalized);
+  // Firestore 文档 ID 支持大部分 Unicode 字符，仅避免斜杠等保留字符。
+  return normalized.replaceAll("/", "／");
 }
 
 export function hasKeywordIdentifier(docId: string): docId is string {

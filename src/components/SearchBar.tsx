@@ -12,7 +12,6 @@ import {
 import { GENRE_TRANSLATIONS } from "@/data/genre-translations";
 import { GENRE_GROUPS } from "@/data/genres";
 import { useI18n } from "@/i18n/I18nProvider";
-import { hasFirebaseConfig } from "@/lib/firebase";
 
 type Props = {
   keyword: string;
@@ -97,29 +96,6 @@ export default function SearchBar({
   className,
 }: Props) {
   const { t, language } = useI18n();
-  const firebaseReady = useMemo(() => hasFirebaseConfig(), []);
-  const recordSelectedKeyword = useCallback(
-    async (rawKeyword: string) => {
-      if (!firebaseReady) return;
-      const keywordForMetrics = rawKeyword.trim();
-      if (!keywordForMetrics) return;
-
-      try {
-        const response = await fetch("/api/metrics/selected-keyword", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ keyword: keywordForMetrics }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-      } catch (error) {
-        console.error("Failed to record selected keyword", error);
-      }
-    },
-    [firebaseReady],
-  );
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLFormElement>(null);
   const keywordPanelRef = useRef<HTMLDivElement>(null);
@@ -276,7 +252,6 @@ export default function SearchBar({
     const nextTokens = tokens.includes(word) ? tokens : [...tokens, word];
     const newValue = `${nextTokens.join(" ")} `.replace(/\s+$/, " ");
     setKeyword(newValue);
-    void recordSelectedKeyword(word);
     // 将光标移动到文本末尾，便于继续输入
     requestAnimationFrame(() => {
       const el = inputRef.current;
@@ -419,7 +394,6 @@ export default function SearchBar({
                       onMouseDown={(event) => {
                         event.preventDefault();
                         setKeyword(item);
-                        void recordSelectedKeyword(item);
                         requestAnimationFrame(() => {
                           inputRef.current?.focus();
                           setShowRecent(false);

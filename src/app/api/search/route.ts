@@ -2,11 +2,10 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
 import { timeoutSignal } from "@/lib/abort";
+import { incrementDmmDailyApiCount } from "@/lib/dmm-metrics";
 import { getFirebaseAdminFirestore } from "@/lib/firebase-admin";
 import {
   buildKeywordDocumentId,
-  DAILY_SUBCOLLECTION,
-  DMM_API_DOC,
   KEYWORD_AGGREGATES_SUBCOLLECTION,
   METRICS_COLLECTION,
   normalizeKeyword,
@@ -19,24 +18,7 @@ async function recordSearchMetrics(keyword: string) {
   try {
     const db = getFirebaseAdminFirestore();
     const metrics = db.collection(METRICS_COLLECTION);
-    const now = new Date();
-    const dateKey = now.toISOString().slice(0, 10);
-
-    const dailyDocRef = metrics
-      .doc(DMM_API_DOC)
-      .collection(DAILY_SUBCOLLECTION)
-      .doc(dateKey);
-
-    const updates: Promise<unknown>[] = [
-      dailyDocRef.set(
-        {
-          date: dateKey,
-          count: FieldValue.increment(1),
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      ),
-    ];
+    const updates: Promise<unknown>[] = [incrementDmmDailyApiCount(db)];
 
     const keywordDocId = buildKeywordDocumentId(keyword);
     if (keywordDocId) {
@@ -48,7 +30,6 @@ async function recordSearchMetrics(keyword: string) {
           .doc(keywordDocId)
           .set(
             {
-              keyword,
               normalized,
               count: FieldValue.increment(1),
               lastSearchedAt: FieldValue.serverTimestamp(),
