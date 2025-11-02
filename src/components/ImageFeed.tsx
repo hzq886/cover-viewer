@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { DmmItem } from "@/types/dmm";
 
 export type FeedCard = {
@@ -35,6 +36,11 @@ function ImageFeed({
   startHint,
   emptyLabel,
 }: Props) {
+  const { t } = useI18n();
+  const fallbackAlt = t("imageFeed.posterAlt");
+  const noCoverLabel = t("imageFeed.noCover");
+  const untitledLabel = t("imageFeed.untitled");
+
   if (loading) {
     return (
       <div className="flex h-[60svh] items-center justify-center">
@@ -94,7 +100,7 @@ function ImageFeed({
               {card.coverUrl ? (
                 <Image
                   src={card.coverUrl}
-                  alt={card.title || "封面预览"}
+                  alt={card.title || fallbackAlt}
                   fill
                   unoptimized
                   sizes="(max-width: 640px) 80vw, (max-width: 1024px) 30vw, 220px"
@@ -102,14 +108,14 @@ function ImageFeed({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-sm text-slate-300/70">
-                  暂无封面
+                  {noCoverLabel}
                 </div>
               )}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55 opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <div className="flex flex-col gap-2 px-4 py-4">
               <span className="line-clamp-2 text-sm font-semibold leading-snug text-white/90">
-                {card.title || "未命名作品"}
+                {card.title || untitledLabel}
               </span>
               {card.maker ? (
                 <span className="text-xs text-slate-300/75">{card.maker}</span>

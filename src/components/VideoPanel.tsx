@@ -71,7 +71,6 @@ export default function VideoPanel({
 }: Props) {
   const { dictionary } = useI18n();
   const videoText = dictionary.video;
-  const playTitle = dictionary.infoPanel.play;
   const playerRef = useRef<APITypes | null>(null);
   const isInline = layout === "inline";
   const panelActive = isInline ? true : active;
@@ -305,7 +304,7 @@ export default function VideoPanel({
               fill="currentColor"
               aria-hidden
             >
-              <title>{playTitle}</title>
+              <title>{videoText.activate}</title>
               <path d="M8 5v14l11-7z" />
             </svg>
           </span>

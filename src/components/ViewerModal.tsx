@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type ViewerModalProps = {
   open: boolean;
@@ -10,6 +11,8 @@ type ViewerModalProps = {
 };
 
 function ViewerModal({ open, onClose, poster, info }: ViewerModalProps) {
+  const { t } = useI18n();
+  const closeLabel = t("viewerModal.close");
   if (!open) return null;
 
   return (
@@ -18,16 +21,16 @@ function ViewerModal({ open, onClose, poster, info }: ViewerModalProps) {
         type="button"
         className="viewer-modal__backdrop"
         onClick={onClose}
-        aria-label="关闭"
+        aria-label={closeLabel}
       >
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{closeLabel}</span>
       </button>
       <div className="viewer-modal__content">
         <button
           type="button"
           className="viewer-modal__close"
           onClick={onClose}
-          aria-label="关闭"
+          aria-label={closeLabel}
         ></button>
         <div className="viewer-modal__body">
           {poster ? (

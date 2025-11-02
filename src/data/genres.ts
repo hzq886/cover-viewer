@@ -320,22 +320,4 @@ export const GENRE_GROUPS: GenreGroup[] = [
       { id: "79015", label: "4K" },
     ],
   },
-  {
-    id: "campaign",
-    title: "セール",
-    items: [
-      { label: "すべてのセール" },
-      { label: "SODグループ30％OFF第1弾" },
-      { label: "ケイ・エム・プロデュース他30％OFF" },
-      { label: "妄想族30％OFF" },
-      { label: "JET映像他30％OFF" },
-      { label: "ブランドストア30％OFF！" },
-      { label: "売れ筋！ビデオ30％OFF第2弾" },
-      { label: "秋のシコシコ強化月間45％OFF第4弾" },
-      { label: "秋のシコシコ強化月間30％OFF第4弾" },
-      { label: "日替わりセール☆" },
-      { label: "滝沢ガレソコラボ100円セール第2弾" },
-      { label: "期間限定セール" },
-    ],
-  },
 ] as const;

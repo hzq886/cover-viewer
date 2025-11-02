@@ -1,10 +1,5 @@
 export type LanguageCode = "zh-CN" | "zh-TW" | "ja" | "en";
 
-type Feature = {
-  title: string;
-  description: string;
-};
-
 export const LANGUAGE_DISPLAY_NAMES: Record<LanguageCode, string> = {
   "zh-CN": "简体中文",
   "zh-TW": "繁體中文",
@@ -14,11 +9,8 @@ export const LANGUAGE_DISPLAY_NAMES: Record<LanguageCode, string> = {
 
 type TranslationShape = {
   languageSwitcher: {
-    label: string;
     ariaLabel: string;
-    optionAria: string;
   };
-  languages: Record<LanguageCode, string>;
   authBar: {
     loading: string;
     login: string;
@@ -77,7 +69,6 @@ type TranslationShape = {
   search: {
     placeholder: string;
     clear: string;
-    submit: string;
     submitTitle: string;
     submitAria: string;
     deleteRecent: string;
@@ -91,33 +82,16 @@ type TranslationShape = {
   logo: {
     homeAria: string;
   };
-  hero: {
-    badge: string;
-    heading1: string;
-    description: string;
-    emphasis: string;
-    features: Feature[];
+  imageFeed: {
+    posterAlt: string;
+    noCover: string;
+    untitled: string;
+  };
+  viewerModal: {
+    close: string;
   };
   page: {
     noResults: string;
-  };
-  infoPanel: {
-    contentId: string;
-    maker: string;
-    director: string;
-    releaseDate: string;
-    play: string;
-    playAria: string;
-    imageSize: string;
-    stageSize: string;
-    remaining: string;
-  };
-  sample: {
-    front: string;
-    back: string;
-    view: string;
-    more: string;
-    backToTop: string;
   };
   video: {
     close: string;
@@ -152,15 +126,8 @@ type TranslationShape = {
     likeAria: string;
     unlikeAria: string;
   };
-  portal: {
-    title: string;
-    subtitle: string;
-    subtitleFallback: string;
-    redirecting: string;
-  };
   errors: {
     searchFailed: string;
-    missingKeyword: string;
     serverMissingConfig: string;
     dmmApi: string;
     timeout: string;
@@ -171,11 +138,8 @@ type TranslationShape = {
 export const translations: Record<LanguageCode, TranslationShape> = {
   "zh-CN": {
     languageSwitcher: {
-      label: "语言",
       ariaLabel: "选择界面语言",
-      optionAria: "切换为{{language}}",
     },
-    languages: LANGUAGE_DISPLAY_NAMES,
     authBar: {
       loading: "认证中…",
       login: "登录",
@@ -237,7 +201,6 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     search: {
       placeholder: "输入任意关键词(多个关键词用空格隔开)",
       clear: "清除搜索内容",
-      submit: "搜索",
       submitTitle: "搜索",
       submitAria: "执行搜索",
       deleteRecent: "删除 '{{value}}'",
@@ -251,55 +214,16 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     logo: {
       homeAria: "返回首页",
     },
-    hero: {
-      badge: "好运AV",
-      heading1: "任意关键词随机搜 AV，下一秒遇见女神",
-      description:
-        "从番号、演员到剧情口味，输入任何灵感；左侧关键词大词典随时点燃新的搜索思路。",
-      emphasis: "搜得不满意？连续点按搜索键，多刷新几次直到撞见最想要的女神。",
-      features: [
-        {
-          title: "随机匹配，灵感不停",
-          description: "任意组合关键词，一键抽选 AV 作品。",
-        },
-        {
-          title: "关键词词典助攻",
-          description: "搜索框左侧收录热门到冷门标签，点一点拓展灵感池。",
-        },
-        {
-          title: "沉浸式欣赏",
-          description: "封面、剧照、样片同时呈现，还能随手留下评论。",
-        },
-        {
-          title: "轻松点赞收藏",
-          description: "快速注册即可点赞，心仪作品一键收入私人收藏册。",
-        },
-        {
-          title: "无限刷新体验",
-          description: "不满意当前结果？继续搜索立刻换一批，全程无等待。",
-        },
-      ],
+    imageFeed: {
+      posterAlt: "封面预览",
+      noCover: "暂无封面",
+      untitled: "未命名作品",
+    },
+    viewerModal: {
+      close: "关闭",
     },
     page: {
       noResults: "未找到相关海报，请更换关键词再试。",
-    },
-    infoPanel: {
-      contentId: "番号:",
-      maker: "厂商:",
-      director: "导演:",
-      releaseDate: "发布日期:",
-      play: "播放样片",
-      playAria: "播放样片",
-      imageSize: "图片实际分辨率: {{value}}",
-      stageSize: "显示区域尺寸: {{value}}",
-      remaining: "当前关键词剩余数量: {{count}}",
-    },
-    sample: {
-      front: "封面",
-      back: "封底",
-      view: "查看样张",
-      more: "更多",
-      backToTop: "返回上方",
     },
     video: {
       close: "关闭",
@@ -334,15 +258,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "点个喜欢",
       unlikeAria: "取消喜欢",
     },
-    portal: {
-      title: "奥术传送门",
-      subtitle: "远古符文正在追寻 {{code}} 的踪迹…",
-      subtitleFallback: "远古符文正在倾听未知的呼唤…",
-      redirecting: "5 秒后传送至目标领域",
-    },
     errors: {
       searchFailed: "搜索失败，请稍后重试。",
-      missingKeyword: "请输入关键词后再搜索。",
       serverMissingConfig: "服务器缺少必要的 DMM 配置。",
       dmmApi: "上游 DMM API 返回错误 ({{status}})。",
       timeout: "请求 DMM API 超时，请稍后再试。",
@@ -351,11 +268,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
   },
   "zh-TW": {
     languageSwitcher: {
-      label: "語言",
       ariaLabel: "選擇介面語言",
-      optionAria: "切換為{{language}}",
     },
-    languages: LANGUAGE_DISPLAY_NAMES,
     authBar: {
       loading: "驗證中…",
       login: "登入",
@@ -418,7 +332,6 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     search: {
       placeholder: "輸入任意關鍵字（多個關鍵字以空格分隔）",
       clear: "清除搜尋內容",
-      submit: "搜尋",
       submitTitle: "搜尋",
       submitAria: "執行搜尋",
       deleteRecent: "刪除『{{value}}』",
@@ -432,55 +345,16 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     logo: {
       homeAria: "返回首頁",
     },
-    hero: {
-      badge: "好運AV",
-      heading1: "輸入任意關鍵字隨機搜 AV，下一秒邂逅女神",
-      description:
-        "從番號、演員到情境口味，輸入任何靈感；左側關鍵字大詞典讓靈感源源不絕。",
-      emphasis: "結果不對味？連續點擊搜尋鍵再抽幾次，直到抽中最想看的女神。",
-      features: [
-        {
-          title: "隨機匹配，靈感不斷",
-          description: "自由組合關鍵字，一鍵抽選全站 AV 作品。",
-        },
-        {
-          title: "關鍵字詞典助攻",
-          description: "搜尋框左側收錄熱門到冷門標籤，點一下拓展靈感池。",
-        },
-        {
-          title: "沉浸式欣賞",
-          description: "封面、劇照、樣片同時呈現，還能即時留言互動。",
-        },
-        {
-          title: "輕鬆按讚收藏",
-          description: "快速註冊立即按讚，心頭好作品一鍵加入私人收藏冊。",
-        },
-        {
-          title: "無限刷新體驗",
-          description: "不喜歡目前結果？再搜尋立刻換一批，完全不用等待。",
-        },
-      ],
+    imageFeed: {
+      posterAlt: "封面預覽",
+      noCover: "暫無封面",
+      untitled: "未命名作品",
+    },
+    viewerModal: {
+      close: "關閉",
     },
     page: {
       noResults: "找不到相關海報，請換個關鍵字再試。",
-    },
-    infoPanel: {
-      contentId: "番號:",
-      maker: "廠商:",
-      director: "導演:",
-      releaseDate: "發售日:",
-      play: "播放試看",
-      playAria: "播放試看",
-      imageSize: "圖片實際解析度: {{value}}",
-      stageSize: "顯示區域尺寸: {{value}}",
-      remaining: "此關鍵字剩餘數量: {{count}}",
-    },
-    sample: {
-      front: "封面",
-      back: "封底",
-      view: "檢視樣張",
-      more: "更多",
-      backToTop: "回到上方",
     },
     video: {
       close: "關閉",
@@ -515,15 +389,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "點個喜歡",
       unlikeAria: "取消喜歡",
     },
-    portal: {
-      title: "奧術傳送門",
-      subtitle: "遠古符文正在追尋 {{code}} 的足跡…",
-      subtitleFallback: "遠古符文正在傾聽未知的呼喚…",
-      redirecting: "5 秒後傳送至目的領域",
-    },
     errors: {
       searchFailed: "搜尋失敗，請稍候再試。",
-      missingKeyword: "請先輸入關鍵字再搜尋。",
       serverMissingConfig: "伺服器缺少必要的 DMM 設定。",
       dmmApi: "上游 DMM API 回傳錯誤 ({{status}})。",
       timeout: "請求 DMM API 逾時，請稍後再試。",
@@ -532,11 +399,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
   },
   ja: {
     languageSwitcher: {
-      label: "言語",
       ariaLabel: "表示言語を選択する",
-      optionAria: "{{language}}に切り替える",
     },
-    languages: LANGUAGE_DISPLAY_NAMES,
     authBar: {
       loading: "認証中…",
       login: "ログイン",
@@ -604,7 +468,6 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     search: {
       placeholder: "キーワードを入力してください（複数はスペース区切り）",
       clear: "検索語をクリア",
-      submit: "検索",
       submitTitle: "検索",
       submitAria: "検索を実行",
       deleteRecent: "『{{value}}』を削除",
@@ -618,62 +481,17 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     logo: {
       homeAria: "トップに戻る",
     },
-    hero: {
-      badge: "ラッキーAV",
-      heading1:
-        "好きなキーワードで AV をランダム探索、次の瞬間に出会う決めの一本",
-      description:
-        "品番、女優、シチュエーションまで、ひらめいた言葉を入力。左側のキーワード大辞典で新しい切り口もすぐ見つかります。",
-      emphasis:
-        "結果がしっくり来なければ検索ボタンを連打、納得いくまで何度でもリロード。",
-      features: [
-        {
-          title: "ランダムマッチで新発見",
-          description: "自由なキーワードの組み合わせで全作品をシャッフル抽出。",
-        },
-        {
-          title: "キーワード大辞典",
-          description:
-            "検索ボックス左の辞典から人気タグもレアタグもワンタップで追加。",
-        },
-        {
-          title: "没入型プレビュー",
-          description:
-            "ジャケット・スチル・サンプル映像を同時に楽しみ、コメントも投稿可能。",
-        },
-        {
-          title: "ワンクリックでお気に入り",
-          description:
-            "スピード登録ですぐにいいね、そしてマイコレクションへ保存。",
-        },
-        {
-          title: "納得するまで再検索",
-          description:
-            "気に入るまで何度でも再抽選、待ち時間ゼロでラインナップを更新。",
-        },
-      ],
+    imageFeed: {
+      posterAlt: "ジャケットのプレビュー",
+      noCover: "ジャケット画像はありません",
+      untitled: "タイトル未設定",
+    },
+    viewerModal: {
+      close: "閉じる",
     },
     page: {
       noResults:
         "該当するジャケットが見つかりませんでした。キーワードを変更して再度お試しください。",
-    },
-    infoPanel: {
-      contentId: "品番:",
-      maker: "メーカー:",
-      director: "監督:",
-      releaseDate: "発売日:",
-      play: "サンプル動画を再生",
-      playAria: "サンプル動画を再生",
-      imageSize: "画像解像度: {{value}}",
-      stageSize: "表示エリアサイズ: {{value}}",
-      remaining: "このキーワードの残り候補: {{count}}",
-    },
-    sample: {
-      front: "表面",
-      back: "裏面",
-      view: "サンプルを見る",
-      more: "もっと見る",
-      backToTop: "上へ戻る",
     },
     video: {
       close: "閉じる",
@@ -708,15 +526,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "いいねする",
       unlikeAria: "いいねを取り消す",
     },
-    portal: {
-      title: "古の転移門",
-      subtitle: "悠久のルーンが {{code}} の座標を探知中…",
-      subtitleFallback: "悠久のルーンが未知の囁きを聞き取っています…",
-      redirecting: "五秒後に転移を開始します",
-    },
     errors: {
       searchFailed: "検索に失敗しました。時間をおいて再度お試しください。",
-      missingKeyword: "検索するキーワードを入力してください。",
       serverMissingConfig: "サーバーに必要な DMM 設定がありません。",
       dmmApi: "DMM API がエラーを返しました ({{status}})。",
       timeout: "DMM API の応答がタイムアウトしました。",
@@ -725,11 +536,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
   },
   en: {
     languageSwitcher: {
-      label: "Language",
       ariaLabel: "Select interface language",
-      optionAria: "Switch to {{language}}",
     },
-    languages: LANGUAGE_DISPLAY_NAMES,
     authBar: {
       loading: "Authenticating…",
       login: "Login",
@@ -799,7 +607,6 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       placeholder:
         "Enter any keyword (use spaces to separate multiple keywords)",
       clear: "Clear search input",
-      submit: "Search",
       submitTitle: "Search",
       submitAria: "Run search",
       deleteRecent: "Remove '{{value}}'",
@@ -813,62 +620,16 @@ export const translations: Record<LanguageCode, TranslationShape> = {
     logo: {
       homeAria: "Go back to home",
     },
-    hero: {
-      badge: "Lucky AV",
-      heading1:
-        "Search any keyword and let a surprise AV pick find you in seconds",
-      description:
-        "Type whatever sparks your curiosity: IDs, performers, studios, kinks; the discovery engine spins up a tailored lineup. The keyword dictionary on the left keeps fresh ideas flowing.",
-      emphasis:
-        "Not feeling the match? Hit search again and remix your results as many times as you like.",
-      features: [
-        {
-          title: "Randomized finds on demand",
-          description:
-            "Mash up any keywords to shuffle intelligent AV recommendations instantly.",
-        },
-        {
-          title: "Keyword dictionary at hand",
-          description:
-            "Browse the left-side atlas for trending and niche terms to ignite new searches.",
-        },
-        {
-          title: "Immersive viewing suite",
-          description:
-            "Covers, stills, and trailers load together, and comments keep the conversation going.",
-        },
-        {
-          title: "Quick like & collect",
-          description:
-            "Register in moments to drop likes and file favorites into your private collection.",
-        },
-        {
-          title: "Endless re-rolls",
-          description:
-            "Swap the lineup with another search the second you want something different.",
-        },
-      ],
+    imageFeed: {
+      posterAlt: "Poster preview",
+      noCover: "No cover available",
+      untitled: "Untitled work",
+    },
+    viewerModal: {
+      close: "Close",
     },
     page: {
       noResults: "No posters found. Try another keyword.",
-    },
-    infoPanel: {
-      contentId: "SKU:",
-      maker: "Studio:",
-      director: "Director:",
-      releaseDate: "Release date:",
-      play: "Play sample",
-      playAria: "Play sample",
-      imageSize: "Image resolution: {{value}}",
-      stageSize: "Display stage size: {{value}}",
-      remaining: "Remaining results for this keyword: {{count}}",
-    },
-    sample: {
-      front: "Front",
-      back: "Back",
-      view: "View sample",
-      more: "More",
-      backToTop: "Back to top",
     },
     video: {
       close: "Close",
@@ -903,15 +664,8 @@ export const translations: Record<LanguageCode, TranslationShape> = {
       likeAria: "Like this cover",
       unlikeAria: "Remove like",
     },
-    portal: {
-      title: "Arcane Gate",
-      subtitle: "Ancient sigils hunt for the trail of {{code}}…",
-      subtitleFallback: "Ancient sigils heed an unnamed summons…",
-      redirecting: "Teleporting in 5 heartbeats",
-    },
     errors: {
       searchFailed: "Search failed. Please try again in a moment.",
-      missingKeyword: "Enter a keyword before searching.",
       serverMissingConfig: "Server is missing required DMM configuration.",
       dmmApi: "Upstream DMM API returned an error ({{status}}).",
       timeout: "Request to DMM API timed out. Please try again.",
